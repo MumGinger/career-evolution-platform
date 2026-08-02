@@ -18,3 +18,4 @@ The foundation consistently reflects these constraints:
 - Confirm the local application-to-interview workflow is the right first validation slice.
 - Confirm the desired review authority and privacy/retention boundaries before any skill update is allowed.
 - Confirm that the deterministic artifact is sufficient for the MVP, without introducing a model integration prematurely.
+- Confirm that resume parsing remains limited to explicit text and that ambiguous structured entries are appropriately marked for confirmation.

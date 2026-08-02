@@ -9,10 +9,11 @@
 - Documented the product-first vision, architecture principles, and initial design models.
 - Recorded the decision to validate Career before extracting a framework.
 - Implemented MVP-001: a local application-to-interview evidence loop with SQLite persistence, versioned artifacts, and non-learning outcome evidence.
+- Implemented Experiment 002: PDF resume intake that bootstraps traceable Candidate Knowledge facts without inferred content.
 
 ## Current focus
 
-Validate the local MVP with representative application records and refine the review, privacy, and evaluation boundaries before broader use.
+Validate candidate knowledge from resume imports alongside the existing application workflow, then define review and privacy boundaries before broader collection.
 
 ## Next decision
 
