@@ -1,7 +1,7 @@
 # Review Report
 
 **Date:** 2026-08-02  
-**Status:** Pending human review
+**Status:** Pending human review of MVP-001
 
 ## Self-review
 
@@ -15,5 +15,6 @@ The foundation consistently reflects these constraints:
 
 ## Requested reviewer focus
 
-- Confirm the first validation workflow for Phase 0/1.
-- Confirm the desired review authority and privacy boundaries for evidence.
+- Confirm the local application-to-interview workflow is the right first validation slice.
+- Confirm the desired review authority and privacy/retention boundaries before any skill update is allowed.
+- Confirm that the deterministic artifact is sufficient for the MVP, without introducing a model integration prematurely.
