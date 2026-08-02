@@ -19,3 +19,17 @@ Career is the first validation domain. A reusable adaptive framework may be extr
 - `reports/` — implementation and review records
 
 Read [AGENTS.md](AGENTS.md) before contributing.
+
+## Local MVP
+
+Issue #1 is implemented as a local SQLite CLI with no external packages. It creates a candidate profile, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
+
+```powershell
+node src/cli.js profile-create --db career-evolution.db --name "Aira" --skills "JavaScript,SQL"
+node src/cli.js application-create --db career-evolution.db --profile-id <profile-id> --company "Acme" --role-title "Product Engineer" --job-description "..."
+node src/cli.js application-generate --db career-evolution.db --application-id <application-id>
+node src/cli.js outcome-record --db career-evolution.db --application-id <application-id> --outcome interview_invited
+node src/cli.js application-show --db career-evolution.db --application-id <application-id>
+```
+
+Run the automated tests with `node --test tests/*.test.js`. Node.js 22.5+ is required for its built-in SQLite module.
