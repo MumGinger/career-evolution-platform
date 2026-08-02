@@ -18,6 +18,7 @@ Implemented Issue #1's narrow local application-to-interview evidence loop on to
 - A deterministic tailored application note that records its exact skill version and model metadata
 - Separate outcome, preference, and internal-diagnostic evidence with automatic skill updates explicitly disabled
 - Automated Node tests for record creation, version linkage, and evidence classification
+- Experiment 002 PDF resume intake, candidate-fact persistence, and profile inspection with `resume` provenance and `parsed` confidence
 
 ## Validation
 
