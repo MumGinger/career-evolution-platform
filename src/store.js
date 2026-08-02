@@ -47,7 +47,7 @@ class Store {
   }
   createResumeProfile({ sourcePath, basic = {}, facts = [] }) {
     const skills = facts.filter((fact) => fact.entity_type === 'skill').map((fact) => fact.value.name);
-    const profile = this.createProfile({ name: basic.name || 'Needs confirmation', email: basic.email || '', headline: basic.headline || '', skills });
+    const profile = this.createProfile({ name: basic.name || '', email: basic.email || '', headline: basic.headline || '', skills });
     const resumeImport = { id: this.id(), profile_id: profile.id, source_path: sourcePath, imported_at: this.now() };
     this.db.prepare('INSERT INTO resume_imports VALUES (?, ?, ?, ?)').run(resumeImport.id, resumeImport.profile_id, resumeImport.source_path, resumeImport.imported_at);
     for (const fact of facts) {
