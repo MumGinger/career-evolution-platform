@@ -1,6 +1,7 @@
 const { spawnSync } = require('node:child_process');
 
 const SECTION_NAMES = new Map([['experience', 'experience'], ['work experience', 'experience'], ['education', 'education'], ['projects', 'project'], ['skills', 'skill'], ['certifications', 'certification'], ['certificates', 'certification']]);
+const UNSUPPORTED_SECTION_HEADINGS = new Set(['languages', 'interests', 'awards', 'publications', 'volunteering', 'summary', 'profile']);
 
 function parseResumeText(text) {
   const lines = text.replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
@@ -15,6 +16,7 @@ function parseResumeText(text) {
   for (const line of lines) {
     const heading = SECTION_NAMES.get(line.toLowerCase().replace(/:$/, ''));
     if (heading) { section = heading; continue; }
+    if (UNSUPPORTED_SECTION_HEADINGS.has(line.toLowerCase().replace(/:$/, '')) || /^[A-Z][A-Z ]{2,}$/.test(line)) { section = null; continue; }
     if (!section) continue;
     const clean = line.replace(/^[•*-]\s*/, '');
     if (!clean) continue;

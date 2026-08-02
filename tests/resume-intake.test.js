@@ -24,6 +24,15 @@ test('persists imported candidate knowledge with resume provenance', () => withS
   assert.ok(knowledge.facts.every((fact) => fact.source === 'resume' && fact.confidence === 'parsed'));
   assert.equal(store.getCandidateKnowledge(knowledge.profile.id).facts.filter((fact) => fact.entity_type === 'certification')[0].value.text, 'AWS Certified Cloud Practitioner');
 }));
+test('keeps a missing resume name empty instead of storing a placeholder as fact', () => withStore((store) => {
+  const knowledge = importResume(store, 'resume.pdf', () => 'someone@example.com\n\nSkills\nJavaScript');
+  assert.equal(knowledge.profile.name, '');
+  assert.equal(knowledge.facts.some((fact) => fact.entity_type === 'basic_information' && fact.value.name), false);
+}));
+test('stops a supported section at an unsupported section heading', () => {
+  const parsed = parseResumeText('Skills\nJavaScript, SQL\nLanguages\nEnglish, French');
+  assert.deepEqual(parsed.facts.filter((fact) => fact.entity_type === 'skill').map((fact) => fact.value.name), ['JavaScript', 'SQL']);
+});
 test('rejects non-PDF resume paths', () => {
   const { extractPdfText } = require('../src/resume');
   assert.throws(() => extractPdfText('resume.txt'), /Only PDF resumes/);
