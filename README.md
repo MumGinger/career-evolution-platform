@@ -24,8 +24,12 @@ Read [AGENTS.md](AGENTS.md) before contributing.
 
 Issue #1 is implemented as a local SQLite CLI with no external packages. It creates a candidate profile, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
+Experiment 002 also imports a PDF resume into a persisted Candidate Knowledge profile. Imported facts retain `resume` provenance and `parsed` confidence; entries whose fields cannot be structured safely are marked `needs_confirmation`.
+
 ```powershell
 node src/cli.js profile-create --db career-evolution.db --name "Aira" --skills "JavaScript,SQL"
+node src/cli.js resume-import --db career-evolution.db --pdf-path "C:\path\to\resume.pdf"
+node src/cli.js profile-show --db career-evolution.db --profile-id <profile-id>
 node src/cli.js application-create --db career-evolution.db --profile-id <profile-id> --company "Acme" --role-title "Product Engineer" --job-description "..."
 node src/cli.js application-generate --db career-evolution.db --application-id <application-id>
 node src/cli.js outcome-record --db career-evolution.db --application-id <application-id> --outcome interview_invited
