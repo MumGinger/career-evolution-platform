@@ -35,3 +35,17 @@ node src/cli.js acquisition-execution-show --db career-evolution.db --acquisitio
 ```
 
 Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.
+
+## Milestone 1 Demo — end-to-end resume tailoring
+
+```powershell
+node src/demo.js `
+  --resume "examples\synthetic-resume.txt" `
+  --job "examples\synthetic-job.txt" `
+  --captures "examples\synthetic-capture.json" `
+  --output "demo-output"
+```
+
+This copy-paste PowerShell example runs the full deterministic local pipeline. `--resume` accepts a PDF (using the existing local `pdftotext` dependency) or a UTF-8 `.txt` fixture. `--job` accepts a text file or direct description text. `--captures` is optional: without it, every unresolved acquisition action is explicitly recorded as `skipped`, no evidence is invented, and no unconfirmed fact is integrated.
+
+The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. It contains `candidate-knowledge.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. The demo uses no external connectors or LLMs and does not render DOCX/PDF.

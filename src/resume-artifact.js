@@ -44,6 +44,7 @@ function generate(plan) {
     placeholder: name === 'Professional Summary' ? 'Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.' : null,
     statements: visibleSelections
       .filter((selection) => selection.recommended_section === name)
+      .sort((left, right) => displayValue(facts.get(left.candidate_fact_id)).localeCompare(displayValue(facts.get(right.candidate_fact_id))))
       .map((selection) => renderStatement(selection, facts.get(selection.candidate_fact_id)))
       .filter(Boolean),
   }));

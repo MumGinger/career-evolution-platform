@@ -1,0 +1,15 @@
+{
+  "outcomes": [
+    {
+      "actionType": "recover_resume_project_context",
+      "rawCapturedEvidence": {
+        "statement": "Taylor confirms the listed SQL, Python, and Data visualization skills are accurate for the sales reporting dashboard project."
+      },
+      "proposals": [
+        { "entityType": "skill", "value": { "name": "SQL" }, "confirmationStatus": "confirmed", "confidenceLevel": "high", "positiveConfirmation": true },
+        { "entityType": "skill", "value": { "name": "Python" }, "confirmationStatus": "confirmed", "confidenceLevel": "high", "positiveConfirmation": true },
+        { "entityType": "skill", "value": { "name": "Data visualization" }, "confirmationStatus": "confirmed", "confidenceLevel": "high", "positiveConfirmation": true }
+      ]
+    }
+  ]
+}

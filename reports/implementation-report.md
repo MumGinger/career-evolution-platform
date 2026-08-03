@@ -18,3 +18,9 @@ Capability 003.6 remains complete and unchanged: Candidate Knowledge Integration
 ## Open questions
 
 Broader semantic equivalence, prose synthesis, DOCX/PDF output, and final-renderer release gating remain intentionally out of scope.
+
+## Milestone 1 Demo update
+
+Implemented `src/demo.js`, an integration command that invokes the completed 002, 003, and 004 pipeline in order: resume evidence import, Job Requirement Profile, Information Needs, Evidence Discovery, Acquisition Planning, explicit Acquisition Execution outcomes, Candidate Knowledge Integration, Tailoring Plan, Resume Artifact, and Validation Run. It exports stage snapshots, Markdown, and a static HTML report without adding a domain capability.
+
+Unresolved actions are recorded as `skipped` unless an optional caller-supplied capture fixture supplies raw evidence. Fixture proposals remain explicit and are subject to the existing accepted-only, append-only Candidate Knowledge Integration policy; the demo never promotes parsed resume text, skipped actions, or inferred claims. Added a synthetic resume/job/capture fixture and end-to-end tests covering all expected outputs, validation status, provenance, and re-run behavior. Validation: `node --test tests/demo.test.js` and `npm.cmd test` (68 tests passed).
