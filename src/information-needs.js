@@ -45,7 +45,7 @@ function level(score) { return score >= 18 ? 'high' : score >= 11 ? 'medium' : '
 
 function evaluateRequirement(requirement, facts) {
   const matches = matchingFacts(requirement, facts);
-  const confirmed = matches.filter((fact) => fact.confirmation_status !== 'needs_confirmation');
+  const confirmed = matches.filter((fact) => fact.confirmation_status === 'confirmed');
   const status = confirmed.length ? 'supported' : matches.length ? 'needs_confirmation' : 'unknown';
   const existingEvidence = status === 'supported'
     ? { assessment: 'sufficient', score: 0, rationale: 'Explicit candidate fact(s) are available and do not require confirmation.' }

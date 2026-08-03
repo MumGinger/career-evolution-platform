@@ -40,6 +40,28 @@ test('candidate fact needing confirmation is never treated as supported', () => 
   assert.equal(need(run, 'SQL').existing_evidence.assessment, 'present_needs_confirmation');
 }));
 
+test('only explicitly confirmed candidate facts can support a requirement', () => withStore((store) => {
+  const job = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: 'Required Qualifications:\nSQL required.' });
+  for (const confirmationStatus of ['unknown', 'rejected', '']) {
+    const knowledge = candidate(store, [fact('SQL', confirmationStatus)]);
+    const run = store.createInformationNeedRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id });
+    assert.notEqual(need(run, 'SQL').status, 'supported', `${confirmationStatus || 'empty'} must not be treated as confirmed`);
+    assert.equal(need(run, 'SQL').status, 'needs_confirmation');
+  }
+}));
+
+test('Capability 001 profile skills are traceable supported evidence', () => withStore((store) => {
+  const profile = store.createProfile({ name: 'Profile Skill Candidate', skills: ['SQL'] });
+  const job = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: 'Required Qualifications:\nSQL required.' });
+  const run = store.createInformationNeedRun({ candidateProfileId: profile.id, jobRequirementProfileId: job.id });
+  const sql = need(run, 'SQL');
+  assert.equal(sql.status, 'supported');
+  assert.deepEqual(sql.matched_fact_ids, [`profile_skill:${profile.id}:0`]);
+  assert.deepEqual(run.candidate_evidence_snapshot.find((evidence) => evidence.id === sql.matched_fact_ids[0]), {
+    id: `profile_skill:${profile.id}:0`, entity_type: 'skill', value: { name: 'SQL' }, source: 'profile_skill', confidence: 'explicit', confirmation_status: 'confirmed',
+  });
+}));
+
 test('central stakeholder requirement remains meaningfully prioritized when unknown', () => withStore((store) => {
   const knowledge = candidate(store);
   const job = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Stakeholder Management Lead', jobDescription: 'Responsibilities:\nLead stakeholder management across product and engineering.\nRequired Qualifications:\nMust manage stakeholders and own stakeholder management plans.' });
