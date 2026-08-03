@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 004.3 Truthfulness and Quality Validation implemented
+**Phase:** Milestone 1 Demo — End-to-End Resume Tailoring Pipeline implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -36,3 +36,7 @@ Decide the bounded final-document renderer and whether it must require a passing
 - Which recovery actions should be available before a user request, and how should their privacy cost be compared?
 - What confirmation and conflict threshold must Candidate Knowledge Integration meet before it accepts a fact?
 - What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
+
+## Milestone 1 Demo update
+
+Milestone 1 Demo is implemented as an integration-only local command. It creates and exports a distinct sequence of immutable runs from resume evidence and job description through validation, with terminal and static HTML summaries. Unresolved acquisition is explicitly skipped unless an optional caller-supplied capture fixture provides raw evidence; Candidate Knowledge Integration remains the sole accepted-only write path. The next decision remains final-document rendering and its release gate.
