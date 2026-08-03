@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { Store } = require('../src/store');
+const { jobIdentity } = require('../src/demo');
 
 function withStore(run) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'job-intelligence-')); const store = new Store(path.join(dir, 'test.db')); try { run(store); } finally { store.close(); fs.rmSync(dir, { recursive: true, force: true }); } }
 function requirement(profile, name) { return profile.requirements.find((item) => item.normalized_name === name); }
@@ -50,6 +51,12 @@ test('clears section context at unsupported heading-like boundaries', () => with
   assert.equal(requirement(profile, 'Teamwork').explicitness, 'contextual');
 }));
 
+test('keeps role-section context for ordinary title-cased content lines', () => withStore((store) => {
+  const profile = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: `What you will do\nData Analysis And Dashboard Development` });
+  assert.equal(requirement(profile, 'Data analysis').explicitness, 'responsibility-derived');
+  assert.equal(requirement(profile, 'Dashboard development').explicitness, 'responsibility-derived');
+}));
+
 test('marks preferred requirements and boosts repeated mandatory requirements with traceable excerpts', () => withStore((store) => {
   const profile = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: `Required Qualifications:\nSQL is required.\nResponsibilities:\nUse SQL to analyze product data.\nPreferred Qualifications:\nPython preferred.` });
   const sql = requirement(profile, 'SQL');
@@ -79,4 +86,12 @@ test('existing Capability 001 and 002 records remain functional', () => withStor
   const application = store.createApplication({ profileId: profile.id, company: 'Acme', roleTitle: 'Analyst', jobDescription: 'SQL', applicationDate: '2026-08-02' });
   assert.equal(store.getApplication(application.id).profile.id, profile.id);
   assert.equal(store.getCandidateKnowledge(profile.id).profile.id, profile.id);
+}));
+
+test('hardens raw LinkedIn-style Zurich input by selecting role sections and excluding company history', () => withStore((store) => {
+  const jobDescription = fs.readFileSync(path.join(__dirname, '../examples/synthetic-linkedin-zurich-job.txt'), 'utf8');
+  assert.deepEqual(jobIdentity(jobDescription), { roleTitle: 'Fall 2026 Internship/Co-op - Data Analytics & AI', company: 'Zurich Canada' });
+  const profile = store.createJobRequirementProfile({ ...jobIdentity(jobDescription), jobDescription }); const names = profile.requirements.map((item) => item.normalized_name);
+  for (const expected of ['Data analysis', 'Power BI', 'SQL', 'Python', 'Dashboard development', 'Business intelligence', 'Automation', 'AI / machine learning', 'Requirements gathering', 'Business insights / storytelling', 'Stakeholder communication', 'Data quality', 'Responsible AI / privacy / ethical AI', 'Process improvement', 'Team collaboration']) assert.ok(names.includes(expected), expected);
+  assert.equal(names.includes('Years of experience'), false);
 }));

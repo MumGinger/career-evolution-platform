@@ -12,7 +12,7 @@ Start with the [product documentation](docs/README.md): the [vision](docs/vision
 
 ## Local use
 
-Capability 002.5 creates immutable, provenance-preserving working semantic candidates from a versioned resume artifact; it never writes Candidate Knowledge.
+Capability 002.5 creates immutable, provenance-preserving working semantic candidates from a versioned resume artifact; it never writes Candidate Knowledge. The current deterministic hardening policy normalizes uppercase compound headings, ignores PDF bullet glyph noise, merges bounded wrapped bullets, and emits anchor-supported relations only where source structure supports them.
 
 The current MVP is a local SQLite CLI with no external packages. It creates a candidate profile, imports a PDF resume, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
@@ -62,4 +62,4 @@ node src/demo.js `
   --output "my-test\real-output-1"
 ```
 
-The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. The demo versions the source resume, runs 002.5 Resume Semantic Understanding before Information Needs and Evidence Discovery, and keeps parsed content plus semantic candidates as working evidence only. It contains `candidate-knowledge.json`, `resume-semantic-run.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. The demo uses no external connectors or LLMs and does not render DOCX/PDF.
+The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. The demo versions the source resume, runs 002.5 Resume Semantic Understanding before Information Needs and Evidence Discovery, and keeps parsed content plus semantic candidates as working evidence only. It contains `candidate-knowledge.json`, `resume-semantic-run.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. It accepts explicit job metadata headers when supplied and otherwise deterministically infers LinkedIn-style role/company opening lines. The demo uses no external connectors or LLMs and does not render DOCX/PDF.

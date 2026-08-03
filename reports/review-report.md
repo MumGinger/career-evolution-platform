@@ -15,6 +15,15 @@ Capability 003.6 documentation and its accepted-only Candidate Knowledge commit 
 3. Yes, Capability 004 PRD is finalized with the 004.3 validation design and strict scope boundary.
 4. Yes, the roadmap marks 004.3 complete; final-document rendering remains a future decision.
 
+## Real Input Parsing Hardening governance review
+
+Human review remains pending. Synthetic complex-resume and LinkedIn-style regression tests verify deterministic provenance, heading recovery, bullet noise exclusion, structural relations, mixed evidence states, raw identity inference, noise suppression, and Zurich-style role requirements.
+
+1. No Product Principle is violated: all outputs remain working evidence or job context, preserve provenance/uncertainty, and do not create candidate facts.
+2. No ADR update is required: existing ADR-001, ADR-002, and ADR-004 already govern source boundaries, uncertainty, and immutable versioned runs.
+3. No PRD update is required: this is an implementation hardening of completed 002.5 and 003.1 behavior, not a new domain capability.
+4. No roadmap change is required: capability status and sequencing are unchanged.
+
 ## Milestone 1 Demo governance review
 
 Human review remains pending. Automated demo tests cover the complete synthetic flow, semantic-run creation before Evidence Discovery, `resume-semantic-run.json`, readable semantic report content with provenance, accepted-fact provenance, explicit skipped acquisition without a capture fixture, and clean-output-directory re-run behavior.
