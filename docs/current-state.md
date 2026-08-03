@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 003 architecture redefined after 003.3
+**Phase:** Capability 003.4 Acquisition Planning implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -13,15 +13,16 @@
 - Implemented Capability 003.1: deterministic, versioned Job Intelligence profiles with immutable job-description snapshots, requirement excerpts, policy rationale, and parser/policy metadata.
 - Implemented Capability 003.2: deterministic, persisted, immutable Information Need prioritization runs that retain the job-profile version, candidate-evidence snapshot, policy inputs, evidence references, uncertainty, and rationale.
 - Implemented Capability 003.3: deterministic local Evidence Discovery Runs that search bounded snapshot sources, retain candidate provenance and resolutions, stop when evidence is sufficient, and leave unresolved needs without asking a user or updating Candidate Knowledge.
-- Redefined the remaining Capability 003 sequence: 003.4 is Acquisition Planning, 003.5 is Acquisition Execution, and 003.6 is Candidate Knowledge Integration. This is a documentation/architecture decision only; no 003.4 runtime behavior exists.
+- Redefined the remaining Capability 003 sequence: 003.4 is Acquisition Planning, 003.5 is Acquisition Execution, and 003.6 is Candidate Knowledge Integration.
+- Implemented Capability 003.4: deterministic, immutable Acquisition Plan Runs with first-class plans, separate actions, explainable gain-versus-cost rationales, and grouping of compatible unresolved needs under shared actions.
 
 ## Current focus
 
-Review Evidence Discovery source ordering, confirmation thresholds, and conflict rules against representative, consented local evidence, then define the policy for Acquisition Plans without implementing acquisition interaction.
+Review deterministic Acquisition Planning policy weights, grouping boundaries, and permitted future action adapters against representative, consented local evidence.
 
 ## Next decision
 
-Define the initial Acquisition Plan policy: permitted action types, recovery-versus-request ordering, expected-information-gain and cost signals, consent boundaries, and stopping conditions for Capability 003.4.
+Define Capability 003.5 Acquisition Execution: authorization, consent, interaction context, action-result persistence, and evidence-candidate boundaries.
 
 ## Open questions
 
