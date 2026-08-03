@@ -4,6 +4,10 @@
 
 Added immutable source-resume artifact versions, semantic runs, exact evidence spans, and traceable entity/relation candidates under `resume-semantic-policy/1.0.0`. The implementation preserves the existing 004.2 generated-resume schema and adds bounded `resume_semantic` retrieval to the established 003.3 Evidence Discovery flow. It never writes Candidate Knowledge.
 
+## Real Input Parsing Hardening (2026-08-03)
+
+Implemented integration hardening under `resume-semantic-policy/1.1.0`, `job-intelligence-parser/1.1.0`, and `job-requirement-policy/1.1.0`. Resume parsing normalizes real uppercase compound headings, drops standalone PDF bullets, preserves merged line ranges for wrapped bullets, and creates only anchor-supported `performed_in`, `used_in`, and explicit-result `produced` relations. Job parsing accepts raw LinkedIn-style opening lines, prioritizes role sections, excludes defined noise sections, and prevents history copy from yielding experience requirements. No LLM, external API, Candidate Knowledge write path, or artifact-version mutation was introduced.
+
 ## Scope
 
 Implemented the deterministic Truth Firewall for Resume Artifacts. Immutable Resume Validation Runs snapshot one artifact run and its linked tailoring plan, persist first-class findings, and report `passed`, `passed_with_warnings`, or `failed`. Checks cover provenance integrity, bounded claim wording, selection state and placement, uncovered requirements, duplicates, ordering, and traceability completeness.
