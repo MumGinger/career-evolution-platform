@@ -23,6 +23,8 @@ try {
     case 'job-profile-show': print(store.getJobRequirementProfile(required(input['job-profile-id'], 'job-profile-id'))); break;
     case 'information-needs-create': print(store.createInformationNeedRun({ candidateProfileId: required(input['candidate-profile-id'], 'candidate-profile-id'), jobRequirementProfileId: required(input['job-profile-id'], 'job-profile-id') })); break;
     case 'information-needs-show': print(store.getInformationNeedRun(required(input['information-need-run-id'], 'information-need-run-id'))); break;
-    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show, information-needs-create, information-needs-show'); process.exitCode = 1;
+    case 'evidence-discovery-create': print(store.createEvidenceDiscoveryRun({ informationNeedRunId: required(input['information-need-run-id'], 'information-need-run-id'), informationNeedId: input['information-need-id'] })); break;
+    case 'evidence-discovery-show': print(store.getEvidenceDiscoveryRun(required(input['evidence-discovery-run-id'], 'evidence-discovery-run-id'))); break;
+    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show, information-needs-create, information-needs-show, evidence-discovery-create, evidence-discovery-show'); process.exitCode = 1;
   }
 } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } finally { store.close(); }
