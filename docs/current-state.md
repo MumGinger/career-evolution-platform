@@ -24,7 +24,7 @@
 
 ## Current focus
 
-Review the deterministic truth firewall before introducing final-document renderers.
+Review the deterministic truth firewall before introducing final-document renderers. Real-input parsing hardening now covers compound resume sections, PDF bullet noise, wrapped bullet provenance, anchor relations, and LinkedIn-style job-description noise filtering under versioned deterministic policies.
 
 ## Next decision
 

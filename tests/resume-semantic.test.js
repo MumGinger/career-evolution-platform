@@ -72,3 +72,16 @@ test('Evidence Discovery searches explicit semantic candidates without writing C
   assert.ok(discovery.need_results[0].candidates.some((item) => item.candidate.source_type === 'resume_semantic'));
   assert.equal(store.getCandidateKnowledge(profile.id).facts.length, 0);
 }));
+
+test('hardens complex headings, PDF bullets, wrapped bullets, and anchor relations', () => withStore((store) => {
+  const text = fs.readFileSync(path.join(__dirname, '../examples/synthetic-complex-resume.txt'), 'utf8'); const { semantic } = run(store, text);
+  assert.equal(semantic.entities.some((item) => /^[•]$/.test(item.name)), false);
+  assert.ok(semantic.entities.some((item) => item.entity_type === 'project' && /Stock Pattern/.test(item.name)));
+  assert.ok(semantic.entities.some((item) => item.entity_type === 'experience' && /Data Analytics Intern/.test(item.name)));
+  assert.equal(semantic.entities.some((item) => item.entity_type === 'education' && /Stock Pattern|Data Analytics Intern/.test(item.name)), false);
+  assert.ok(semantic.spans.some((item) => /improved refresh time/.test(item.raw_text) && item.line_start !== item.line_end));
+  assert.ok(semantic.relations.some((item) => item.relation_type === 'performed_in'));
+  assert.ok(semantic.relations.some((item) => item.relation_type === 'used_in'));
+  assert.ok(semantic.entities.some((item) => item.decision_state === 'explicit'));
+  assert.ok(semantic.entities.some((item) => item.decision_state === 'derived_structurally'));
+}));

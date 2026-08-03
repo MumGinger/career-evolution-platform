@@ -1,0 +1,14 @@
+SUMMARY
+Data analyst with practical reporting experience.
+
+ONGOING PROJECTS (Finance, Data & Software)
+Stock Pattern Label Platform | 2025
+ Built a Power BI dashboard with SQL and Python
+  that improved refresh time by 25%.
+
+DATA ANALYSIS, VISUALIZATION & MODELING EXPERIENCE
+Data Analytics Intern | 2024
+• Automated data quality checks and presented business insights.
+
+EDUCATION
+BSc, Computer Science
