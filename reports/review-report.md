@@ -17,9 +17,9 @@ Capability 003.6 documentation and its accepted-only Candidate Knowledge commit 
 
 ## Milestone 1 Demo governance review
 
-Human review remains pending. Automated demo tests cover the complete synthetic flow, all exported files, validation status, accepted-fact provenance, explicit skipped acquisition without a capture fixture, and clean-output-directory re-run behavior.
+Human review remains pending. Automated demo tests cover the complete synthetic flow, semantic-run creation before Evidence Discovery, `resume-semantic-run.json`, readable semantic report content with provenance, accepted-fact provenance, explicit skipped acquisition without a capture fixture, and clean-output-directory re-run behavior.
 
-1. No Product Principle is violated: parsed resumes remain evidence, unresolved actions are explicitly skipped, and only explicit positive fixture evidence can be evaluated for integration.
+1. No Product Principle is violated: parsed resumes and semantic candidates remain working evidence, unresolved actions are explicitly skipped, and only explicit positive fixture evidence can be evaluated for integration.
 2. No ADR update is required: ADR-004 governs immutable runs, ADR-005 preserves the single Candidate Knowledge write path, and ADR-006 preserves append-only accepted-only commits.
-3. No PRD update is required: this is an integration/demo milestone that uses Capability 003 and 004 within their existing boundaries.
+3. No PRD update is required: this is an integration/demo milestone that uses Capability 002.5, 003, and 004 within their existing boundaries; the 002.5 policy scope is unchanged.
 4. Yes, the roadmap is updated to mark Milestone 1 Demo complete; final-document rendering remains a future decision.

@@ -53,4 +53,13 @@ node src/demo.js `
 
 This copy-paste PowerShell example runs the full deterministic local pipeline. `--resume` accepts a PDF (using the existing local `pdftotext` dependency) or a UTF-8 `.txt` fixture. `--job` accepts a text file or direct description text. `--captures` is optional: without it, every unresolved acquisition action is explicitly recorded as `skipped`, no evidence is invented, and no unconfirmed fact is integrated.
 
-The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. It contains `candidate-knowledge.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. The demo uses no external connectors or LLMs and does not render DOCX/PDF.
+For a private local PDF, quote Windows paths that contain spaces and keep the file outside version control:
+
+```powershell
+node src/demo.js `
+  --resume "my-test\private candidate Tang Resume.pdf" `
+  --job "my-test\cibc-qa-job.txt" `
+  --output "my-test\real-output-1"
+```
+
+The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. The demo versions the source resume, runs 002.5 Resume Semantic Understanding before Information Needs and Evidence Discovery, and keeps parsed content plus semantic candidates as working evidence only. It contains `candidate-knowledge.json`, `resume-semantic-run.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. The demo uses no external connectors or LLMs and does not render DOCX/PDF.
