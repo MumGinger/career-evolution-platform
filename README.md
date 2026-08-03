@@ -1,28 +1,18 @@
 # Career Evolution Platform
 
-An AI-powered career platform that improves through real-world evidence rather than one-time prompt engineering.
+Evidence-driven career intelligence: acquire the highest-value missing information before making career decisions or generating career artifacts. The platform treats a resume as one source and snapshot—not the candidate—and improves recommendations from traceable evidence and outcomes.
 
-## Current status
+## Current capabilities
 
-**Phase 0 — Research & Architecture**
+- **Capability 001 — Application Evidence Loop:** record applications, generated artifacts, and outcome/preference evidence without automatic learning.
+- **Capability 002 — Resume Intake & Candidate Knowledge Bootstrap:** import explicit resume content into traceable Candidate Knowledge facts; ambiguous facts remain `needs_confirmation`.
+- **Capability 003 — Information Acquisition:** in progress. It will find and acquire the most valuable unresolved candidate information before decisions or generation.
 
-Our first goal is to validate the Evolution Loop: capture evidence, review it with context, update skills deliberately, and produce better future outcomes.
+Start with the [product documentation](docs/README.md): the [vision](docs/vision/vision.md), [principles](docs/principles/product-principles.md), [roadmap](docs/roadmap/roadmap.md), [system overview](docs/architecture/system-overview.md), and [current state](docs/current-state.md). Read [AGENTS.md](AGENTS.md) before contributing.
 
-Career is the first validation domain. A reusable adaptive framework may be extracted only after product work demonstrates durable patterns.
+## Local use
 
-## Repository guide
-
-- `docs/` — product direction and shared project state
-- `design/` — domain models and evolution-loop design
-- `decisions/` — architecture decision records
-- `specs/` — implementation-ready specifications
-- `reports/` — implementation and review records
-
-Read [AGENTS.md](AGENTS.md) before contributing.
-
-## Local MVP
-
-Issue #1 is implemented as a local SQLite CLI with no external packages. It creates a candidate profile, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
+The current MVP is a local SQLite CLI with no external packages. It creates a candidate profile, imports a PDF resume, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
 Experiment 002 also imports a PDF resume into a persisted Candidate Knowledge profile. Imported facts retain `resume` provenance and `parsed` confidence; entries whose fields cannot be structured safely are marked `needs_confirmation`.
 
@@ -36,4 +26,4 @@ node src/cli.js outcome-record --db career-evolution.db --application-id <applic
 node src/cli.js application-show --db career-evolution.db --application-id <application-id>
 ```
 
-Run the automated tests with `node --test tests/*.test.js`. Node.js 22.5+ is required for its built-in SQLite module.
+Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.

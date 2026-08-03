@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** 1 — Career loop MVP implementation
+**Phase:** Product foundation governance; Capability 003 specification
 **Last updated:** 2026-08-02
 
 ## Completed
@@ -17,10 +17,11 @@ Validate candidate knowledge from resume imports alongside the existing applicat
 
 ## Next decision
 
-Define the human review policy and privacy/retention boundaries that must apply before evidence can inform a future skill-version decision.
+Define the privacy, consent, and retention boundary for connected sources and user-question acquisition before implementing any source integration.
 
 ## Open questions
 
-- Which evidence sources are both useful and ethically appropriate beyond user-entered local data?
-- What review authority and corroboration threshold are required before a skill definition changes?
-- What comparison design can evaluate improvement without claiming a single interview outcome is causal?
+- What evidence sources are useful, consented, and ethically appropriate beyond local user-entered data?
+- What makes available evidence "sufficient" for each bounded artifact or decision?
+- What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
+- What experiment can measure whether acquisition improves decision quality without making a causal claim from a single interview outcome?
