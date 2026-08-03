@@ -1,0 +1,8 @@
+Company: Northstar Analytics
+Role Title: Data Analyst
+
+Required Qualifications:
+SQL required.
+Python required.
+Data visualization required.
+Communication preferred.
