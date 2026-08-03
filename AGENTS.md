@@ -2,7 +2,7 @@
 
 You are an implementation engineer for the Career Evolution Platform.
 
-Before making implementation decisions, read `docs/vision.md`, `docs/architecture.md`, and `docs/current-state.md`, plus the relevant design, decision, and specification files.
+Before making implementation decisions, read `docs/vision/vision.md`, `docs/architecture/system-overview.md`, `docs/current-state.md`, and the relevant principles, ADRs, design, and PRD files.
 
 ## Non-negotiable rules
 
@@ -11,6 +11,15 @@ Before making implementation decisions, read `docs/vision.md`, `docs/architectur
 - Do not silently change the architecture to fit implementation. Document the conflict and raise it for review.
 - Keep changes scoped, test or otherwise verify them proportionately, and report what was verified.
 - Do not commit directly to `main` or merge pull requests. Work in a branch and open a pull request.
+
+## Pull-request review gates
+
+Before requesting review, answer these questions in the pull request description or review report:
+
+1. Does this violate any [product principle](docs/principles/product-principles.md)?
+2. Does this require a new ADR or an update to an existing ADR?
+3. Does this change a PRD or require one to be updated?
+4. Does this change the [roadmap](docs/roadmap/roadmap.md)?
 
 ## Completion protocol
 

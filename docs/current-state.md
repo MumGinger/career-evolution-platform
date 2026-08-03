@@ -1,26 +1,26 @@
 # Current State
 
-**Phase:** 1 — Career loop MVP implementation
+**Phase:** Product foundation governance; Capability 003 specification
 **Last updated:** 2026-08-02
 
 ## Completed
 
-- Established project foundation and working agreement.
-- Documented the product-first vision, architecture principles, and initial design models.
-- Recorded the decision to validate Career before extracting a framework.
-- Implemented MVP-001: a local application-to-interview evidence loop with SQLite persistence, versioned artifacts, and non-learning outcome evidence.
-- Implemented Experiment 002: PDF resume intake that bootstraps traceable Candidate Knowledge facts without inferred content.
+- Capability 001 — Application Evidence Loop: local SQLite applications, versioned artifacts, and traceable outcome/preference evidence with automatic learning disabled.
+- Capability 002 — Resume Intake & Candidate Knowledge Bootstrap: imported explicit PDF-resume text with `resume` provenance, `parsed` confidence, and `needs_confirmation` for unsafe structure.
+- Product documentation and governance foundation: vision, principles, capability roadmap, ADR index, PRD conventions, system overview, glossary, and pull-request review gates.
+- Recorded the durable decisions that resume is not the candidate, unknown is not missing, and material information should be acquired before generation.
 
 ## Current focus
 
-Validate candidate knowledge from resume imports alongside the existing application workflow, then define review and privacy boundaries before broader collection.
+Capability 003 — Information Acquisition is specified but not implemented. The next implementation work should validate evidence sufficiency, source-first retrieval, question ranking, and stopping behavior against the local Candidate Knowledge model.
 
 ## Next decision
 
-Define the human review policy and privacy/retention boundaries that must apply before evidence can inform a future skill-version decision.
+Define the privacy, consent, and retention boundary for connected sources and user-question acquisition before implementing any source integration.
 
 ## Open questions
 
-- Which evidence sources are both useful and ethically appropriate beyond user-entered local data?
-- What review authority and corroboration threshold are required before a skill definition changes?
-- What comparison design can evaluate improvement without claiming a single interview outcome is causal?
+- What evidence sources are useful, consented, and ethically appropriate beyond local user-entered data?
+- What makes available evidence "sufficient" for each bounded artifact or decision?
+- What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
+- What experiment can measure whether acquisition improves decision quality without making a causal claim from a single interview outcome?
