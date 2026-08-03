@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 004.1 Resume Tailoring Planning implemented
+**Phase:** Capability 004.2 Resume Artifact Generation implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -18,14 +18,15 @@
 - Implemented Capability 003.5: deterministic local Acquisition Execution with immutable Acquisition Result Runs, first-class per-action results, raw evidence capture, provenance, timestamps, and independent re-runs for the same plan.
 - Implemented Capability 003.6: deterministic Candidate Knowledge Integration with immutable decisions, accepted-only writes, evidence links, and append-only revisions.
 - Implemented Capability 004.1: immutable, deterministic Resume Tailoring Plan Runs that select committed facts, record requirement coverage and bounded claim scopes, and analyze source-resume wording without editing it.
+- Implemented Capability 004.2: immutable Resume Artifact Runs and first-class structured Resume Artifacts rendered deterministically from one tailoring plan, with statement-level selection/fact provenance and metadata-only omissions and blocked claims.
 
 ## Current focus
 
-Review 004.1 selection policy and claim-scope vocabulary before rendering any resume artifacts.
+Review the deterministic structured artifact model and its provenance before introducing final-document renderers.
 
 ## Next decision
 
-Define Capability 004.2 artifact rendering from an approved tailoring plan, with no expansion beyond its bounded claims.
+Define Capability 004.3 truthfulness and quality validation for rendered artifacts.
 
 ## Open questions
 
