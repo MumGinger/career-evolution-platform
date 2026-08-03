@@ -1,12 +1,13 @@
 const { normalize, matchingFacts } = require('./information-needs');
 
-const POLICY_VERSION = 'evidence-discovery-policy/1.0.0';
+const POLICY_VERSION = 'evidence-discovery-policy/1.1.0';
 const ADAPTER_VERSION = 'local-evidence-adapters/1.0.0';
-const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import', 'resume_semantic'];
+const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import', 'resume_semantic', 'resume_semantic_graph'];
 
 function sourceFor(fact) {
   if (fact.source === 'profile_skill') return 'profile_skill';
   if (fact.source === 'resume_semantic') return 'resume_semantic';
+  if (fact.source === 'resume_semantic_graph') return 'resume_semantic_graph';
   return fact.source === 'resume' ? 'resume_import' : 'candidate_fact';
 }
 
@@ -58,7 +59,7 @@ function sufficiency(resolvedCandidates) {
   if (resolvedCandidates.some((item) => item.resolution.state === 'conflicting')) return { sufficient: false, rationale: 'Unresolved material conflict prevents evidence sufficiency.' };
   const accepted = resolvedCandidates.filter((item) => item.resolution.state === 'accepted_for_need');
   if (accepted.some((item) => item.candidate.confidence_level === 'high')) return { sufficient: true, rationale: 'One high-confidence accepted candidate is sufficient for this bounded need.' };
-  const independent = new Set(accepted.filter((item) => item.candidate.confidence_level === 'medium').map((item) => item.candidate.source_type));
+  const independent = new Set(accepted.filter((item) => item.candidate.confidence_level === 'medium').map((item) => ['resume_semantic', 'resume_semantic_graph'].includes(item.candidate.source_type) ? 'resume_working_evidence' : item.candidate.source_type));
   if (independent.size >= 2) return { sufficient: true, rationale: 'Multiple independently traceable medium-confidence accepted candidates are sufficient for this bounded need.' };
   return { sufficient: false, rationale: accepted.length ? 'Accepted evidence is not yet sufficient under the deterministic threshold.' : 'No accepted evidence is available for this bounded need.' };
 }
