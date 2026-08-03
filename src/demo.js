@@ -4,8 +4,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { Store } = require('./store');
 const { extractPdfText, parseResumeText } = require('./resume');
+const { runResumeSemanticUnderstanding } = require('./resume-semantic');
 
-const OUTPUT_FILES = ['candidate-knowledge.json', 'job-requirement-profile.json', 'information-needs.json', 'evidence-discovery.json', 'acquisition-plan.json', 'integration-run.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'resume.md', 'report.html'];
+const OUTPUT_FILES = ['candidate-knowledge.json', 'resume-semantic-run.json', 'job-requirement-profile.json', 'information-needs.json', 'evidence-discovery.json', 'acquisition-plan.json', 'integration-run.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'resume.md', 'report.html'];
 
 function options(args) { const result = {}; for (let i = 0; i < args.length; i += 1) if (args[i].startsWith('--')) result[args[i].slice(2)] = args[i + 1]; return result; }
 function required(value, name) { if (!value) throw new Error(`Missing --${name}. Run node src/demo.js --help for an example.`); return value; }
@@ -16,9 +17,10 @@ function readResume(store, resumePath) {
   if (!fs.existsSync(resumePath)) throw new Error(`Resume file not found: ${resumePath}`);
   const extension = path.extname(resumePath).toLowerCase();
   if (!['.pdf', '.txt'].includes(extension)) throw new Error('Unsupported resume input. Use a PDF resume, or a UTF-8 .txt fixture for the deterministic local demo.');
-  const parsed = parseResumeText(extension === '.pdf' ? extractPdfText(resumePath) : fs.readFileSync(resumePath, 'utf8'));
-  // A parsed resume is evidence, not an automatically committed Candidate Knowledge fact.
-  return store.createResumeProfile({ sourcePath: resumePath, basic: parsed.basic, facts: parsed.facts.map((fact) => ({ ...fact, confirmation_status: 'needs_confirmation' })) });
+  const parsedText = extension === '.pdf' ? extractPdfText(resumePath) : fs.readFileSync(resumePath, 'utf8');
+  const parsed = parseResumeText(parsedText);
+  // Parsed resume content remains working evidence. Only 003.6 may write Candidate Knowledge.
+  return { knowledge: store.createResumeProfile({ sourcePath: resumePath, basic: parsed.basic, facts: [] }), parsedText };
 }
 
 function readJob(jobInput) {
@@ -76,18 +78,22 @@ function markdown(artifact) {
   }).join('\n\n') + '\n';
 }
 
-function reportHtml({ knowledge, job, needs, discovery, acquisition, integration, tailoring, artifact, validation }) {
+function reportHtml({ knowledge, semantic, job, needs, discovery, acquisition, integration, tailoring, artifact, validation }) {
   const resumeArtifact = artifact.resume_artifacts[0];
   const coverage = tailoring.requirement_coverage.map((item) => `<li><code>${escapeHtml(item.job_requirement_id)}</code>: ${escapeHtml(item.coverage_status)} — ${escapeHtml(item.coverage_rationale)}</li>`).join('');
   const selections = tailoring.resume_content_selections.map((item) => `<li>${escapeHtml(item.selection_state)}: <code>${escapeHtml(item.candidate_fact_id)}</code> (${escapeHtml(item.recommended_section)})</li>`).join('');
   const blocked = resumeArtifact.metadata.blocked_claims.map((item) => `<li><code>${escapeHtml(item.candidate_fact_id)}</code>: ${escapeHtml(item.blocked_claim_scopes.join(', '))}</li>`).join('') || '<li>None</li>';
   const findings = validation.validation_findings.map((item) => `<li>${escapeHtml(item.severity)} — ${escapeHtml(item.message)} (<code>${escapeHtml(item.rule_code)}</code>)</li>`).join('') || '<li>None</li>';
   const resume = resumeArtifact.content.sections.map((section) => `<section><h3>${escapeHtml(section.section)}</h3>${section.placeholder ? `<p>${escapeHtml(section.placeholder)}</p>` : `<ul>${section.statements.map((item) => `<li>${escapeHtml(item.text)} <small>${escapeHtml(item.statement_id)}</small></li>`).join('')}</ul>`}</section>`).join('');
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Career Evolution Platform Demo</title><style>body{font:16px system-ui;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18212f}main{display:grid;grid-template-columns:1fr 1fr;gap:2rem}section{margin:1rem 0}code,small{color:#475569}h1{grid-column:1/-1}.status{padding:.4rem .7rem;background:#e2f3eb;border-radius:.4rem;display:inline-block}</style><h1>Career Evolution Platform — Milestone 1 Demo</h1><p class="status">Validation: ${escapeHtml(validation.validation_status)}</p><p>${escapeHtml(knowledge.profile.name || 'Unnamed candidate')} · ${escapeHtml(job.snapshot.role_title)} at ${escapeHtml(job.snapshot.company)}</p><main><div><h2>Rendered resume preview</h2>${resume}</div><div><h2>Requirement coverage</h2><ul>${coverage}</ul><h2>Selections (included, omitted, deprioritized, blocked)</h2><ul>${selections}</ul><h2>Blocked claim scopes</h2><ul>${blocked}</ul><h2>Validation findings</h2><ul>${findings}</ul></div></main><h2>Provenance and run references</h2><ul><li>Candidate profile: <code>${escapeHtml(knowledge.profile.id)}</code></li><li>Job Requirement Profile: <code>${escapeHtml(job.id)}</code></li><li>Information Need Run: <code>${escapeHtml(needs.id)}</code></li><li>Evidence Discovery Run: <code>${escapeHtml(discovery.id)}</code></li><li>Acquisition Plan Run: <code>${escapeHtml(acquisition.id)}</code></li><li>Integration Run: <code>${escapeHtml(integration.id)}</code></li><li>Tailoring Plan Run: <code>${escapeHtml(tailoring.id)}</code></li><li>Artifact Run: <code>${escapeHtml(artifact.id)}</code></li><li>Validation Run: <code>${escapeHtml(validation.id)}</code></li></ul></html>`;
+  const semanticRows = semantic.entities.map((entity) => {
+    const span = semantic.spans.find((item) => item.id === entity.evidence_span_id);
+    return `<tr><td>${escapeHtml(entity.name)}</td><td>${escapeHtml(entity.entity_type)}</td><td>${escapeHtml(entity.decision_state)}</td><td>${escapeHtml(span?.section_name || 'unsectioned')}</td><td>${escapeHtml(span?.raw_text || '')}</td><td><details><summary>Provenance</summary><small>candidate: ${escapeHtml(entity.id)}<br>span: ${escapeHtml(entity.evidence_span_id)}<br>artifact version: ${escapeHtml(entity.artifact_version_id)}</small></details></td></tr>`;
+  }).join('') || '<tr><td colspan="6">No semantic candidates.</td></tr>';
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Career Evolution Platform Demo</title><style>body{font:16px system-ui;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18212f}main{display:grid;grid-template-columns:1fr 1fr;gap:2rem}section{margin:1rem 0}code,small{color:#475569}h1{grid-column:1/-1}.status{padding:.4rem .7rem;background:#e2f3eb;border-radius:.4rem;display:inline-block}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:.45rem;text-align:left;vertical-align:top}</style><h1>Career Evolution Platform — Milestone 1 Demo</h1><p class="status">Validation: ${escapeHtml(validation.validation_status)}</p><p>${escapeHtml(knowledge.profile.name || 'Unnamed candidate')} · ${escapeHtml(job.snapshot.role_title)} at ${escapeHtml(job.snapshot.company)}</p><main><div><h2>Rendered resume preview</h2>${resume}</div><div><h2>Requirement coverage</h2><ul>${coverage}</ul><h2>Selections (included, omitted, deprioritized, blocked)</h2><ul>${selections}</ul><h2>Blocked claim scopes</h2><ul>${blocked}</ul><h2>Validation findings</h2><ul>${findings}</ul></div></main><section><h2>Resume Semantic Understanding</h2><p>${semantic.spans.length} evidence spans, ${semantic.entities.length} entity candidates, and ${semantic.relations.length} relation candidates. Names are primary labels; provenance is available in each details panel.</p><table><thead><tr><th>Name</th><th>Entity type</th><th>Decision state</th><th>Source section</th><th>Evidence text</th><th>Details</th></tr></thead><tbody>${semanticRows}</tbody></table></section><h2>Provenance and run references</h2><ul><li>Candidate profile: <code>${escapeHtml(knowledge.profile.id)}</code></li><li>Resume Semantic Run: <code>${escapeHtml(semantic.id)}</code></li><li>Job Requirement Profile: <code>${escapeHtml(job.id)}</code></li><li>Information Need Run: <code>${escapeHtml(needs.id)}</code></li><li>Evidence Discovery Run: <code>${escapeHtml(discovery.id)}</code></li><li>Acquisition Plan Run: <code>${escapeHtml(acquisition.id)}</code></li><li>Integration Run: <code>${escapeHtml(integration.id)}</code></li><li>Tailoring Plan Run: <code>${escapeHtml(tailoring.id)}</code></li><li>Artifact Run: <code>${escapeHtml(artifact.id)}</code></li><li>Validation Run: <code>${escapeHtml(validation.id)}</code></li></ul></html>`;
 }
 
 function writeOutputs(outputDirectory, models) {
-  const json = { 'candidate-knowledge.json': models.knowledge, 'job-requirement-profile.json': models.job, 'information-needs.json': models.needs, 'evidence-discovery.json': models.discovery, 'acquisition-plan.json': models.acquisition, 'integration-run.json': models.integration, 'tailoring-plan.json': models.tailoring, 'resume-artifact.json': models.artifact, 'validation-report.json': models.validation };
+  const json = { 'candidate-knowledge.json': models.knowledge, 'resume-semantic-run.json': models.semantic, 'job-requirement-profile.json': models.job, 'information-needs.json': models.needs, 'evidence-discovery.json': models.discovery, 'acquisition-plan.json': models.acquisition, 'integration-run.json': models.integration, 'tailoring-plan.json': models.tailoring, 'resume-artifact.json': models.artifact, 'validation-report.json': models.validation };
   for (const [name, value] of Object.entries(json)) fs.writeFileSync(path.join(outputDirectory, name), `${JSON.stringify(value, null, 2)}\n`);
   fs.writeFileSync(path.join(outputDirectory, 'resume.md'), markdown(models.artifact.resume_artifacts[0]));
   fs.writeFileSync(path.join(outputDirectory, 'report.html'), reportHtml(models));
@@ -99,7 +105,9 @@ function runDemo({ resumePath, jobInput, outputDirectory, capturePath }) {
   const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'career-evolution-demo-'));
   const store = new Store(path.join(temporaryDirectory, 'demo.db'));
   try {
-    const knowledge = readResume(store, resumePath);
+    const resume = readResume(store, resumePath); const knowledge = resume.knowledge;
+    const sourceArtifact = store.createSourceResumeArtifactVersion({ profileId: knowledge.profile.id, sourcePath: resumePath, parsedText: resume.parsedText });
+    const semantic = runResumeSemanticUnderstanding(store, { profileId: knowledge.profile.id, artifactId: sourceArtifact.artifact.id });
     const jobDescription = readJob(jobInput); const identity = jobIdentity(jobDescription);
     const job = store.createJobRequirementProfile({ ...identity, jobDescription, sourceMetadata: { source: fs.existsSync(jobInput) ? 'local_job_file' : 'direct_text', demo: true } });
     const needs = store.createInformationNeedRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id });
@@ -111,7 +119,7 @@ function runDemo({ resumePath, jobInput, outputDirectory, capturePath }) {
     const tailoring = store.createResumeTailoringPlanRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id });
     const artifact = store.createResumeArtifactRun({ resumeTailoringPlanRunId: tailoring.id });
     const validation = store.createResumeValidationRun({ resumeArtifactRunId: artifact.id });
-    const models = { knowledge: store.getCandidateKnowledge(knowledge.profile.id), job, needs, discovery, acquisition, integration, tailoring, artifact, validation };
+    const models = { knowledge: store.getCandidateKnowledge(knowledge.profile.id), semantic, job, needs, discovery, acquisition, integration, tailoring, artifact, validation };
     writeOutputs(outputDirectory, models);
     return { ...models, outputDirectory };
   } finally { store.close(); fs.rmSync(temporaryDirectory, { recursive: true, force: true }); }
@@ -122,7 +130,8 @@ function summary(result) {
   const coverage = countBy(result.tailoring.requirement_coverage, 'coverage_status');
   const selections = countBy(result.tailoring.resume_content_selections, 'selection_state');
   const findings = countBy(result.validation.validation_findings, 'severity');
-  return [`Career Evolution Platform — Milestone 1 Demo`, `Candidate/profile import: imported (${result.knowledge.profile.name || 'unnamed profile'})`, `Job: ${result.job.snapshot.role_title} at ${result.job.snapshot.company}`, `Requirements: ${result.job.requirements.length}; top: ${requirementNames}`, `Coverage: covered ${coverage.covered || 0}, partial ${coverage.partially_covered || 0}, uncovered ${coverage.uncovered || 0}`, `Facts: included ${selections.include || 0}, deprioritized ${selections.deprioritize || 0}, omitted ${selections.omit || 0}, blocked ${selections.blocked || 0}`, `Validation: ${result.validation.validation_status}; findings: errors ${(findings.error || 0) + (findings.critical || 0)}, warnings ${findings.warning || 0}`, `Output directory: ${result.outputDirectory}`].join('\n');
+  const semanticStates = countBy(result.semantic.entities, 'decision_state');
+  return [`Career Evolution Platform — Milestone 1 Demo`, `Candidate/profile import: imported (${result.knowledge.profile.name || 'unnamed profile'})`, `Resume semantic understanding: spans ${result.semantic.spans.length}, entities ${result.semantic.entities.length}, relations ${result.semantic.relations.length}; explicit ${semanticStates.explicit || 0}, possible ${semanticStates.possible || 0}`, `Job: ${result.job.snapshot.role_title} at ${result.job.snapshot.company}`, `Requirements: ${result.job.requirements.length}; top: ${requirementNames}`, `Coverage: covered ${coverage.covered || 0}, partial ${coverage.partially_covered || 0}, uncovered ${coverage.uncovered || 0}`, `Facts: included ${selections.include || 0}, deprioritized ${selections.deprioritize || 0}, omitted ${selections.omit || 0}, blocked ${selections.blocked || 0}`, `Validation: ${result.validation.validation_status}; findings: errors ${(findings.error || 0) + (findings.critical || 0)}, warnings ${findings.warning || 0}`, `Output directory: ${result.outputDirectory}`].join('\n');
 }
 
 function main() {
