@@ -27,7 +27,7 @@ test('unknown SQL need with explicit confirmed profile skill is accepted, suffic
   const result = onlyResult(run);
   assert.equal(result.sufficient, true);
   assert.equal(result.candidates[0].resolution.state, 'accepted_for_need');
-  assert.deepEqual(run.source_searches.map((search) => search.result_status), ['completed_no_candidates', 'completed_with_candidates', 'skipped_sufficient']);
+  assert.deepEqual(run.source_searches.map((search) => search.result_status), ['completed_no_candidates', 'completed_with_candidates', 'skipped_sufficient', 'skipped_sufficient']);
 }));
 
 test('resume-derived confirmation-required evidence remains unresolved', () => withStore((store) => {
@@ -70,7 +70,7 @@ test('no evidence completes local sources and creates no question', () => withSt
   const result = onlyResult(run);
   assert.equal(result.terminal_status, 'unresolved_after_search');
   assert.equal(result.candidates.length, 0);
-  assert.equal(run.source_searches.length, 3);
+  assert.equal(run.source_searches.length, 4);
   assert.equal(store.db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name LIKE '%question%'").get().count, 0);
 }));
 
