@@ -35,6 +35,21 @@ test('promotes stakeholder management when supplied role context makes it centra
   assert.match(stakeholder.resume_value_rationale, /central/i);
 }));
 
+test('promotes a requirement when its explicit alias appears in the role title alone', () => withStore((store) => {
+  const profile = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Stakeholder Manager', jobDescription: 'Collaborate with stakeholders across internal teams.' });
+  const stakeholder = requirement(profile, 'Stakeholder management');
+  assert.equal(stakeholder.importance_level, 'high');
+  assert.equal(stakeholder.resume_value_level, 'high');
+  assert.match(stakeholder.importance_rationale, /role context/i);
+}));
+
+test('clears section context at unsupported heading-like boundaries', () => withStore((store) => {
+  const profile = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: `Required Qualifications:\nSQL required.\nAbout You:\nStrong communication skills and teamwork.` });
+  assert.equal(requirement(profile, 'SQL').explicitness, 'required');
+  assert.equal(requirement(profile, 'Communication').explicitness, 'contextual');
+  assert.equal(requirement(profile, 'Teamwork').explicitness, 'contextual');
+}));
+
 test('marks preferred requirements and boosts repeated mandatory requirements with traceable excerpts', () => withStore((store) => {
   const profile = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: `Required Qualifications:\nSQL is required.\nResponsibilities:\nUse SQL to analyze product data.\nPreferred Qualifications:\nPython preferred.` });
   const sql = requirement(profile, 'SQL');
