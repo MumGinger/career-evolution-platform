@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 003.5 Acquisition Execution implemented
+**Phase:** Capability 003.6 Candidate Knowledge Integration implemented
 **Last updated:** 2026-08-03
 
 ## Completed
