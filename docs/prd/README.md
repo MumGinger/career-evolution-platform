@@ -5,3 +5,7 @@ PRDs define executable product behavior for a capability: mission, scope, data b
 ## Index
 
 - [Capability 003 — Information Acquisition](capability-003-information-acquisition.md)
+# Capability PRDs
+
+- [Capability 002.5 — Resume Semantic Understanding](capability-002.5-resume-semantic-understanding.md)
+- [Capability 002.6 — Resume Semantic Graph Construction](capability-002.6-resume-semantic-graph-construction.md)

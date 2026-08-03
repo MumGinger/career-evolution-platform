@@ -3,6 +3,7 @@ const { Store } = require('./store');
 const { generateApplicationPackage, recordUserEdit } = require('./service');
 const { importResume } = require('./resume');
 const { runResumeSemanticUnderstanding } = require('./resume-semantic');
+const { runResumeSemanticGraphConstruction } = require('./resume-semantic-graph');
 
 function options(args) { const result = {}; for (let i = 0; i < args.length; i += 1) if (args[i].startsWith('--')) result[args[i].slice(2)] = args[i + 1]; return result; }
 function required(value, name) { if (!value) throw new Error(`Missing --${name}`); return value; }
@@ -21,6 +22,8 @@ try {
     }
     case 'resume-semantic-understand': print(runResumeSemanticUnderstanding(store, { profileId: required(input['candidate-profile-id'], 'candidate-profile-id'), artifactId: required(input['resume-artifact-id'], 'resume-artifact-id') })); break;
     case 'resume-semantic-show': print(store.getResumeSemanticRun(required(input['resume-semantic-run-id'], 'resume-semantic-run-id'))); break;
+    case 'resume-semantic-graph-create': print(runResumeSemanticGraphConstruction(store, { semanticRunId: required(input['resume-semantic-run-id'], 'resume-semantic-run-id') })); break;
+    case 'resume-semantic-graph-show': print(store.getResumeSemanticGraphRun(required(input['resume-semantic-graph-run-id'], 'resume-semantic-graph-run-id'))); break;
     case 'profile-show': print(store.getCandidateKnowledge(required(input['profile-id'], 'profile-id'))); break;
     case 'application-create': print(store.createApplication({ profileId: required(input['profile-id'], 'profile-id'), company: required(input.company, 'company'), roleTitle: required(input['role-title'], 'role-title'), location: input.location, jobDescription: required(input['job-description'], 'job-description'), jobCategory: input['job-category'], applicationDate: input['application-date'] || new Date().toISOString().slice(0, 10) })); break;
     case 'application-generate': print(generateApplicationPackage(store, required(input['application-id'], 'application-id'))); break;

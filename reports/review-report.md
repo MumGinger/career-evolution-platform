@@ -32,3 +32,6 @@ Human review remains pending. Automated demo tests cover the complete synthetic 
 2. No ADR update is required: ADR-004 governs immutable runs, ADR-005 preserves the single Candidate Knowledge write path, and ADR-006 preserves append-only accepted-only commits.
 3. No PRD update is required: this is an integration/demo milestone that uses Capability 002.5, 003, and 004 within their existing boundaries; the 002.5 policy scope is unchanged.
 4. Yes, the roadmap is updated to mark Milestone 1 Demo complete; final-document rendering remains a future decision.
+# Capability 002.6 review status
+
+Human review remains pending. Governance gate assessment: no product principle is violated because graph output remains working evidence; no ADR is needed because ADR-001 and ADR-005 already govern the resume boundary and sole Candidate Knowledge writer; a new 002.6 PRD is included; and the roadmap is updated to mark 002.6 complete.
