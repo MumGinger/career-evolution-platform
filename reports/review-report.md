@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Capability 002.5 update (2026-08-03)
+
+Semantic runs are immutable and span-provenanced; the policy makes only narrow deterministic mappings; 003.3 retrieves semantic candidates as working evidence without treating them as Candidate Knowledge. No Candidate Knowledge write path was introduced or changed.
+
 Review remains pending human review. Automated tests cover passing provenance, missing statement/selection/fact references, bounded claim wording, quantified outcomes, blocked/omitted selections, uncovered requirements, duplicate claims, section ordering, and immutable independent re-runs.
 
 Capability 003.6 documentation and its accepted-only Candidate Knowledge commit boundary are preserved. 004.3 is a read-only validator of immutable 004.2 artifact and 004.1 plan snapshots.
