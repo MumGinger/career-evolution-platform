@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Capability 002.7 Resume AST refactor (2026-08-03)
+
+Review pending. Governance gates: no product-principle violation (resume remains a source, unknown remains unknown); ADR-007 and PRD 002.7 added; roadmap marks AST preferred and graph optional; no private data, keys, or raw provider responses are committed. Full suite: 88 passing.
+
 ## Capability 002.5 update (2026-08-03)
 
 Semantic runs are immutable and span-provenanced; the policy makes only narrow deterministic mappings; 003.3 retrieves semantic candidates as working evidence without treating them as Candidate Knowledge. No Candidate Knowledge write path was introduced or changed.

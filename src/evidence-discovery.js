@@ -2,12 +2,13 @@ const { normalize, matchingFacts } = require('./information-needs');
 
 const POLICY_VERSION = 'evidence-discovery-policy/1.1.0';
 const ADAPTER_VERSION = 'local-evidence-adapters/1.0.0';
-const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import', 'resume_semantic', 'resume_semantic_graph'];
+const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import', 'resume_ast', 'resume_semantic', 'resume_semantic_graph'];
 
 function sourceFor(fact) {
   if (fact.source === 'profile_skill') return 'profile_skill';
   if (fact.source === 'resume_semantic') return 'resume_semantic';
   if (fact.source === 'resume_semantic_graph') return 'resume_semantic_graph';
+  if (fact.source === 'resume_ast') return 'resume_ast';
   return fact.source === 'resume' ? 'resume_import' : 'candidate_fact';
 }
 

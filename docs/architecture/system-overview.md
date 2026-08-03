@@ -6,8 +6,8 @@ The system is product-led: Career is the validation domain, and abstractions ear
 
 ```text
 Sources
-  -> Resume Semantic Understanding (working evidence)
-  -> Resume Semantic Graph Construction (working evidence)
+  -> Resume AST extraction + deterministic provenance validation (working evidence)
+  -> requirement-driven Resume AST retrieval
   -> Information Acquisition
   -> Candidate Knowledge
   -> Decision / Generation
@@ -18,7 +18,7 @@ Sources
 
 | Stage | Responsibility | Boundary |
 | --- | --- | --- |
-| Resume Semantic Understanding | Deterministically turns a versioned resume's sections and bullets into traceable entity and relation candidates. | Working evidence only; never writes Candidate Knowledge. |
+| Resume AST | Provider-proposed canonical structure validated against exact versioned source spans. | Preferred blocking working-evidence path; never writes Candidate Knowledge. |
 | Resume Semantic Graph Construction | Reuses a semantic run to create immutable, provenance-preserving graph node and edge candidates. | Working evidence only; Discovery may search it, while 003.6 remains the only Candidate Knowledge writer. |
 | Sources | Resume snapshots, user-provided information, connected sources, jobs, applications, and outcomes. | Preserve provenance, confidence, and limitations. |
 | Information Acquisition | Finds material unknowns, checks existing evidence first, and asks focused questions only when useful. | Does not turn unknown into a negative claim or invent facts. |
