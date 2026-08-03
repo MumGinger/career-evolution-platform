@@ -21,6 +21,8 @@ try {
     case 'application-show': print(store.getApplication(required(input['application-id'], 'application-id'))); break;
     case 'job-profile-create': print(store.createJobRequirementProfile({ company: required(input.company, 'company'), roleTitle: required(input['role-title'], 'role-title'), jobDescription: required(input['job-description'], 'job-description'), location: input.location, sourceUrl: input['source-url'], sourceMetadata: input['source-metadata'] ? JSON.parse(input['source-metadata']) : {} })); break;
     case 'job-profile-show': print(store.getJobRequirementProfile(required(input['job-profile-id'], 'job-profile-id'))); break;
-    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show'); process.exitCode = 1;
+    case 'information-needs-create': print(store.createInformationNeedRun({ candidateProfileId: required(input['candidate-profile-id'], 'candidate-profile-id'), jobRequirementProfileId: required(input['job-profile-id'], 'job-profile-id') })); break;
+    case 'information-needs-show': print(store.getInformationNeedRun(required(input['information-need-run-id'], 'information-need-run-id'))); break;
+    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show, information-needs-create, information-needs-show'); process.exitCode = 1;
   }
 } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } finally { store.close(); }
