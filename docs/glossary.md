@@ -2,17 +2,12 @@
 
 | Term | Meaning |
 | --- | --- |
-| Career Evolution Platform | The evidence-driven career intelligence product described in this repository. |
 | Candidate Knowledge | The durable, traceable source of truth for candidate facts, evidence, uncertainty, and confirmation state. |
 | Resume | A time-bound artifact and one source of Candidate Knowledge; it is not the candidate. |
-| Source | An origin of information, such as a resume, user, connected account, job description, application, or outcome. |
-| Evidence | A contextual record with provenance, confidence, and limitations that may inform a decision. |
-| Unknown | A valid state meaning sufficient evidence has not been obtained; it is not a negative claim or confirmed absence. |
-| Information Acquisition | The bounded process of obtaining the highest-value unresolved information before a material decision or generation step. |
-| Information Priority | Evaluation of an unresolved item using importance, discoverability, resume value, acquisition cost, and existing evidence. |
-| Job Intelligence | The job-derived requirement profile used to evaluate relevance and information value. |
-| Artifact | A career-related output such as a resume, application note, cover letter, or interview preparation plan. |
-| Outcome | A contextual result from an application or interview; it can inform learning after review. |
-| Learning | A reviewed, traceable change to future priorities or guidance informed by evidence and outcomes. |
-| ADR | Architecture Decision Record: a durable decision and its consequences. |
-| PRD | Product Requirements Document: executable product behavior and scope for one capability. |
+| Requirement Profile | A deterministic, explainable representation of material requirements derived from a selected job context. |
+| Information Need | A bounded description of candidate information that may materially affect a decision or artifact. |
+| Evidence Discovery Run | An immutable record of searching available, consented sources for evidence relevant to an Information Need. |
+| Evidence Candidate | A possible support item with provenance and uncertainty; it is not Candidate Knowledge. |
+| Acquisition Plan | A durable strategy record that connects an unresolved Information Need and its Evidence Discovery result to ordered, permitted Acquisition Actions. |
+| Acquisition Action | A permitted step selected by an Acquisition Plan to recover or request evidence. A question is one possible action, not a domain entity. |
+| Candidate Knowledge Integration | The sole Capability 003 path that may accept resolved evidence into Candidate Knowledge and records the decision. |
