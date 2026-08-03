@@ -1,27 +1,26 @@
 # Implementation Report
 
 **Date:** 2026-08-03
-**Status:** Capability 003.3 Evidence Discovery Engine implementation complete; pending human review
+**Status:** Capability 003 architecture documentation updated; no runtime implementation added
 
 ## Scope
 
-Implemented Issue #11 only: create and retrieve deterministic, persisted Evidence Discovery Runs from an existing immutable Information Need Run. The local MVP searches snapshot `candidate_fact`, `profile_skill`, and `resume_import` sources only. Question generation, Candidate Knowledge updates, LLMs, external connectors, resume tailoring, job discovery, automation, and outcome learning remain out of scope.
+Documentation-only update following completion of Capability 003.3. The work redefines 003.4 as Acquisition Planning, adds 003.5 Acquisition Execution and 003.6 Candidate Knowledge Integration, introduces Acquisition Plan as a first-class domain entity, and records the single Candidate Knowledge write path. No application code, schemas, migrations, CLI commands, tests, connectors, or runtime behavior were changed.
 
 ## Delivered
 
-- Product Principle 9, `Search Before Ask`, and a formal Capability 003.3 PRD section.
-- ADR-004 establishes immutable Run records for all decision-producing operations.
-- SQLite Evidence Discovery Runs, source-search records, Evidence Candidates, Evidence Resolutions, and per-need sufficiency results. Every record retains policy/adapter version, provenance, rationale, limitations, and a creation timestamp.
-- Deterministic exact/explicit-alias adapters and resolution policy, with stop rules for high-confidence evidence and material structured conflicts.
-- `evidence-discovery-create` and `evidence-discovery-show` CLI commands.
-- Synthetic acceptance coverage for sufficiency/skip behavior, confirmation-required resume evidence, compatible evidence, conflicts, empty search, supported and focused needs, immutable re-runs, and existing capability compatibility.
+- Revised the Capability 003 PRD with the six-slice architecture, explicit inputs, outputs, and boundaries.
+- Defined Acquisition Plan and Acquisition Action, with questions treated as one possible action rather than a domain entity.
+- Added the Recover Before Request product principle while preserving Search Before Ask.
+- Updated the current state and roadmap to distinguish the completed 003.1–003.3 runtime work from the redefined, unimplemented 003.4–003.6 slices.
+- Added ADR-005 to establish Candidate Knowledge Integration as the sole Capability 003 write path.
 
 ## Validation
 
-- `npm.cmd test` passes: 33 tests covering Capabilities 001, 002, 003.1, 003.2, and 003.3.
-- No Candidate Knowledge is inferred, inserted, updated, or deleted by Evidence Discovery; no question or unavailable source record is generated.
+- Reviewed the documentation for consistency with the existing Candidate Knowledge, unknown-state, acquisition-before-generation, and immutable-run ADRs.
+- Verified that the change set is documentation-only and explicitly excludes runtime implementation of 003.4.
 
 ## Open questions
 
-- Review the initial deterministic alias catalog, sufficiency threshold, and structured-conflict policy against observed, consented evidence; historical runs retain their policy and snapshots.
-- Define question UX, consent, privacy, and retention boundaries before Capability 003.4 or external source adapters.
+- Define the initial Acquisition Plan policy and permitted action adapters before implementing 003.4.
+- Define acceptance, correction, confirmation, and conflict rules for Candidate Knowledge Integration before implementing 003.6.
