@@ -2,6 +2,7 @@
 
 | Capability | Status | Purpose |
 | --- | --- | --- |
+| 002.5 — Resume Semantic Understanding | Complete | Create immutable, traceable resume semantic candidates before Information Acquisition. |
 | 001 — Application Evidence Loop | Complete | Record applications, artifacts, and outcome/preference evidence without automatic learning. |
 | 002 — Resume Intake & Candidate Knowledge Bootstrap | Complete | Import explicit resume evidence into traceable Candidate Knowledge facts; ambiguous facts remain `needs_confirmation`. |
 | 003.1 — Job Intelligence | Complete | Create deterministic, explainable Requirement Profiles from job context. |

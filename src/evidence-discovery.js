@@ -2,10 +2,11 @@ const { normalize, matchingFacts } = require('./information-needs');
 
 const POLICY_VERSION = 'evidence-discovery-policy/1.0.0';
 const ADAPTER_VERSION = 'local-evidence-adapters/1.0.0';
-const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import'];
+const SOURCE_ORDER = ['candidate_fact', 'profile_skill', 'resume_import', 'resume_semantic'];
 
 function sourceFor(fact) {
   if (fact.source === 'profile_skill') return 'profile_skill';
+  if (fact.source === 'resume_semantic') return 'resume_semantic';
   return fact.source === 'resume' ? 'resume_import' : 'candidate_fact';
 }
 
@@ -38,7 +39,7 @@ function candidateFor(need, fact, sourceType) {
     extraction_method: 'deterministic_exact_or_explicit_alias',
     confidence_level: confidence,
     parser_version: ADAPTER_VERSION,
-    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null },
+    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null },
     limitations: confirmed
       ? 'Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.'
       : 'Potentially relevant evidence is not explicitly confirmed and cannot become Candidate Knowledge through discovery.',
