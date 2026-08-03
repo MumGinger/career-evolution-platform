@@ -32,8 +32,13 @@ function readJob(jobInput) {
 
 function jobIdentity(description) {
   const lines = description.replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
-  const company = lines.find((line) => /^company\s*:/i.test(line))?.replace(/^company\s*:\s*/i, '') || 'Unspecified company';
-  const roleTitle = lines.find((line) => /^(role( title)?|title)\s*:/i.test(line))?.replace(/^(role( title)?|title)\s*:\s*/i, '') || lines[0] || 'Target role';
+  const companyHeader = lines.find((line) => /^company\s*:/i.test(line))?.replace(/^company\s*:\s*/i, '');
+  const roleHeader = lines.find((line) => /^(role( title)?|title)\s*:/i.test(line))?.replace(/^(role( title)?|title)\s*:\s*/i, '');
+  if (companyHeader || roleHeader) return { company: companyHeader || 'Unspecified company', roleTitle: roleHeader || 'Target role' };
+  const opening = lines.slice(0, 6).filter((line) => !/^(posted|job id|apply|full[- ]time|part[- ]time)/i.test(line));
+  const atLine = opening.find((line) => /\bat\s+.+/i.test(line));
+  const roleTitle = atLine ? atLine.split(/\bat\s+/i)[0].trim() : opening[0] || 'Target role';
+  const company = atLine ? atLine.split(/\bat\s+/i)[1].trim() : opening[1] || 'Unspecified company';
   return { company, roleTitle };
 }
 
@@ -143,4 +148,5 @@ function main() {
 
 if (require.main === module) { try { main(); } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } }
 
-module.exports = { OUTPUT_FILES, runDemo, summary };
+function extensionText(resumePath) { const extension = path.extname(resumePath).toLowerCase(); return extension === '.pdf' ? extractPdfText(resumePath) : fs.readFileSync(resumePath, 'utf8'); }
+module.exports = { OUTPUT_FILES, runDemo, summary, jobIdentity };
