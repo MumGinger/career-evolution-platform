@@ -2,7 +2,7 @@
 
 ## Capability 002.7 Resume AST refactor (2026-08-03)
 
-Self-review complete; human architecture review remains pending. Governance gates: no product-principle violation (resume remains a source, unknown remains unknown); ADR-007 and PRD 002.7 updated; roadmap sequencing is unchanged; no private data, keys, or raw provider responses are committed. Full suite: 89 passing. Remaining risks: provider-specific JSON-schema support, prompt/model extraction quality, source-span alignment for complex PDFs, timeout/network handling in deployed environments, and confirmation UX for structurally grouped evidence.
+Review pending. Governance gates: no product-principle violation (resume remains a source, unknown remains unknown); ADR-007 and PRD 002.7 record ranked direct retrieval and the confirmation firewall; roadmap marks AST preferred and graph optional; no private data, keys, or raw provider responses are committed. The regression suite covers invalid nested fields, structurally grouped wrapped bullets, six requirement retrieval shapes, and unchanged Candidate Knowledge. Full suite: 89 passing.
 
 ## Capability 002.5 update (2026-08-03)
 

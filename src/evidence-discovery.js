@@ -28,7 +28,10 @@ function claimFor(fact) {
 }
 
 function candidateFor(need, fact, sourceType) {
-  const confirmed = fact.confirmation_status === 'confirmed';
+  const ast = sourceType === 'resume_ast' ? fact.provenance : null;
+  const confirmed = sourceType === 'resume_ast'
+    ? ast.extraction_state === 'explicit' && ['skill', 'tool'].includes(ast.block_kind) && fact.confirmation_status === 'confirmed'
+    : fact.confirmation_status === 'confirmed';
   const confidence = sourceType === 'profile_skill' || sourceType === 'candidate_fact' ? 'high' : 'medium';
   return {
     information_need_id: need.id,
@@ -38,10 +41,10 @@ function candidateFor(need, fact, sourceType) {
     normalized_claim: normalize(claimFor(fact)),
     supporting_value: fact.value,
     supporting_text: fact.value?.text || fact.value?.name || claimFor(fact),
-    extraction_method: 'deterministic_exact_or_explicit_alias',
+    extraction_method: sourceType === 'resume_ast' ? 'validated_resume_ast_requirement_retrieval' : 'deterministic_exact_or_explicit_alias',
     confidence_level: confidence,
     parser_version: ADAPTER_VERSION,
-    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null },
+    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null, retrieval: ast?.retrieval || null, extraction_state: ast?.extraction_state || null, block_kind: ast?.block_kind || null, section: ast?.section || null, exact_source_text: ast?.exact_source_text || null },
     limitations: confirmed
       ? 'Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.'
       : 'Potentially relevant evidence is not explicitly confirmed and cannot become Candidate Knowledge through discovery.',

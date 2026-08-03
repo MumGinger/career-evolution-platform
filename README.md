@@ -12,7 +12,7 @@ Start with the [product documentation](docs/README.md): the [vision](docs/vision
 
 ## Local use
 
-Capability 002.5 creates immutable, provenance-preserving working semantic candidates from a versioned resume artifact; it never writes Candidate Knowledge. The current deterministic hardening policy normalizes uppercase compound headings, ignores PDF bullet glyph noise, merges bounded wrapped bullets, and emits anchor-supported relations only where source structure supports them.
+Capability 002.7 is the preferred working-evidence path: the Resume AST preserves exact source text and marks layout/order-inferred attachment as `structurally_grouped`. Requirement-driven retrieval ranks validated AST blocks with rank, score, exactness, block kind, section, and rationale. Only exact, validated explicit `skill` or `tool` blocks may satisfy a need automatically; all project, organization, role, bullet, `structurally_grouped`, and `possible` blocks remain confirmation-required. It never writes Candidate Knowledge.
 
 The current MVP is a local SQLite CLI with no external packages. It creates a candidate profile, imports a PDF resume, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
