@@ -13,7 +13,7 @@ const CATALOG = [
   ['Microsoft Office', /\bmicrosoft office\b/i, 'technical_skill', true],
   ['Communication', /\bcommunication skills?\b|\bcommunicat(?:e|ing|ion)\b/i, 'interpersonal_capability', true],
   ['Teamwork', /\bteamwork\b|\bteam player\b|\bcollaborat(?:e|ion|ing)\b/i, 'interpersonal_capability', true],
-  ['Stakeholder management', /\bstakeholder management\b|\bmanage stakeholders?\b|\bstakeholders?\b/i, 'interpersonal_capability', true],
+  ['Stakeholder management', /\bstakeholder management\b|\bmanage stakeholders?\b|\bstakeholders?\b/i, 'interpersonal_capability', true, ['stakeholder manager']],
 ];
 
 function hash(text) { return createHash('sha256').update(text).digest('hex'); }
@@ -23,6 +23,13 @@ function sectionFor(line) {
   if (/^(preferred|desired)( qualifications?| requirements?)?$/.test(value)) return 'preferred';
   if (/^(responsibilities|what you.ll do|duties|key responsibilities)$/.test(value)) return 'responsibility';
   return null;
+}
+function isUnsupportedHeading(line) {
+  const value = line.replace(/:$/, '').trim();
+  const normalized = value.toLowerCase();
+  if (['about you', 'benefits', 'company culture', 'what we offer', 'why join us', 'our culture'].includes(normalized)) return true;
+  const words = value.split(/\s+/);
+  return words.length >= 2 && words.length <= 5 && !/[.!?;,]/.test(value) && words.every((word) => /^[A-Z][A-Za-z/&-]*$/.test(word));
 }
 function explicitness(text, section) {
   if (section === 'required' || /\b(required|must|minimum|at least)\b/i.test(text)) return 'required';
@@ -36,10 +43,12 @@ function analyzeRequirement(item, roleTitle) {
   const mandatory = item.excerpts.some((excerpt) => /\b(required|must|minimum|at least)\b/i.test(excerpt));
   const required = item.explicitness.includes('required') || mandatory;
   const responsibilities = item.explicitness.includes('responsibility-derived');
-  const titleMention = item.excerpts.some((excerpt) => excerpt.toLowerCase().includes(roleTitle.toLowerCase()));
-  const stakeholderCore = item.normalized_name === 'Stakeholder management' && (count >= 2 || (required && responsibilities) || /stakeholder/i.test(roleTitle));
-  let importanceScore = item.generic && !stakeholderCore ? 1 : 4;
-  if (item.generic && !stakeholderCore) {
+  const title = roleTitle.toLowerCase();
+  const titleMention = title.includes(item.normalized_name.toLowerCase()) || item.aliases.some((alias) => title.includes(alias.toLowerCase()));
+  const stakeholderCore = item.normalized_name === 'Stakeholder management' && (count >= 2 || (required && responsibilities) || titleMention);
+  const roleTitleCore = titleMention || stakeholderCore;
+  let importanceScore = item.generic && !roleTitleCore ? 1 : 4;
+  if (item.generic && !roleTitleCore) {
     if (mandatory) importanceScore += 2;
     if (count > 1) importanceScore += 1;
     if (responsibilities) importanceScore += 1;
@@ -83,9 +92,10 @@ function parseJobDescription({ roleTitle = '', jobDescription }) {
     if (!line) continue;
     const heading = sectionFor(line);
     if (heading) { section = heading; continue; }
-    for (const [name, pattern, category, generic] of CATALOG) {
+    if (isUnsupportedHeading(line)) { section = null; continue; }
+    for (const [name, pattern, category, generic, aliases = []] of CATALOG) {
       if (!pattern.test(line)) continue;
-      const current = requirements.get(name) || { normalized_name: name, category, generic, excerpts: [], explicitness: [] };
+      const current = requirements.get(name) || { normalized_name: name, category, generic, aliases, excerpts: [], explicitness: [] };
       current.excerpts.push(line);
       current.explicitness.push(explicitness(line, section));
       requirements.set(name, current);
