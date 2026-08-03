@@ -2,7 +2,7 @@
 
 ## Capability 002.7 Resume AST refactor (2026-08-03)
 
-Implemented immutable Resume AST runs, provider abstraction, deterministic source-span firewall, `resume_ast` evidence retrieval, confirmation proposals, and the graph-free default Demo. Candidate Knowledge integration remains unchanged: 003.6 is the only writer. `npm.cmd test`: 88 passing.
+Implemented asynchronous immutable Resume AST runs for mock and OpenAI-compatible providers, a full strict canonical JSON Schema, local schema-before-provenance validation, blocked invalid output persistence, explicit real-PDF provider selection, and complete HTML escaping. The Demo and HTML identify `mock/offline` versus `openai-compatible/<model>`; 003.6 remains the only Candidate Knowledge writer. `npm.cmd test`: 89 passing.
 
 ## Capability 002.5 update (2026-08-03)
 

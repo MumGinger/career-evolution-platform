@@ -43,7 +43,7 @@ Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its
 
 ## Milestone 1 Demo — end-to-end resume tailoring
 
-The preferred Demo path uses the offline deterministic mock Resume AST extractor and emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`. Request semantic graph explainability explicitly with `--build-semantic-graph`.
+The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
 
 For an OpenAI-compatible provider, configure `CEP_LLM_PROVIDER=openai-compatible`, `CEP_LLM_MODEL`, `CEP_LLM_API_KEY`, and optional `CEP_LLM_BASE_URL`. Never commit keys, private inputs, or raw provider responses.
 
@@ -54,6 +54,15 @@ node src/demo.js `
   --captures "examples\synthetic-capture.json" `
   --output "demo-output"
 ```
+
+For a real PDF, select a provider explicitly. The Demo refuses an implicit mock fallback for PDF inputs:
+
+```powershell
+$env:CEP_LLM_PROVIDER='openai-compatible'; $env:CEP_LLM_MODEL='your-model'; $env:CEP_LLM_API_KEY='...'
+node src/demo.js --resume "my-test\resume.pdf" --job "my-test\job.txt" --output "my-test\real-output" --provider openai-compatible
+```
+
+Use `--provider mock` only for explicit offline/synthetic testing; its output carries a prominent offline warning.
 
 This copy-paste PowerShell example runs the full deterministic local pipeline. `--resume` accepts a PDF (using the existing local `pdftotext` dependency) or a UTF-8 `.txt` fixture. `--job` accepts a text file or direct description text. `--captures` is optional: without it, every unresolved acquisition action is explicitly recorded as `skipped`, no evidence is invented, and no unconfirmed fact is integrated.
 
