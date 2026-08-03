@@ -7,6 +7,7 @@ The system is product-led: Career is the validation domain, and abstractions ear
 ```text
 Sources
   -> Resume Semantic Understanding (working evidence)
+  -> Resume Semantic Graph Construction (working evidence)
   -> Information Acquisition
   -> Candidate Knowledge
   -> Decision / Generation
@@ -18,6 +19,7 @@ Sources
 | Stage | Responsibility | Boundary |
 | --- | --- | --- |
 | Resume Semantic Understanding | Deterministically turns a versioned resume's sections and bullets into traceable entity and relation candidates. | Working evidence only; never writes Candidate Knowledge. |
+| Resume Semantic Graph Construction | Reuses a semantic run to create immutable, provenance-preserving graph node and edge candidates. | Working evidence only; Discovery may search it, while 003.6 remains the only Candidate Knowledge writer. |
 | Sources | Resume snapshots, user-provided information, connected sources, jobs, applications, and outcomes. | Preserve provenance, confidence, and limitations. |
 | Information Acquisition | Finds material unknowns, checks existing evidence first, and asks focused questions only when useful. | Does not turn unknown into a negative claim or invent facts. |
 | Candidate Knowledge | Durable, traceable source of truth for candidate facts and their certainty. | A resume is a source, never the complete candidate. |
@@ -28,6 +30,6 @@ Sources
 
 ## Current implementation boundary
 
-Capability 002.5 creates immutable semantic runs from versioned resume artifacts with exact spans and a transparent deterministic policy. It is positioned after 002 and before 003; candidates are not Candidate Knowledge. Capability 003.3 may search them as bounded evidence and 003.6 remains the sole integration path.
+Capabilities 002.5 and 002.6 create immutable semantic and graph runs from versioned resume artifacts with exact spans and transparent deterministic policies. Both remain outside Candidate Knowledge. Capability 003.3 may search their bounded evidence and 003.6 remains the sole integration path.
 
 Capability 001 implements local application and evidence records. Capability 002 imports explicit PDF-resume text into Candidate Knowledge with provenance and confirmation state. Capability 003 specifies information acquisition; it does not yet implement job discovery, artifact rewriting, automated applications, or outcome-driven learning.
