@@ -29,6 +29,9 @@ node src/cli.js job-profile-show --db career-evolution.db --job-profile-id <job-
 node src/cli.js information-needs-create --db career-evolution.db --candidate-profile-id <profile-id> --job-profile-id <job-profile-id>
 node src/cli.js evidence-discovery-create --db career-evolution.db --information-need-run-id <information-need-run-id>
 node src/cli.js evidence-discovery-show --db career-evolution.db --evidence-discovery-run-id <evidence-discovery-run-id>
+node src/cli.js acquisition-plan-create --db career-evolution.db --information-need-run-id <information-need-run-id> --evidence-discovery-run-id <evidence-discovery-run-id>
+node src/cli.js acquisition-execution-create --db career-evolution.db --acquisition-plan-run-id <acquisition-plan-run-id> --captures '[{"actionId":"<action-id>","rawCapturedEvidence":{"response":"..."}}]'
+node src/cli.js acquisition-execution-show --db career-evolution.db --acquisition-result-run-id <acquisition-result-run-id>
 ```
 
 Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.

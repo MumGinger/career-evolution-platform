@@ -4,6 +4,7 @@ const { PARSER_VERSION, POLICY_VERSION, hash, parseJobDescription } = require('.
 const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement, normalize } = require('./information-needs');
 const discovery = require('./evidence-discovery');
 const planning = require('./acquisition-planning');
+const execution = require('./acquisition-execution');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -38,6 +39,8 @@ class Store {
       CREATE TABLE IF NOT EXISTS acquisition_plans (id TEXT PRIMARY KEY, acquisition_plan_run_id TEXT NOT NULL REFERENCES acquisition_plan_runs(id), strategy TEXT NOT NULL, expected_information_gain TEXT NOT NULL, expected_information_gain_score INTEGER NOT NULL, estimated_acquisition_cost TEXT NOT NULL, confidence TEXT NOT NULL, rationale TEXT NOT NULL, limitations TEXT NOT NULL, stop_condition TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS acquisition_plan_needs (acquisition_plan_id TEXT NOT NULL REFERENCES acquisition_plans(id), information_need_id TEXT NOT NULL REFERENCES information_needs(id), PRIMARY KEY (acquisition_plan_id, information_need_id)) STRICT;
       CREATE TABLE IF NOT EXISTS acquisition_plan_actions (id TEXT PRIMARY KEY, acquisition_plan_id TEXT NOT NULL REFERENCES acquisition_plans(id), action_type TEXT NOT NULL, action_key TEXT NOT NULL, estimated_acquisition_cost TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_result_runs (id TEXT PRIMARY KEY, acquisition_plan_run_id TEXT NOT NULL REFERENCES acquisition_plan_runs(id), execution_adapter_version TEXT NOT NULL, plan_snapshot TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_results (id TEXT PRIMARY KEY, acquisition_result_run_id TEXT NOT NULL REFERENCES acquisition_result_runs(id), acquisition_action_id TEXT NOT NULL REFERENCES acquisition_plan_actions(id), execution_status TEXT NOT NULL CHECK(execution_status IN ('captured', 'skipped', 'unavailable')), raw_captured_evidence TEXT, source_type TEXT NOT NULL, provenance TEXT NOT NULL, limitations TEXT NOT NULL, captured_at TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(acquisition_result_run_id, acquisition_action_id)) STRICT;
     `);
     this.seedSkill();
   }
@@ -212,6 +215,34 @@ class Store {
       acquisition_actions: this.db.prepare('SELECT * FROM acquisition_plan_actions WHERE acquisition_plan_id = ? ORDER BY created_at, id').all(plan.id),
     }));
     return { ...run, input_snapshot: JSON.parse(run.input_snapshot), acquisition_plans: plans, information_need_run: this.getInformationNeedRun(run.information_need_run_id), evidence_discovery_run: this.getEvidenceDiscoveryRun(run.evidence_discovery_run_id) };
+  }
+  createAcquisitionResultRun({ acquisitionPlanRunId, captures }) {
+    const planRun = this.getAcquisitionPlanRun(acquisitionPlanRunId);
+    const actions = planRun.acquisition_plans.flatMap((plan) => plan.acquisition_actions.map((action) => ({ ...action, acquisition_plan_id: plan.id })));
+    if (!actions.length) throw new Error('Acquisition Plan Run contains no executable Acquisition Actions');
+    const outcomes = execution.normalizeCaptures(actions, captures);
+    const planSnapshot = {
+      acquisition_plan_run_id: planRun.id,
+      acquisition_plan_ids: planRun.acquisition_plans.map((plan) => plan.id),
+      acquisition_actions: actions.map((action) => ({ id: action.id, acquisition_plan_id: action.acquisition_plan_id, action_type: action.action_type, action_key: action.action_key })),
+    };
+    const run = { id: this.id(), acquisition_plan_run_id: planRun.id, execution_adapter_version: execution.ADAPTER_VERSION, plan_snapshot: JSON.stringify(planSnapshot), created_at: this.now() };
+    this.db.prepare('INSERT INTO acquisition_result_runs VALUES (?, ?, ?, ?, ?)').run(run.id, run.acquisition_plan_run_id, run.execution_adapter_version, run.plan_snapshot, run.created_at);
+    for (const action of actions) {
+      const outcome = outcomes.get(action.id);
+      const timestamp = this.now();
+      this.db.prepare('INSERT INTO acquisition_results VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, action.id, outcome.execution_status, outcome.raw_captured_evidence === null ? null : JSON.stringify(outcome.raw_captured_evidence), outcome.source_type, JSON.stringify(outcome.provenance), outcome.limitations, timestamp, timestamp);
+    }
+    return this.getAcquisitionResultRun(run.id);
+  }
+  getAcquisitionResultRun(id) {
+    const run = this.db.prepare('SELECT * FROM acquisition_result_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Acquisition Result Run not found: ${id}`);
+    const results = this.db.prepare(`SELECT acquisition_results.*, acquisition_plan_actions.action_type, acquisition_plan_actions.action_key, acquisition_plan_actions.acquisition_plan_id
+      FROM acquisition_results JOIN acquisition_plan_actions ON acquisition_plan_actions.id = acquisition_results.acquisition_action_id
+      WHERE acquisition_results.acquisition_result_run_id = ? ORDER BY acquisition_results.created_at, acquisition_results.id`).all(id)
+      .map((result) => ({ ...result, raw_captured_evidence: result.raw_captured_evidence === null ? null : JSON.parse(result.raw_captured_evidence), provenance: JSON.parse(result.provenance) }));
+    return { ...run, plan_snapshot: JSON.parse(run.plan_snapshot), acquisition_results: results, acquisition_plan_run: this.getAcquisitionPlanRun(run.acquisition_plan_run_id) };
   }
   createArtifact({ applicationId, artifactType, content, modelMetadata }) {
     const version = this.db.prepare('SELECT COALESCE(MAX(version), 0) + 1 AS version FROM artifacts WHERE application_id = ? AND artifact_type = ?').get(applicationId, artifactType).version;
