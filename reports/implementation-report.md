@@ -1,25 +1,25 @@
 # Implementation Report
 
-**Date:** 2026-08-02  
-**Status:** Capability 003.1 Job Intelligence implementation complete; pending human review
+**Date:** 2026-08-03
+**Status:** Capability 003.2 Information Need prioritization implementation complete; pending human review
 
 ## Scope
 
-Implemented Issue #7 only: create and retrieve deterministic, persisted Job Requirement Profiles from supplied job descriptions. Candidate matching, evidence questions, LLMs, web research, resume tailoring, job discovery, automation, and outcome learning remain out of scope.
+Implemented Issue #9 only: create and retrieve deterministic, persisted Information Need prioritization runs from existing Candidate Knowledge and an immutable Job Requirement Profile. Evidence acquisition, question generation, Candidate Knowledge updates, LLMs, web research, resume tailoring, job discovery, automation, and outcome learning remain out of scope.
 
 ## Delivered
 
-- SQLite job-description snapshots, independently retrievable versioned requirement profiles, and requirements.
-- Deterministic parser/policy with original excerpts, categories, explicitness, importance and resume-value scores/levels, rationales, parser/policy versions, source metadata, and stated limitations.
-- `job-profile-create` and `job-profile-show` CLI commands.
-- Synthetic Data Analyst, QA Analyst, stakeholder-central, required/preferred/repetition, persistence/versioning, and compatibility tests.
+- SQLite Information Need runs and needs, linked to one candidate, one exact Job Requirement Profile version, an immutable candidate-evidence snapshot, and an explicit policy version.
+- Deterministic exact normalized matching with a small explicit alias map. Needs retain status, factor inputs/rationales, supporting candidate-fact IDs, uncertainty, and an explainable composite priority.
+- `information-needs-create` and `information-needs-show` CLI commands.
+- Synthetic Data Analyst, QA Analyst, confirmation-required evidence, stakeholder-central, credential/experience constraint, alias, immutable-run, and compatibility tests.
 
 ## Validation
 
-- `npm test` passes: 15 tests covering Capabilities 001, 002, and 003.1.
-- No candidate profile or application-artifact behavior was changed; compatibility tests create and retrieve both existing record types.
+- `npm.cmd test` passes: 24 tests covering Capabilities 001, 002, 003.1, and 003.2.
+- No Candidate Knowledge is inferred or updated by a run; compatibility tests continue to create and retrieve existing application and knowledge records.
 
 ## Open questions
 
-- Review the initial deterministic catalog and thresholds against an observed job-description corpus; historical profiles retain their parser and policy version.
-- Define consent, privacy, and retention boundaries before connecting external sources for later Capability 003 work.
+- Review the initial deterministic alias catalog and thresholds against observed, consented job and candidate evidence; historical runs retain their policy and evidence snapshot.
+- Define consent, privacy, and retention boundaries before adding external evidence retrieval in Capability 003.3.
