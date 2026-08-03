@@ -13,9 +13,16 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     const result = runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output });
     assert.equal(result.validation.validation_status, 'passed');
     assert.deepEqual(fs.readdirSync(output).sort(), OUTPUT_FILES.slice().sort());
+    assert.ok(result.semantic.created_at <= result.discovery.created_at);
+    assert.ok(result.semantic.spans.length > 0);
+    assert.ok(fs.existsSync(path.join(output, 'resume-semantic-run.json')));
+    assert.ok(result.discovery.need_results.flatMap((item) => item.candidates).some((item) => item.candidate.source_type === 'resume_semantic'));
     assert.ok(result.integration.integration_decisions.every((decision) => decision.state !== 'accepted' || decision.source_evidence_refs.length));
-    assert.ok(result.integration.applied_facts.length >= 3);
-    assert.match(fs.readFileSync(path.join(output, 'report.html'), 'utf8'), /Rendered resume preview/);
+    assert.equal(result.integration.applied_facts.length, 0);
+    const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
+    assert.match(report, /Rendered resume preview/);
+    assert.match(report, /Resume Semantic Understanding/);
+    assert.match(report, /Provenance/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
@@ -24,6 +31,7 @@ test('without a capture fixture, unresolved acquisition is skipped and no unsupp
   try {
     const result = runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output });
     assert.equal(result.integration.applied_facts.length, 0);
+    assert.equal(result.knowledge.facts.length, 0);
     assert.ok(result.integration.upstream_snapshot.acquisition_results.every((item) => item.execution_status === 'skipped'));
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
