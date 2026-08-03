@@ -1,0 +1,8 @@
+Taylor Example
+taylor.example@example.test
+
+Skills
+SQL, Python, Data visualization, Communication
+
+Projects
+Sales reporting dashboard using SQL and Python
