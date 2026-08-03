@@ -76,8 +76,11 @@ test('reconstructs graph structure from persisted real-style spans when 002.5 ha
   assert.ok(graph.nodes.some((item) => item.decision_state === 'explicit'));
   assert.ok(graph.nodes.some((item) => item.decision_state === 'derived_structurally'));
   assert.ok(graph.nodes.some((item) => item.decision_state === 'possible'));
-  const derivedResponsibility = store.getResumeSemanticGraphEvidenceSnapshot(profile.id).find((item) => item.entity_type === 'responsibility' && item.provenance.decision_state === 'derived_structurally');
+  const graphEvidence = store.getResumeSemanticGraphEvidenceSnapshot(profile.id);
+  const derivedResponsibility = graphEvidence.find((item) => item.entity_type === 'responsibility' && item.provenance.decision_state === 'derived_structurally');
   const candidate = discoveryPolicy.candidateFor({ id: 'need' }, derivedResponsibility, 'resume_semantic_graph');
   assert.equal(discoveryPolicy.resolve([candidate])[0].state, 'needs_confirmation');
+  assert.equal(graphEvidence.find((item) => item.entity_type === 'project').confirmation_status, 'needs_confirmation');
+  assert.equal(graphEvidence.find((item) => item.entity_type === 'tool' && item.value.name === 'SQL').confirmation_status, 'confirmed');
   assert.equal(store.getCandidateKnowledge(profile.id).facts.length, 0);
 }));
