@@ -2,11 +2,17 @@
 
 | Term | Meaning |
 | --- | --- |
-| Career Evolution Platform | The product being built: a career tool that improves through reviewed real-world evidence. |
-| Evidence | A contextual record of an observation, outcome, or feedback item that may inform a decision. |
-| Feedback | A source-provided opinion or reaction. It is evidence, not automatically truth. |
-| Evolution Loop | The cycle of capture, review, skill update, and improved future output. |
-| Skill | A versioned, testable definition of guidance or capability used to shape a future output or decision. |
-| Review | The human- or policy-guided evaluation of evidence before a skill or product behavior changes. |
-| Artifact | A career-related object such as a resume, application, interview preparation plan, or offer analysis. |
-| Framework | A reusable abstraction extracted only after product implementation validates a repeated pattern. |
+| Career Evolution Platform | The evidence-driven career intelligence product described in this repository. |
+| Candidate Knowledge | The durable, traceable source of truth for candidate facts, evidence, uncertainty, and confirmation state. |
+| Resume | A time-bound artifact and one source of Candidate Knowledge; it is not the candidate. |
+| Source | An origin of information, such as a resume, user, connected account, job description, application, or outcome. |
+| Evidence | A contextual record with provenance, confidence, and limitations that may inform a decision. |
+| Unknown | A valid state meaning sufficient evidence has not been obtained; it is not a negative claim or confirmed absence. |
+| Information Acquisition | The bounded process of obtaining the highest-value unresolved information before a material decision or generation step. |
+| Information Priority | Evaluation of an unresolved item using importance, discoverability, resume value, acquisition cost, and existing evidence. |
+| Job Intelligence | The job-derived requirement profile used to evaluate relevance and information value. |
+| Artifact | A career-related output such as a resume, application note, cover letter, or interview preparation plan. |
+| Outcome | A contextual result from an application or interview; it can inform learning after review. |
+| Learning | A reviewed, traceable change to future priorities or guidance informed by evidence and outcomes. |
+| ADR | Architecture Decision Record: a durable decision and its consequences. |
+| PRD | Product Requirements Document: executable product behavior and scope for one capability. |

@@ -1,11 +1,11 @@
 # Implementation Report
 
 **Date:** 2026-08-02  
-**Status:** MVP-001 implemented; pending human review
+**Status:** Product documentation and governance foundation complete; pending human review
 
 ## Scope
 
-Implemented Issue #1's narrow local application-to-interview evidence loop on top of the documentation-first foundation.
+Reorganized and established documentation governance only. No product source code, schema, or runtime behavior changed.
 
 ## Delivered
 
@@ -22,9 +22,11 @@ Implemented Issue #1's narrow local application-to-interview evidence loop on to
 
 ## Validation
 
-- Ran the Node test suite using the built-in `node:sqlite` module.
-- Confirmed that a recorded interview invitation remains evidence and does not alter the active skill definition.
+- Documentation links and repository status inspected.
+- Existing automated test suite run with `npm test`.
 
 ## Open questions
 
-Define review authority, privacy/retention policy, and an evaluation method before using accumulated evidence to propose any new skill version.
+- Define consent, privacy, and retention boundaries before connecting external sources for Capability 003.
+- Define evidence-sufficiency thresholds per decision or artifact before implementation.
+- Confirm reviewer ownership for ADR and PRD changes.
