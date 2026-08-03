@@ -63,4 +63,4 @@ function evaluateRequirement(requirement, facts) {
   return { status, priority_level: level(priorityScore), priority_score: priorityScore, importance, resume_value: resumeValue, discoverability: discoverabilityInput, acquisition_cost: acquisitionCostInput, existing_evidence: existingEvidence, matched_fact_ids: matches.map((fact) => fact.id), uncertainty: status === 'needs_confirmation' ? 'Matching evidence remains uncertain until its stored confirmation requirement is resolved.' : 'No matching evidence is stored; unknown does not assert the candidate lacks this requirement.' };
 }
 
-module.exports = { POLICY_VERSION, evaluateRequirement, normalize };
+module.exports = { POLICY_VERSION, evaluateRequirement, normalize, matchingFacts, factValues };

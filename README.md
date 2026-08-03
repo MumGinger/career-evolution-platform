@@ -26,6 +26,9 @@ node src/cli.js outcome-record --db career-evolution.db --application-id <applic
 node src/cli.js application-show --db career-evolution.db --application-id <application-id>
 node src/cli.js job-profile-create --db career-evolution.db --company "Acme" --role-title "Data Analyst" --job-description "Required: SQL" --source-url "https://example.com/job/1"
 node src/cli.js job-profile-show --db career-evolution.db --job-profile-id <job-profile-id>
+node src/cli.js information-needs-create --db career-evolution.db --candidate-profile-id <profile-id> --job-profile-id <job-profile-id>
+node src/cli.js evidence-discovery-create --db career-evolution.db --information-need-run-id <information-need-run-id>
+node src/cli.js evidence-discovery-show --db career-evolution.db --evidence-discovery-run-id <evidence-discovery-run-id>
 ```
 
 Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.
