@@ -7,10 +7,10 @@ const root = path.join(__dirname, '..');
 function fixture(name) { return path.join(root, 'examples', name); }
 function tempOutput() { return fs.mkdtempSync(path.join(os.tmpdir(), 'career-demo-output-')); }
 
-test('synthetic demo runs the complete immutable pipeline and writes every expected output', () => {
+test('synthetic demo runs the complete immutable pipeline and writes every expected output', async () => {
   const output = tempOutput();
   try {
-    const result = runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output });
     assert.equal(result.validation.validation_status, 'passed');
     assert.deepEqual(fs.readdirSync(output).sort(), OUTPUT_FILES.slice().sort());
     assert.equal(result.semantic, null);
@@ -27,28 +27,28 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
-test('without a capture fixture, unresolved acquisition is skipped and no unsupported evidence is integrated', () => {
+test('without a capture fixture, unresolved acquisition is skipped and no unsupported evidence is integrated', async () => {
   const output = tempOutput();
   try {
-    const result = runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output });
     assert.equal(result.integration.applied_facts.length, 0);
     assert.equal(result.knowledge.facts.length, 0);
     assert.ok(result.integration.upstream_snapshot.acquisition_results.every((item) => item.execution_status === 'skipped'));
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
-test('requires a clean output directory so every invocation is a new run set', () => {
+test('requires a clean output directory so every invocation is a new run set', async () => {
   const output = tempOutput();
   try {
     fs.writeFileSync(path.join(output, 'existing.txt'), 'x');
-    assert.throws(() => runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output }), /must be empty/);
+    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output }), /must be empty/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
-test('optional graph flag preserves existing graph output while preferred path remains graph-free', () => {
+test('optional graph flag preserves existing graph output while preferred path remains graph-free', async () => {
   const output = tempOutput();
   try {
-    const result = runDemo({ resumePath: fixture('synthetic-complex-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output, buildSemanticGraph: true });
+    const result = await runDemo({ resumePath: fixture('synthetic-complex-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output, buildSemanticGraph: true });
     const graphStates = [...result.graph.nodes, ...result.graph.edges].filter((item) => item.decision_state === 'derived_structurally');
     assert.ok(result.graph.edges.length > 0); assert.ok(graphStates.length > 0);
     assert.ok(result.needs.available_working_evidence_summary.length > 0);

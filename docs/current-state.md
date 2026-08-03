@@ -5,7 +5,7 @@
 
 ## Completed
 
-- Implemented 002.7 Resume AST: immutable provider runs, deterministic provenance firewall, direct `resume_ast` retrieval, confirmation proposals, and graph-free preferred Demo path. 002.6 remains optional/lazy.
+- Implemented 002.7 Resume AST: asynchronous provider runs, strict canonical-schema plus deterministic provenance firewall, direct `resume_ast` retrieval, confirmation proposals, explicit extractor-mode reporting, and graph-free preferred Demo path. 002.6 remains optional/lazy.
 
 - Established project foundation and working agreement.
 - Documented the product-first vision, architecture principles, and initial design models.
