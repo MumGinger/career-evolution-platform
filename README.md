@@ -14,6 +14,8 @@ Start with the [product documentation](docs/README.md): the [vision](docs/vision
 
 The current MVP is a local SQLite CLI with no external packages. It creates a candidate profile, imports a PDF resume, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
+Experiment 002 also imports a PDF resume into a persisted Candidate Knowledge profile. Imported facts retain `resume` provenance and `parsed` confidence; entries whose fields cannot be structured safely are marked `needs_confirmation`.
+
 ```powershell
 node src/cli.js profile-create --db career-evolution.db --name "Aira" --skills "JavaScript,SQL"
 node src/cli.js resume-import --db career-evolution.db --pdf-path "C:\path\to\resume.pdf"

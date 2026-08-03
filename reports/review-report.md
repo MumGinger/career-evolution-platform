@@ -20,6 +20,7 @@
 
 ## Requested reviewer focus
 
-- Confirm that the Information Priority factors and stopping rule provide the right boundary for Capability 003.
-- Confirm the proposed handling of connected-source consent, privacy, and retention before implementation.
-- Confirm that the ADR numbering and migration of the Career-first decision preserve desired project history.
+- Confirm the local application-to-interview workflow is the right first validation slice.
+- Confirm the desired review authority and privacy/retention boundaries before any skill update is allowed.
+- Confirm that the deterministic artifact is sufficient for the MVP, without introducing a model integration prematurely.
+- Confirm that resume parsing remains limited to explicit text and that ambiguous structured entries are appropriately marked for confirmation.
