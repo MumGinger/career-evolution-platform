@@ -11,6 +11,7 @@
 - Implemented MVP-001: a local application-to-interview evidence loop with SQLite persistence, versioned artifacts, and non-learning outcome evidence.
 - Implemented Experiment 002: PDF resume intake that bootstraps traceable Candidate Knowledge facts without inferred content.
 - Implemented Capability 002.5: immutable source-resume versions and semantic runs with exact spans, working entity/relation candidates, and a narrow versioned deterministic policy. Semantic candidates remain outside Candidate Knowledge and are available only as bounded Evidence Discovery input.
+- Implemented Capability 002.6: immutable Resume Semantic Graph Runs that reconstruct bounded relationships from persisted 002.5 spans and entities even when 002.5 relations are absent, preserve artifact/version/span provenance, and expose bounded graph evidence to Discovery without writing Candidate Knowledge.
 - Implemented Capability 003.1: deterministic, versioned Job Intelligence profiles with immutable job-description snapshots, requirement excerpts, policy rationale, and parser/policy metadata.
 - Implemented Capability 003.2: deterministic, persisted, immutable Information Need prioritization runs that retain the job-profile version, candidate-evidence snapshot, policy inputs, evidence references, uncertainty, and rationale.
 - Implemented Capability 003.3: deterministic local Evidence Discovery Runs that search bounded snapshot sources, retain candidate provenance and resolutions, stop when evidence is sufficient, and leave unresolved needs without asking a user or updating Candidate Knowledge.
@@ -24,7 +25,7 @@
 
 ## Current focus
 
-Review the deterministic truth firewall before introducing final-document renderers. Real-input parsing hardening now covers compound resume sections, PDF bullet noise, wrapped bullet provenance, anchor relations, and LinkedIn-style job-description noise filtering under versioned deterministic policies.
+Review the deterministic truth firewall before introducing final-document renderers. Graph construction now adds bounded project/experience-to-responsibility-to-tool relationships while keeping resume evidence separate from committed coverage; real-input hardening also fixes canonical LinkedIn job identity persistence.
 
 ## Next decision
 
@@ -40,4 +41,4 @@ Decide the bounded final-document renderer and whether it must require a passing
 
 ## Milestone 1 Demo update
 
-Milestone 1 Demo is implemented as an integration-only local command. It versions the source resume and runs 002.5 Resume Semantic Understanding before Job Requirements, Information Needs, and Evidence Discovery; `resume_semantic` can be used as bounded discovery evidence. It exports the immutable semantic run plus terminal and static HTML summaries with readable candidate labels and secondary provenance. Parsed resume content and semantic candidates stay working evidence, while Candidate Knowledge Integration remains the sole accepted-only write path. Unresolved acquisition is explicitly skipped unless an optional caller-supplied capture fixture provides raw evidence. The next decision remains final-document rendering and its release gate.
+Milestone 1 Demo is implemented as an integration-only local command. It versions the source resume, runs 002.5, then runs 002.6 before Job Requirements, Information Needs, and Evidence Discovery. It exports immutable semantic and graph runs, terminal decision-state counts, and static HTML graph relationships with readable labels and secondary provenance. Graph evidence is working evidence, not committed Candidate Knowledge coverage; Candidate Knowledge Integration remains the sole accepted-only write path.
