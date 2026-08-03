@@ -1,7 +1,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const { randomUUID } = require('node:crypto');
 const { PARSER_VERSION, POLICY_VERSION, hash, parseJobDescription } = require('./job-intelligence');
-const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement } = require('./information-needs');
+const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement, normalize } = require('./information-needs');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -67,6 +67,24 @@ class Store {
     const facts = this.db.prepare('SELECT * FROM candidate_facts WHERE profile_id = ? ORDER BY entity_type, created_at').all(profileId).map((row) => ({ ...row, value: JSON.parse(row.value) }));
     return { profile, facts };
   }
+  getCandidateEvidenceSnapshot(profileId) {
+    const knowledge = this.getCandidateKnowledge(profileId);
+    const factSkillNames = new Set(knowledge.facts
+      .filter((fact) => fact.entity_type === 'skill' && fact.value?.name)
+      .map((fact) => normalize(fact.value.name)));
+    const profileSkills = knowledge.profile.skills
+      .map((name, index) => ({ name, index }))
+      .filter(({ name }) => !factSkillNames.has(normalize(name)))
+      .map(({ name, index }) => ({
+      id: `profile_skill:${knowledge.profile.id}:${index}`,
+      entity_type: 'skill',
+      value: { name },
+      source: 'profile_skill',
+      confidence: 'explicit',
+      confirmation_status: 'confirmed',
+      }));
+    return { ...knowledge, facts: [...knowledge.facts, ...profileSkills] };
+  }
   createJobRequirementProfile({ company, roleTitle, jobDescription, location = '', sourceUrl = '', sourceMetadata = {} }) {
     const snapshotMetadata = JSON.stringify(sourceMetadata);
     let snapshot = this.db.prepare('SELECT * FROM job_description_snapshots WHERE company = ? AND role_title = ? AND location = ? AND description_hash = ? AND source_url = ? AND source_metadata = ?').get(company, roleTitle, location, hash(jobDescription), sourceUrl, snapshotMetadata);
@@ -91,7 +109,7 @@ class Store {
     return { ...profile, snapshot: { ...snapshot, source_metadata: JSON.parse(snapshot.source_metadata) }, requirements };
   }
   createInformationNeedRun({ candidateProfileId, jobRequirementProfileId }) {
-    const knowledge = this.getCandidateKnowledge(candidateProfileId);
+    const knowledge = this.getCandidateEvidenceSnapshot(candidateProfileId);
     const jobProfile = this.getJobRequirementProfile(jobRequirementProfileId);
     const run = { id: this.id(), candidate_profile_id: candidateProfileId, job_requirement_profile_id: jobRequirementProfileId, job_requirement_profile_version: jobProfile.version, policy_version: INFORMATION_NEEDS_POLICY_VERSION, candidate_evidence_snapshot: JSON.stringify(knowledge.facts), created_at: this.now() };
     this.db.prepare('INSERT INTO information_need_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.job_requirement_profile_id, run.job_requirement_profile_version, run.policy_version, run.candidate_evidence_snapshot, run.created_at);
