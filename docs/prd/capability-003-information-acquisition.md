@@ -128,7 +128,6 @@ Every execution creates a new immutable Acquisition Result Run with a snapshot o
 
 ## Out of scope
 
-- Runtime implementation of 003.6
 - Job discovery
 - Auto-apply or application submission
 - Resume rewriting or tailoring
@@ -144,3 +143,7 @@ Every execution creates a new immutable Acquisition Result Run with a snapshot o
 - Only Candidate Knowledge Integration may modify Candidate Knowledge.
 - The flow stops once evidence is sufficient for the bounded goal.
 - Any future learning of priority weights is attributable to reviewed application or interview evidence and outcomes.
+
+## Capability 003.6 implementation policy
+
+003.6 is complete. It consumes exactly one immutable Evidence Discovery or Acquisition Result Run and explicit bounded structured proposals. It persists immutable Integration Runs, Decisions, Evidence Observations, many-to-many evidence links, accepted Candidate Facts, and revision relationships. Only `accepted` writes a fact; `duplicate` adds an evidence link only; every other decision writes no fact. Facts are append-only (`new`, `confirms`, `extends`, `supersedes`) and weak evidence cannot downgrade knowledge.

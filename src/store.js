@@ -5,6 +5,7 @@ const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement, n
 const discovery = require('./evidence-discovery');
 const planning = require('./acquisition-planning');
 const execution = require('./acquisition-execution');
+const integration = require('./candidate-knowledge-integration');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -41,6 +42,12 @@ class Store {
       CREATE TABLE IF NOT EXISTS acquisition_plan_actions (id TEXT PRIMARY KEY, acquisition_plan_id TEXT NOT NULL REFERENCES acquisition_plans(id), action_type TEXT NOT NULL, action_key TEXT NOT NULL, estimated_acquisition_cost TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS acquisition_result_runs (id TEXT PRIMARY KEY, acquisition_plan_run_id TEXT NOT NULL REFERENCES acquisition_plan_runs(id), execution_adapter_version TEXT NOT NULL, plan_snapshot TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS acquisition_results (id TEXT PRIMARY KEY, acquisition_result_run_id TEXT NOT NULL REFERENCES acquisition_result_runs(id), acquisition_action_id TEXT NOT NULL REFERENCES acquisition_plan_actions(id), execution_status TEXT NOT NULL CHECK(execution_status IN ('captured', 'skipped', 'unavailable')), raw_captured_evidence TEXT, source_type TEXT NOT NULL, provenance TEXT NOT NULL, limitations TEXT NOT NULL, captured_at TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(acquisition_result_run_id, acquisition_action_id)) STRICT;
+      CREATE TABLE IF NOT EXISTS candidate_knowledge_integration_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), upstream_run_type TEXT NOT NULL CHECK(upstream_run_type IN ('evidence_discovery_run', 'acquisition_result_run')), upstream_run_id TEXT NOT NULL, policy_version TEXT NOT NULL, knowledge_snapshot TEXT NOT NULL, upstream_snapshot TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS integration_decisions (id TEXT PRIMARY KEY, integration_run_id TEXT NOT NULL REFERENCES candidate_knowledge_integration_runs(id), proposed_entity_type TEXT, proposed_value TEXT, source_evidence_refs TEXT NOT NULL, related_references TEXT NOT NULL, comparison TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('accepted', 'needs_confirmation', 'rejected', 'conflicting', 'duplicate', 'deferred')), rationale TEXT NOT NULL, confirmation_status TEXT, confidence_level TEXT, policy_version TEXT NOT NULL, existing_fact_id TEXT, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS evidence_observations (id TEXT PRIMARY KEY, source_type TEXT NOT NULL, source_id TEXT NOT NULL, upstream_run_type TEXT NOT NULL, upstream_run_id TEXT NOT NULL, raw_value TEXT NOT NULL, provenance TEXT NOT NULL, positive_confirmation INTEGER NOT NULL, created_at TEXT NOT NULL, UNIQUE(source_type, source_id));
+      CREATE TABLE IF NOT EXISTS candidate_knowledge_facts (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), entity_type TEXT NOT NULL, canonical_value TEXT NOT NULL, display_value TEXT, identity_key TEXT NOT NULL, confirmation_status TEXT NOT NULL, confidence_level TEXT NOT NULL CHECK(confidence_level IN ('high', 'medium', 'low')), validity_dates TEXT, integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS candidate_fact_evidence_links (candidate_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), evidence_observation_id TEXT NOT NULL REFERENCES evidence_observations(id), integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), relationship TEXT NOT NULL CHECK(relationship IN ('supports', 'confirms', 'extends', 'contradicts')), created_at TEXT NOT NULL, PRIMARY KEY(candidate_fact_id, evidence_observation_id));
+      CREATE TABLE IF NOT EXISTS candidate_fact_revisions (id TEXT PRIMARY KEY, prior_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), new_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), relation TEXT NOT NULL CHECK(relation IN ('confirms', 'extends', 'supersedes')), integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), created_at TEXT NOT NULL) STRICT;
     `);
     this.seedSkill();
   }
@@ -243,6 +250,66 @@ class Store {
       WHERE acquisition_results.acquisition_result_run_id = ? ORDER BY acquisition_results.created_at, acquisition_results.id`).all(id)
       .map((result) => ({ ...result, raw_captured_evidence: result.raw_captured_evidence === null ? null : JSON.parse(result.raw_captured_evidence), provenance: JSON.parse(result.provenance) }));
     return { ...run, plan_snapshot: JSON.parse(run.plan_snapshot), acquisition_results: results, acquisition_plan_run: this.getAcquisitionPlanRun(run.acquisition_plan_run_id) };
+  }
+  getCommittedCandidateKnowledge(profileId) {
+    this.getProfile(profileId);
+    return this.db.prepare('SELECT * FROM candidate_knowledge_facts WHERE candidate_profile_id = ? ORDER BY created_at, id').all(profileId)
+      .map((fact) => ({ ...fact, canonical_value: JSON.parse(fact.canonical_value), value: JSON.parse(fact.canonical_value), validity_dates: fact.validity_dates ? JSON.parse(fact.validity_dates) : null }));
+  }
+  integrationSource(upstreamRunType, upstreamRunId, ref) {
+    if (upstreamRunType === 'evidence_discovery_run' && ref.type === 'evidence_candidate') {
+      const row = this.db.prepare(`SELECT evidence_candidates.*, evidence_resolutions.state AS resolution_state FROM evidence_candidates JOIN evidence_resolutions ON evidence_resolutions.evidence_candidate_id = evidence_candidates.id WHERE evidence_candidates.id = ? AND evidence_candidates.discovery_run_id = ?`).get(ref.id, upstreamRunId);
+      return row ? { valid: true, positive: row.resolution_state === 'accepted_for_need', source_type: ref.type, source_id: ref.id, raw_value: JSON.parse(row.supporting_value), provenance: JSON.parse(row.provenance) } : { valid: false, positive: false };
+    }
+    if (upstreamRunType === 'acquisition_result_run' && ref.type === 'acquisition_result') {
+      const row = this.db.prepare('SELECT * FROM acquisition_results WHERE id = ? AND acquisition_result_run_id = ?').get(ref.id, upstreamRunId);
+      return row ? { valid: true, positive: ref.positiveConfirmation === true && row.execution_status === 'captured', source_type: ref.type, source_id: ref.id, raw_value: row.raw_captured_evidence ? JSON.parse(row.raw_captured_evidence) : null, provenance: JSON.parse(row.provenance) } : { valid: false, positive: false };
+    }
+    return { valid: false, positive: false };
+  }
+  persistObservation(source, upstreamRunType, upstreamRunId) {
+    let observation = this.db.prepare('SELECT * FROM evidence_observations WHERE source_type = ? AND source_id = ?').get(source.source_type, source.source_id);
+    if (!observation) {
+      observation = { id: this.id(), source_type: source.source_type, source_id: source.source_id, upstream_run_type: upstreamRunType, upstream_run_id: upstreamRunId, raw_value: JSON.stringify(source.raw_value), provenance: JSON.stringify(source.provenance), positive_confirmation: source.positive ? 1 : 0, created_at: this.now() };
+      this.db.prepare('INSERT INTO evidence_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(observation.id, observation.source_type, observation.source_id, observation.upstream_run_type, observation.upstream_run_id, observation.raw_value, observation.provenance, observation.positive_confirmation, observation.created_at);
+    }
+    return observation;
+  }
+  createCandidateKnowledgeIntegrationRun({ candidateProfileId, evidenceDiscoveryRunId, acquisitionResultRunId, proposals }) {
+    if (Boolean(evidenceDiscoveryRunId) === Boolean(acquisitionResultRunId)) throw new Error('Integration requires exactly one upstream Evidence Discovery Run or Acquisition Result Run');
+    if (!Array.isArray(proposals)) throw new Error('Integration proposals must be an array of explicit bounded structured proposals');
+    this.getProfile(candidateProfileId);
+    const upstreamRunType = evidenceDiscoveryRunId ? 'evidence_discovery_run' : 'acquisition_result_run';
+    const upstreamRunId = evidenceDiscoveryRunId || acquisitionResultRunId;
+    const upstream = evidenceDiscoveryRunId ? this.getEvidenceDiscoveryRun(upstreamRunId) : this.getAcquisitionResultRun(upstreamRunId);
+    const currentFacts = this.getCommittedCandidateKnowledge(candidateProfileId);
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, upstream_run_type: upstreamRunType, upstream_run_id: upstreamRunId, policy_version: integration.POLICY_VERSION, knowledge_snapshot: JSON.stringify(currentFacts), upstream_snapshot: JSON.stringify(upstream), limitations: 'Only explicit bounded proposals are evaluated. Raw evidence alone, unresolved evidence, and evaluative claims cannot become Candidate Knowledge.', created_at: this.now() };
+    this.db.prepare('INSERT INTO candidate_knowledge_integration_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.upstream_run_type, run.upstream_run_id, run.policy_version, run.knowledge_snapshot, run.upstream_snapshot, run.limitations, run.created_at);
+    for (const proposal of proposals) {
+      const sources = Array.isArray(proposal.sourceEvidenceRefs) ? proposal.sourceEvidenceRefs.map((ref) => this.integrationSource(upstreamRunType, upstreamRunId, ref)) : [];
+      const result = integration.classify({ proposal, sources, existingFacts: currentFacts });
+      const decision = { id: this.id(), integration_run_id: run.id, proposed_entity_type: proposal.entityType || null, proposed_value: proposal.value ? JSON.stringify(proposal.value) : null, source_evidence_refs: JSON.stringify(proposal.sourceEvidenceRefs || []), related_references: JSON.stringify(proposal.relatedReferences || []), comparison: JSON.stringify({ identity_key: proposal.value ? integration.identity(proposal.entityType, proposal.value) : null, existing_fact_ids: currentFacts.map((fact) => fact.id) }), state: result.state, rationale: result.rationale, confirmation_status: proposal.confirmationStatus || null, confidence_level: proposal.confidenceLevel || null, policy_version: integration.POLICY_VERSION, existing_fact_id: result.existingFactId || proposal.priorFactId || null, created_at: this.now() };
+      this.db.prepare('INSERT INTO integration_decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(decision.id, decision.integration_run_id, decision.proposed_entity_type, decision.proposed_value, decision.source_evidence_refs, decision.related_references, decision.comparison, decision.state, decision.rationale, decision.confirmation_status, decision.confidence_level, decision.policy_version, decision.existing_fact_id, decision.created_at);
+      if (decision.state === 'duplicate') {
+        for (const source of sources.filter((item) => item.valid)) { const observation = this.persistObservation(source, upstreamRunType, upstreamRunId); this.db.prepare('INSERT OR IGNORE INTO candidate_fact_evidence_links VALUES (?, ?, ?, ?, ?)').run(result.existingFactId, observation.id, decision.id, 'confirms', this.now()); }
+        continue;
+      }
+      if (decision.state !== 'accepted') continue;
+      if (proposal.priorFactId && !currentFacts.some((fact) => fact.id === proposal.priorFactId)) throw new Error('Accepted revision must reference a Candidate Fact belonging to this profile');
+      const fact = { id: this.id(), candidate_profile_id: candidateProfileId, entity_type: proposal.entityType, canonical_value: JSON.stringify(proposal.value), display_value: proposal.displayValue || null, identity_key: integration.identity(proposal.entityType, proposal.value), confirmation_status: 'confirmed', confidence_level: ['high', 'medium', 'low'].includes(proposal.confidenceLevel) ? proposal.confidenceLevel : 'medium', validity_dates: proposal.validityDates ? JSON.stringify(proposal.validityDates) : null, integration_decision_id: decision.id, created_at: this.now() };
+      this.db.prepare('INSERT INTO candidate_knowledge_facts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(fact.id, fact.candidate_profile_id, fact.entity_type, fact.canonical_value, fact.display_value, fact.identity_key, fact.confirmation_status, fact.confidence_level, fact.validity_dates, fact.integration_decision_id, fact.created_at);
+      for (const source of sources) { const observation = this.persistObservation(source, upstreamRunType, upstreamRunId); this.db.prepare('INSERT INTO candidate_fact_evidence_links VALUES (?, ?, ?, ?, ?)').run(fact.id, observation.id, decision.id, result.relation === 'extends' ? 'extends' : result.relation === 'confirms' ? 'confirms' : 'supports', this.now()); }
+      if (result.relation !== 'new') this.db.prepare('INSERT INTO candidate_fact_revisions VALUES (?, ?, ?, ?, ?, ?)').run(this.id(), proposal.priorFactId, fact.id, result.relation, decision.id, this.now());
+      currentFacts.push({ ...fact, value: proposal.value });
+    }
+    return this.getCandidateKnowledgeIntegrationRun(run.id);
+  }
+  getCandidateKnowledgeIntegrationRun(id) {
+    const run = this.db.prepare('SELECT * FROM candidate_knowledge_integration_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Candidate Knowledge Integration Run not found: ${id}`);
+    const decisions = this.db.prepare('SELECT * FROM integration_decisions WHERE integration_run_id = ? ORDER BY created_at, id').all(id).map((item) => ({ ...item, proposed_value: item.proposed_value ? JSON.parse(item.proposed_value) : null, source_evidence_refs: JSON.parse(item.source_evidence_refs), related_references: JSON.parse(item.related_references), comparison: JSON.parse(item.comparison) }));
+    const facts = this.db.prepare('SELECT * FROM candidate_knowledge_facts WHERE integration_decision_id IN (SELECT id FROM integration_decisions WHERE integration_run_id = ?) ORDER BY created_at, id').all(id).map((item) => ({ ...item, canonical_value: JSON.parse(item.canonical_value) }));
+    return { ...run, knowledge_snapshot: JSON.parse(run.knowledge_snapshot), upstream_snapshot: JSON.parse(run.upstream_snapshot), integration_decisions: decisions, applied_facts: facts };
   }
   createArtifact({ applicationId, artifactType, content, modelMetadata }) {
     const version = this.db.prepare('SELECT COALESCE(MAX(version), 0) + 1 AS version FROM artifacts WHERE application_id = ? AND artifact_type = ?').get(applicationId, artifactType).version;
