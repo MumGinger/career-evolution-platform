@@ -1,30 +1,29 @@
 # Implementation Report
 
 **Date:** 2026-08-02  
-**Status:** MVP-001 implemented; pending human review
+**Status:** Product documentation and governance foundation complete; pending human review
 
 ## Scope
 
-Implemented Issue #1's narrow local application-to-interview evidence loop on top of the documentation-first foundation.
+Reorganized and established documentation governance only. No product source code, schema, or runtime behavior changed.
 
 ## Delivered
 
-- Product vision, roadmap, glossary, architecture, and current state
-- Evidence, evolution-loop, and skill-definition designs
-- ADR-001 documenting the Career-first decision
-- Working agreement for Codex agents and placeholder source, test, example, and specification directories
-- SQLite-backed candidate, application, artifact, skill-definition, and evidence records
-- A local CLI for profile creation, application creation, artifact generation, outcome recording, user-edit recording, and application history
-- A deterministic tailored application note that records its exact skill version and model metadata
-- Separate outcome, preference, and internal-diagnostic evidence with automatic skill updates explicitly disabled
-- Automated Node tests for record creation, version linkage, and evidence classification
-- Experiment 002 PDF resume intake, candidate-fact persistence, and profile inspection with `resume` provenance and `parsed` confidence
+- Reorganized canonical vision, roadmap, and system documentation under `docs/`.
+- Added product principles and ADRs for Candidate Knowledge, unknown-state semantics, and acquisition before generation.
+- Moved the existing Career-first ADR into the canonical ADR index without changing its decision.
+- Added an executable PRD for Capability 003 — Information Acquisition.
+- Updated the root README with mission, completed capabilities, documentation entry points, and local CLI/test usage.
+- Added pull-request review gates to `AGENTS.md`.
+- Updated current state, glossary, and this implementation record.
 
 ## Validation
 
-- Ran the Node test suite using the built-in `node:sqlite` module.
-- Confirmed that a recorded interview invitation remains evidence and does not alter the active skill definition.
+- Documentation links and repository status inspected.
+- Existing automated test suite run with `npm test`.
 
 ## Open questions
 
-Define review authority, privacy/retention policy, and an evaluation method before using accumulated evidence to propose any new skill version.
+- Define consent, privacy, and retention boundaries before connecting external sources for Capability 003.
+- Define evidence-sufficiency thresholds per decision or artifact before implementation.
+- Confirm reviewer ownership for ADR and PRD changes.
