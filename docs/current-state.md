@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 004.2 Resume Artifact Generation implemented
+**Phase:** Capability 004.3 Truthfulness and Quality Validation implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -19,14 +19,15 @@
 - Implemented Capability 003.6: deterministic Candidate Knowledge Integration with immutable decisions, accepted-only writes, evidence links, and append-only revisions.
 - Implemented Capability 004.1: immutable, deterministic Resume Tailoring Plan Runs that select committed facts, record requirement coverage and bounded claim scopes, and analyze source-resume wording without editing it.
 - Implemented Capability 004.2: immutable Resume Artifact Runs and first-class structured Resume Artifacts rendered deterministically from one tailoring plan, with statement-level selection/fact provenance and metadata-only omissions and blocked claims.
+- Implemented Capability 004.3: immutable, independently re-runnable Resume Validation Runs with first-class findings and deterministic provenance, claim-scope, plan, coverage, duplication, and completeness checks.
 
 ## Current focus
 
-Review the deterministic structured artifact model and its provenance before introducing final-document renderers.
+Review the deterministic truth firewall before introducing final-document renderers.
 
 ## Next decision
 
-Define Capability 004.3 truthfulness and quality validation for rendered artifacts.
+Decide the bounded final-document renderer and whether it must require a passing 004.3 Validation Run at release time.
 
 ## Open questions
 

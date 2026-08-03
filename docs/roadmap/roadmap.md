@@ -12,7 +12,7 @@
 | 003.6 — Candidate Knowledge Integration | Complete | Deterministically commit only accepted bounded evidence into append-only Candidate Knowledge through its sole Capability 003 write path. |
 | 004.1 — Resume Tailoring Planning | Complete | Create immutable, truth-preserving selection and coverage plans from committed Candidate Knowledge and job requirements. |
 | 004.2 — Resume Artifact Generation | Complete | Deterministically render structured, provenance-preserving intermediate resume artifacts from immutable tailoring plans. |
-| 004.3 — Truthfulness & Quality Validation | Planned | Independently validate every rendered claim before final output. |
+| 004.3 — Truthfulness & Quality Validation | Complete | Deterministically validate immutable artifacts against plan, fact provenance, claim scopes, and traceability before output. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
 | 007 — Outcome Learning | Planned | Learn priorities and guidance from reviewed application and interview outcomes. |
