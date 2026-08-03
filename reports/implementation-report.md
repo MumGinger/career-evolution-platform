@@ -1,25 +1,27 @@
 # Implementation Report
 
 **Date:** 2026-08-03
-**Status:** Capability 003.2 Information Need prioritization implementation complete; pending human review
+**Status:** Capability 003.3 Evidence Discovery Engine implementation complete; pending human review
 
 ## Scope
 
-Implemented Issue #9 only: create and retrieve deterministic, persisted Information Need prioritization runs from existing Candidate Knowledge and an immutable Job Requirement Profile. Evidence acquisition, question generation, Candidate Knowledge updates, LLMs, web research, resume tailoring, job discovery, automation, and outcome learning remain out of scope.
+Implemented Issue #11 only: create and retrieve deterministic, persisted Evidence Discovery Runs from an existing immutable Information Need Run. The local MVP searches snapshot `candidate_fact`, `profile_skill`, and `resume_import` sources only. Question generation, Candidate Knowledge updates, LLMs, external connectors, resume tailoring, job discovery, automation, and outcome learning remain out of scope.
 
 ## Delivered
 
-- SQLite Information Need runs and needs, linked to one candidate, one exact Job Requirement Profile version, an immutable candidate-evidence snapshot, and an explicit policy version.
-- Deterministic exact normalized matching with a small explicit alias map. Needs retain status, factor inputs/rationales, supporting candidate-fact IDs, uncertainty, and an explainable composite priority.
-- `information-needs-create` and `information-needs-show` CLI commands.
-- Synthetic Data Analyst, QA Analyst, confirmation-required evidence, stakeholder-central, credential/experience constraint, alias, immutable-run, and compatibility tests.
+- Product Principle 9, `Search Before Ask`, and a formal Capability 003.3 PRD section.
+- ADR-004 establishes immutable Run records for all decision-producing operations.
+- SQLite Evidence Discovery Runs, source-search records, Evidence Candidates, Evidence Resolutions, and per-need sufficiency results. Every record retains policy/adapter version, provenance, rationale, limitations, and a creation timestamp.
+- Deterministic exact/explicit-alias adapters and resolution policy, with stop rules for high-confidence evidence and material structured conflicts.
+- `evidence-discovery-create` and `evidence-discovery-show` CLI commands.
+- Synthetic acceptance coverage for sufficiency/skip behavior, confirmation-required resume evidence, compatible evidence, conflicts, empty search, supported and focused needs, immutable re-runs, and existing capability compatibility.
 
 ## Validation
 
-- `npm.cmd test` passes: 24 tests covering Capabilities 001, 002, 003.1, and 003.2.
-- No Candidate Knowledge is inferred or updated by a run; compatibility tests continue to create and retrieve existing application and knowledge records.
+- `npm.cmd test` passes: 33 tests covering Capabilities 001, 002, 003.1, 003.2, and 003.3.
+- No Candidate Knowledge is inferred, inserted, updated, or deleted by Evidence Discovery; no question or unavailable source record is generated.
 
 ## Open questions
 
-- Review the initial deterministic alias catalog and thresholds against observed, consented job and candidate evidence; historical runs retain their policy and evidence snapshot.
-- Define consent, privacy, and retention boundaries before adding external evidence retrieval in Capability 003.3.
+- Review the initial deterministic alias catalog, sufficiency threshold, and structured-conflict policy against observed, consented evidence; historical runs retain their policy and snapshots.
+- Define question UX, consent, privacy, and retention boundaries before Capability 003.4 or external source adapters.

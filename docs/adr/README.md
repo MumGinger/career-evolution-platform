@@ -12,3 +12,4 @@ Each ADR contains: Title, Status, Context, Decision, Alternatives Considered, an
 - [ADR-001: Resume Is Not the Candidate](ADR-001-resume-is-not-candidate.md)
 - [ADR-002: Unknown Is Not Missing](ADR-002-unknown-is-not-missing.md)
 - [ADR-003: Acquire Before Generate](ADR-003-acquire-before-generate.md)
+- [ADR-004: Decision Operations Produce Immutable Runs](ADR-004-decision-operations-produce-immutable-runs.md)
