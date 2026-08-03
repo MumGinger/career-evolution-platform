@@ -3,6 +3,7 @@ const { randomUUID } = require('node:crypto');
 const { PARSER_VERSION, POLICY_VERSION, hash, parseJobDescription } = require('./job-intelligence');
 const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement, normalize } = require('./information-needs');
 const discovery = require('./evidence-discovery');
+const planning = require('./acquisition-planning');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -33,6 +34,10 @@ class Store {
       CREATE TABLE IF NOT EXISTS evidence_candidates (id TEXT PRIMARY KEY, discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), information_need_id TEXT NOT NULL REFERENCES information_needs(id), job_requirement_id TEXT NOT NULL REFERENCES job_requirements(id), source_type TEXT NOT NULL, source_reference TEXT NOT NULL, normalized_claim TEXT NOT NULL, supporting_value TEXT NOT NULL, supporting_text TEXT NOT NULL, extraction_method TEXT NOT NULL, confidence_level TEXT NOT NULL CHECK(confidence_level IN ('high', 'medium', 'low')), parser_version TEXT NOT NULL, provenance TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS evidence_resolutions (id TEXT PRIMARY KEY, discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), evidence_candidate_id TEXT NOT NULL UNIQUE REFERENCES evidence_candidates(id), information_need_id TEXT NOT NULL REFERENCES information_needs(id), state TEXT NOT NULL CHECK(state IN ('accepted_for_need', 'needs_confirmation', 'rejected', 'conflicting')), rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS evidence_need_results (id TEXT PRIMARY KEY, discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), information_need_id TEXT NOT NULL REFERENCES information_needs(id), sufficient INTEGER NOT NULL, terminal_status TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(discovery_run_id, information_need_id)) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_plan_runs (id TEXT PRIMARY KEY, information_need_run_id TEXT NOT NULL REFERENCES information_need_runs(id), evidence_discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), acquisition_policy_version TEXT NOT NULL, input_snapshot TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_plans (id TEXT PRIMARY KEY, acquisition_plan_run_id TEXT NOT NULL REFERENCES acquisition_plan_runs(id), strategy TEXT NOT NULL, expected_information_gain TEXT NOT NULL, expected_information_gain_score INTEGER NOT NULL, estimated_acquisition_cost TEXT NOT NULL, confidence TEXT NOT NULL, rationale TEXT NOT NULL, limitations TEXT NOT NULL, stop_condition TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_plan_needs (acquisition_plan_id TEXT NOT NULL REFERENCES acquisition_plans(id), information_need_id TEXT NOT NULL REFERENCES information_needs(id), PRIMARY KEY (acquisition_plan_id, information_need_id)) STRICT;
+      CREATE TABLE IF NOT EXISTS acquisition_plan_actions (id TEXT PRIMARY KEY, acquisition_plan_id TEXT NOT NULL REFERENCES acquisition_plans(id), action_type TEXT NOT NULL, action_key TEXT NOT NULL, estimated_acquisition_cost TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
     `);
     this.seedSkill();
   }
@@ -176,6 +181,37 @@ class Store {
     const sourceSearches = this.db.prepare('SELECT * FROM evidence_source_searches WHERE discovery_run_id = ? ORDER BY information_need_id, search_order').all(id);
     const results = this.db.prepare('SELECT * FROM evidence_need_results WHERE discovery_run_id = ? ORDER BY created_at, id').all(id).map((result) => ({ ...result, sufficient: Boolean(result.sufficient), candidates: this.getDiscoveryCandidates(id, result.information_need_id) }));
     return { ...run, source_snapshot: JSON.parse(run.source_snapshot), selected_information_need_ids: JSON.parse(run.selected_information_need_ids), source_searches: sourceSearches, need_results: results, information_need_run: this.getInformationNeedRun(run.information_need_run_id) };
+  }
+  createAcquisitionPlanRun({ informationNeedRunId, evidenceDiscoveryRunId }) {
+    const informationNeedRun = this.getInformationNeedRun(informationNeedRunId);
+    const discoveryRun = this.getEvidenceDiscoveryRun(evidenceDiscoveryRunId);
+    if (discoveryRun.information_need_run_id !== informationNeedRunId) throw new Error('Evidence Discovery Run must belong to the supplied Information Need Run');
+    const needs = new Map(informationNeedRun.information_needs.map((need) => [need.id, need]));
+    const planned = discoveryRun.need_results
+      .filter((result) => !result.sufficient && result.terminal_status === 'unresolved_after_search')
+      .map((result) => ({ need: needs.get(result.information_need_id), discoveryResult: result }))
+      .filter((item) => item.need)
+      .map((item) => ({ ...planning.planFor(item), need: item.need }));
+    const inputSnapshot = { information_need_run_id: informationNeedRunId, evidence_discovery_run_id: evidenceDiscoveryRunId, unresolved_need_ids: planned.map((item) => item.need.id), discovery_results: discoveryRun.need_results };
+    const run = { id: this.id(), information_need_run_id: informationNeedRunId, evidence_discovery_run_id: evidenceDiscoveryRunId, acquisition_policy_version: planning.POLICY_VERSION, input_snapshot: JSON.stringify(inputSnapshot), created_at: this.now() };
+    this.db.prepare('INSERT INTO acquisition_plan_runs VALUES (?, ?, ?, ?, ?, ?)').run(run.id, run.information_need_run_id, run.evidence_discovery_run_id, run.acquisition_policy_version, run.input_snapshot, run.created_at);
+    for (const group of planning.groupPlans(planned)) {
+      const planId = this.id();
+      this.db.prepare('INSERT INTO acquisition_plans VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(planId, run.id, group.strategy, group.information_gain, group.information_gain_score, group.acquisition_cost, group.confidence, group.rationale, group.limitations, group.stop_condition, this.now());
+      for (const need of group.needs) this.db.prepare('INSERT INTO acquisition_plan_needs VALUES (?, ?)').run(planId, need.id);
+      this.db.prepare('INSERT INTO acquisition_plan_actions VALUES (?, ?, ?, ?, ?, ?, ?)').run(this.id(), planId, group.action_type, group.action_key, group.acquisition_cost, `A shared ${group.action_type} action addresses ${group.needs.length} compatible unresolved Information Need(s).`, this.now());
+    }
+    return this.getAcquisitionPlanRun(run.id);
+  }
+  getAcquisitionPlanRun(id) {
+    const run = this.db.prepare('SELECT * FROM acquisition_plan_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Acquisition Plan Run not found: ${id}`);
+    const plans = this.db.prepare('SELECT * FROM acquisition_plans WHERE acquisition_plan_run_id = ? ORDER BY expected_information_gain_score DESC, id').all(id).map((plan) => ({
+      ...plan,
+      information_needs: this.db.prepare('SELECT information_needs.*, job_requirements.normalized_name, job_requirements.category FROM acquisition_plan_needs JOIN information_needs ON information_needs.id = acquisition_plan_needs.information_need_id JOIN job_requirements ON job_requirements.id = information_needs.job_requirement_id WHERE acquisition_plan_needs.acquisition_plan_id = ? ORDER BY information_needs.priority_score DESC, normalized_name').all(plan.id),
+      acquisition_actions: this.db.prepare('SELECT * FROM acquisition_plan_actions WHERE acquisition_plan_id = ? ORDER BY created_at, id').all(plan.id),
+    }));
+    return { ...run, input_snapshot: JSON.parse(run.input_snapshot), acquisition_plans: plans, information_need_run: this.getInformationNeedRun(run.information_need_run_id), evidence_discovery_run: this.getEvidenceDiscoveryRun(run.evidence_discovery_run_id) };
   }
   createArtifact({ applicationId, artifactType, content, modelMetadata }) {
     const version = this.db.prepare('SELECT COALESCE(MAX(version), 0) + 1 AS version FROM artifacts WHERE application_id = ? AND artifact_type = ?').get(applicationId, artifactType).version;
