@@ -7,6 +7,7 @@ const planning = require('./acquisition-planning');
 const execution = require('./acquisition-execution');
 const integration = require('./candidate-knowledge-integration');
 const tailoring = require('./resume-tailoring');
+const artifactGeneration = require('./resume-artifact');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -54,6 +55,8 @@ class Store {
       CREATE TABLE IF NOT EXISTS requirement_coverage (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), job_requirement_id TEXT NOT NULL REFERENCES job_requirements(id), coverage_status TEXT NOT NULL CHECK(coverage_status IN ('covered', 'partially_covered', 'uncovered', 'not_resume_relevant')), supporting_candidate_fact_ids TEXT NOT NULL, coverage_rationale TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(tailoring_plan_run_id, job_requirement_id)) STRICT;
       CREATE TABLE IF NOT EXISTS resume_section_plans (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), section TEXT NOT NULL, recommended_order INTEGER NOT NULL, candidate_fact_ids TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS source_resume_analysis_flags (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), source_artifact_id TEXT NOT NULL, source_artifact_version TEXT, text TEXT NOT NULL, status TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_artifact_runs (id TEXT PRIMARY KEY, resume_tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), candidate_knowledge_snapshot TEXT NOT NULL, job_requirement_profile_reference TEXT NOT NULL, artifact_policy_version TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_artifacts (id TEXT PRIMARY KEY, resume_artifact_run_id TEXT NOT NULL REFERENCES resume_artifact_runs(id), artifact_type TEXT NOT NULL, format_version TEXT NOT NULL, content TEXT NOT NULL, metadata TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(resume_artifact_run_id, artifact_type)) STRICT;
     `);
     this.seedSkill();
   }
@@ -283,6 +286,20 @@ class Store {
       requirement_coverage: this.db.prepare('SELECT * FROM requirement_coverage WHERE tailoring_plan_run_id = ? ORDER BY job_requirement_id').all(id).map((row) => parse(row, ['supporting_candidate_fact_ids'])),
       section_plans: this.db.prepare('SELECT * FROM resume_section_plans WHERE tailoring_plan_run_id = ? ORDER BY recommended_order').all(id).map((row) => parse(row, ['candidate_fact_ids'])),
       source_resume_analysis_flags: this.db.prepare('SELECT * FROM source_resume_analysis_flags WHERE tailoring_plan_run_id = ? ORDER BY id').all(id) };
+  }
+  createResumeArtifactRun({ resumeTailoringPlanRunId }) {
+    const plan = this.getResumeTailoringPlanRun(resumeTailoringPlanRunId);
+    const generated = artifactGeneration.generate(plan);
+    const run = { id: this.id(), resume_tailoring_plan_run_id: plan.id, candidate_knowledge_snapshot: JSON.stringify(plan.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.stringify({ id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version }), artifact_policy_version: artifactGeneration.POLICY_VERSION, limitations: generated.metadata.limitations, created_at: this.now() };
+    this.db.prepare('INSERT INTO resume_artifact_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_tailoring_plan_run_id, run.candidate_knowledge_snapshot, run.job_requirement_profile_reference, run.artifact_policy_version, run.limitations, run.created_at);
+    const artifact = { id: this.id(), resume_artifact_run_id: run.id, artifact_type: 'structured_resume', format_version: generated.format, content: JSON.stringify({ format: generated.format, sections: generated.sections }), metadata: JSON.stringify(generated.metadata), created_at: run.created_at };
+    this.db.prepare('INSERT INTO resume_artifacts VALUES (?, ?, ?, ?, ?, ?, ?)').run(artifact.id, artifact.resume_artifact_run_id, artifact.artifact_type, artifact.format_version, artifact.content, artifact.metadata, artifact.created_at);
+    return this.getResumeArtifactRun(run.id);
+  }
+  getResumeArtifactRun(id) {
+    const run = this.db.prepare('SELECT * FROM resume_artifact_runs WHERE id = ?').get(id); if (!run) throw new Error(`Resume Artifact Run not found: ${id}`);
+    const artifacts = this.db.prepare('SELECT * FROM resume_artifacts WHERE resume_artifact_run_id = ? ORDER BY artifact_type, id').all(id).map((item) => ({ ...item, content: JSON.parse(item.content), metadata: JSON.parse(item.metadata) }));
+    return { ...run, candidate_knowledge_snapshot: JSON.parse(run.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.parse(run.job_requirement_profile_reference), resume_artifacts: artifacts };
   }
   integrationSource(upstreamRunType, upstreamRunId, ref) {
     if (upstreamRunType === 'evidence_discovery_run' && ref.type === 'evidence_candidate') {
