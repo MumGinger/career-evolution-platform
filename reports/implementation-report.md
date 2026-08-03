@@ -9,13 +9,16 @@ Reorganized and established documentation governance only. No product source cod
 
 ## Delivered
 
-- Reorganized canonical vision, roadmap, and system documentation under `docs/`.
-- Added product principles and ADRs for Candidate Knowledge, unknown-state semantics, and acquisition before generation.
-- Moved the existing Career-first ADR into the canonical ADR index without changing its decision.
-- Added an executable PRD for Capability 003 — Information Acquisition.
-- Updated the root README with mission, completed capabilities, documentation entry points, and local CLI/test usage.
-- Added pull-request review gates to `AGENTS.md`.
-- Updated current state, glossary, and this implementation record.
+- Product vision, roadmap, glossary, architecture, and current state
+- Evidence, evolution-loop, and skill-definition designs
+- ADR-001 documenting the Career-first decision
+- Working agreement for Codex agents and placeholder source, test, example, and specification directories
+- SQLite-backed candidate, application, artifact, skill-definition, and evidence records
+- A local CLI for profile creation, application creation, artifact generation, outcome recording, user-edit recording, and application history
+- A deterministic tailored application note that records its exact skill version and model metadata
+- Separate outcome, preference, and internal-diagnostic evidence with automatic skill updates explicitly disabled
+- Automated Node tests for record creation, version linkage, and evidence classification
+- Experiment 002 PDF resume intake, candidate-fact persistence, and profile inspection with `resume` provenance and `parsed` confidence
 
 ## Validation
 
