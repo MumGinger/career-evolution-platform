@@ -1,6 +1,6 @@
 # Capability 002.6 — Resume Semantic Graph Construction
 
-**Status:** Complete | **Policy:** `resume-semantic-graph-policy/1.0.0`
+**Status:** Complete | **Policy:** `resume-semantic-graph-policy/1.1.0`
 
 ## Mission
 
@@ -14,7 +14,9 @@ Edges are bounded to `performed_in`, `used_in`, `supports`, `produced_by`, `part
 
 ## Deterministic policy
 
-- Project/experience anchors and responsibility associations reuse 002.5's bounded section and anchor interpretation.
+- 002.6 interprets only the immutable 002.5 run's persisted spans, section names, ordering, bullet indices, and entity provenance; it never reparses source bytes and does not require 002.5 relations.
+- Project/experience anchors use explicit 002.5 entities where present; otherwise a conservative non-bullet title/date pattern within a project or experience section may create a derived anchor.
+- Persisted bullet/action spans may create derived responsibility nodes and associate only to the nearest preceding anchor in the same section. Unanchored spans remain `possible`.
 - Exact tools in a bounded responsibility can be `used_in` its anchor and `supports` that responsibility.
 - Workflow automation creates only a workflow node and `part_of` relation; it does not imply QA or testing.
 - Achievements require both an explicit number and an explicit outcome phrase. No proficiency, years, leadership, ownership, impact, or unstated outcome is inferred.
