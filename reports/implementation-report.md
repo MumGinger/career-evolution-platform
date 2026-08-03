@@ -1,28 +1,20 @@
-# Implementation Report
-
-**Date:** 2026-08-03
-**Status:** Capability 003.5 Acquisition Execution implemented
+# Implementation Report — Capability 004.1
 
 ## Scope
 
-Implemented GitHub Issue #16: deterministic local execution of an immutable Acquisition Plan Run. Each execution creates a new immutable Acquisition Result Run and one first-class Acquisition Result for every planned Acquisition Action. Results preserve the action reference, execution status, raw caller-supplied evidence, provenance, source type, limitations, timestamps, adapter version, and a plan snapshot.
+Implemented deterministic Resume Tailoring Planning only: immutable plan runs, resume-content selections, requirement coverage, bounded claim scopes, section planning, and non-mutating source-resume analysis.
 
-## Delivered
+Capability 003.6 remains complete and unchanged: Candidate Knowledge Integration is the accepted-only, append-only write boundary. This change reads its committed facts; it does not alter the integration model.
 
-- Added the versioned deterministic local execution adapter in `src/acquisition-execution.js`.
-- Added SQLite persistence for immutable result runs and per-action results in `src/store.js`.
-- Added create/show CLI operations for result runs.
-- Required exactly one explicit outcome per planned action and rejected missing, duplicated, or unrelated action outcomes.
-- Added `captured`, `skipped`, and `unavailable` deterministic result states.
-- Kept execution separated from planning, discovery, evidence evaluation/resolution, connectors, and Candidate Knowledge integration.
-- Updated the Capability 003 PRD, README, current state, and roadmap.
+## Changed
+
+- `src/resume-tailoring.js`, `src/store.js`, and `src/cli.js`
+- Capability 004 PRD, roadmap, current state, and tests
 
 ## Validation
 
-- `npm.cmd test` — 39 tests passed.
-- New tests cover immutable re-execution of one plan, raw-evidence/provenance persistence, action references, status capture, invalid action boundaries, missing-capture rejection, and Candidate Knowledge non-mutation.
+`npm.cmd test` (full suite).
 
 ## Open questions
 
-- 003.6 must define evidence-resolution, confirmation, conflict, and acceptance thresholds before any raw execution result can affect Candidate Knowledge.
-- Future interactive or connector adapters need explicit authorization, consent, and privacy policy before they extend the local deterministic adapter.
+The policy uses direct deterministic requirement/fact matching. Broader semantic matching, resume prose, and rendering remain intentionally out of scope.
