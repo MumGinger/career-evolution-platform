@@ -1,26 +1,24 @@
 # Review Report
 
 **Date:** 2026-08-02  
-**Status:** Pending human review
+**Status:** Pending human review of Capability 003.1
 
 ## Self-review
 
-- Product principles are explicit review gates and align with the Candidate Knowledge and evidence model.
-- ADRs distinguish resume from candidate, unknown from missing, and acquisition from generation.
-- Capability 003 is limited to information acquisition; job discovery, auto-apply, resume rewriting, cover letters, and interview coaching remain out of scope.
-- Existing valid Career-first documentation was retained and moved to the canonical ADR location.
-- No runtime code was changed.
+- The implementation parses only supplied job-description text and never reads Candidate Knowledge, emits candidate matches, makes interview predictions, or makes negative candidate claims.
+- Each requirement retains excerpts and source/parser/policy metadata; uncertainty explicitly limits the deterministic parser to supplied wording.
+- Generic communication, teamwork, stakeholder management, Excel, and Microsoft Office remain visible. They begin with low value unless supplied role context makes stakeholder management central.
+- Re-profiling an identical job snapshot creates the next immutable profile version rather than overwriting prior rationale or scores.
+- Capability 001 and 002 tests remain green.
 
 ## Pull-request review gates
 
-1. **Does this violate product principles?** No identified conflict.
-2. **Does this require a new ADR?** The three new durable decisions are recorded as ADR-001 through ADR-003; the existing Career-first ADR is retained as ADR-000.
-3. **Does this change a PRD?** Yes. Capability 003 is newly defined in `docs/prd/capability-003-information-acquisition.md`.
-4. **Does this change the roadmap?** Yes. It records Capabilities 001 and 002 as complete and Capability 003 as in progress.
+1. **Does this violate product principles?** No. It does not infer candidate facts; its signals are explainable, scoped to the supplied job description, and explicitly uncertain.
+2. **Does this require a new ADR?** No. ADR-001 through ADR-003 already govern this boundary; no durable architecture decision changes.
+3. **Does this change a PRD?** No. It implements the existing Capability 003 PRD and Issue #7 without changing scope.
+4. **Does this change the roadmap?** No. Capability 003 remains in progress; 003.1 is an implementation slice, not a roadmap revision.
 
 ## Requested reviewer focus
 
-- Confirm the local application-to-interview workflow is the right first validation slice.
-- Confirm the desired review authority and privacy/retention boundaries before any skill update is allowed.
-- Confirm that the deterministic artifact is sufficient for the MVP, without introducing a model integration prematurely.
-- Confirm that resume parsing remains limited to explicit text and that ambiguous structured entries are appropriately marked for confirmation.
+- Confirm the initial deterministic catalog and scoring thresholds, particularly what evidence should make generic requirements role-critical.
+- Confirm that supplied job-description snapshots and source metadata meet the desired traceability and retention boundary.
