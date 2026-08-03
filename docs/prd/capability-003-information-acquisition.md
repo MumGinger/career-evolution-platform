@@ -50,6 +50,38 @@ Prioritize low-cost, high-information, resume-relevant facts. Existing evidence 
 - Let the user skip, correct, or qualify a fact without treating the skip as a negative answer.
 - Distinguish a candidate's own assertion, imported text, inferred relevance, and verified evidence.
 
+## Capability 003.3 — Evidence Discovery Engine
+
+Before asking a user for new information, turn unresolved Information Needs into an immutable Evidence Discovery Run. This slice discovers and evaluates possible evidence only: it never updates Candidate Knowledge, asks a question, generates wording, performs LLM inference, or contacts an external service.
+
+### Product principle and inputs
+
+**Search Before Ask** requires existing, consented evidence to be searched before user interaction. A run is created from exactly one persisted Information Need Run, retains that run's evidence snapshot, discovery-policy version, selected needs, processing order, sources, candidates, resolutions, rationale, and limitations. Re-running always creates a separate historical run.
+
+By default, process only `unknown` and `needs_confirmation` needs in descending priority. `supported` needs stay traceable and do not trigger search. An optional unresolved Information Need ID permits focused orchestration and tests.
+
+### Local deterministic MVP sources
+
+Sources are bounded source types, not truth. The local MVP searches only, in order:
+
+1. `candidate_fact` already present in the Information Need Run snapshot;
+2. `profile_skill` explicitly supplied in that snapshot;
+3. `resume_import` evidence already persisted in that snapshot.
+
+Each source search records its type, stable snapshot reference, availability, order, adapter version, result, rationale, and limitations. GitHub, LinkedIn, portfolios, conversation memory, uploaded documents, and other connectors are future adapters and must not be represented as searched unless a real configured source exists.
+
+### Candidates, resolutions, and sufficiency
+
+An Evidence Candidate is a possible bounded support item, never Candidate Knowledge. It retains its Information Need and requirement IDs, source type/reference, normalized claim, original text/value, deterministic extraction method, confidence, adapter/parser version, provenance, uncertainty, and timestamp.
+
+Every candidate receives one deterministic resolution: `accepted_for_need`, `needs_confirmation`, `rejected`, or `conflicting`. Only explicit, positively confirmed exact or explicitly-aliased evidence can be accepted. Confirmation-required or structurally ambiguous evidence remains `needs_confirmation`; materially incompatible structured claims are `conflicting`. Complementary technologies and experiences are not conflicts.
+
+One high-confidence accepted candidate, or multiple independently traceable medium-confidence accepted candidates, is sufficient. A weak or confirmation-required candidate is insufficient, and any unresolved material conflict blocks sufficiency. Once sufficient, lower-priority source searches are recorded as skipped. Otherwise all available local sources complete and the result is `unresolved_after_search`; Capability 003.4, not this slice, may decide whether to ask the user.
+
+### Boundaries
+
+003.3 does not generate questions, alter Candidate Knowledge, rewrite a resume, make recommendations, infer proficiency/depth/recency/outcomes, use an LLM, or connect to external services. It records evidence candidates and deterministic resolutions only.
+
 ## Learning and measurement
 
 Importance and Resume Value are initial policy signals. They should later learn from reviewed application and interview outcomes, with context, limitations, and no causal claim from a single result. Outcome Learning remains a separate capability.

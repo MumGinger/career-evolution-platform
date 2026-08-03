@@ -10,3 +10,4 @@ These principles are review gates, not aspirations. A proposed capability, schem
 6. **Every interaction must create value.** A question, request, or workflow step must either recover useful evidence, reduce meaningful uncertainty, or advance a bounded user goal.
 7. **Recommendations must be explainable.** Show the relevant evidence, uncertainty, assumptions, and rationale behind a priority or recommendation.
 8. **Learning must come from evidence and outcomes.** Feedback and outcomes are contextual evidence, not automatic truth; learning follows review and preserves limitations.
+9. **Search Before Ask.** Search existing, consented evidence before requesting new information from the user. Preserve what was searched, what was found, and why evidence was or was not sufficient.
