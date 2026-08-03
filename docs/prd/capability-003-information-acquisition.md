@@ -1,7 +1,7 @@
 # Capability 003 — Information Acquisition
 
-**Status:** In progress — runtime implementation is complete through 003.3 only  
-**Runtime status:** Implemented through Capability 003.4 Acquisition Planning
+**Status:** In progress — runtime implementation is complete through 003.5 only
+**Runtime status:** Implemented through Capability 003.5 Acquisition Execution
 **Owner:** Product  
 **Related ADRs:** [ADR-001](../adr/ADR-001-resume-is-not-candidate.md), [ADR-002](../adr/ADR-002-unknown-is-not-missing.md), [ADR-003](../adr/ADR-003-acquire-before-generate.md), [ADR-005](../adr/ADR-005-candidate-knowledge-single-write-path.md)
 
@@ -50,7 +50,7 @@ Information Need + Evidence Discovery result
 | **003.2 Information Need Prioritization** | Identify and rank material candidate information needed for a bounded decision or artifact. | Requirement Profile; traceable Candidate Knowledge snapshot; priority policy. | Immutable Information Need Run with ranked needs, evidence state, rationale, and limitations. | Does not search new sources, ask the user, or write Candidate Knowledge. |
 | **003.3 Evidence Discovery** | Search available, consented evidence and resolve whether it supports each prioritized need. | Information Need Run; its candidate-evidence snapshot; bounded source adapters and discovery policy. | Immutable Evidence Discovery Run, source-search records, Evidence Candidates, resolutions, and sufficiency result. | Does not contact unavailable sources, generate questions, infer facts, or write Candidate Knowledge. |
 | **003.4 Acquisition Planning** | Choose the highest-value, lowest-friction strategy for each unresolved Information Need after discovery. | Information Need Run; Evidence Discovery Run; deterministic policy version. | Immutable **Acquisition Plan Run** with grouped Acquisition Plans, separate Acquisition Actions, expected information gain, estimated cost, rationale, and stop conditions. | Produces plans, **not user questions**; does not execute an action, contact a source, or write Candidate Knowledge. The local runtime is deterministic and has no LLMs or connectors. |
-| **003.5 Acquisition Execution** | Execute the chosen Acquisition Plan and capture the resulting evidence. | Acquisition Plan; authorized Acquisition Action; applicable consent and interaction context. | Action results and Evidence Candidates with source, provenance, confidence, limitations, and confirmation state. | Executes the selected strategy rather than re-prioritizing it; does not directly write Candidate Knowledge. A question is only one possible action. |
+| **003.5 Acquisition Execution** | Execute the chosen Acquisition Plan and capture raw, unreviewed evidence. | Immutable Acquisition Plan Run; one explicit local outcome for each referenced Acquisition Action. | Immutable **Acquisition Result Run** containing first-class Acquisition Results, raw captured evidence, action references, source/provenance, status, limitations, adapter version, and timestamps. | Executes actions only; it performs no planning, discovery, evidence evaluation, resolution, or Candidate Knowledge update. Re-running a plan always creates a distinct result run. The current runtime is deterministic and local only. |
 | **003.6 Candidate Knowledge Integration** | Resolve acquired evidence and deliberately integrate accepted facts into durable candidate knowledge. | Resolved evidence from discovery or execution; integration policy; confirmation and conflict state. | Candidate Knowledge updates plus auditable integration record, or an explicit non-integration decision. | **The only Capability 003 operation allowed to modify Candidate Knowledge.** It never treats discovery, a plan, an unanswered question, or weak evidence as an accepted fact. |
 
 ## Information Need priority
@@ -120,9 +120,15 @@ The local 003.4 implementation persists immutable Plan Runs, Plans, Plan-to-Need
 
 The versioned deterministic policy selects `resolve_conflict` when discovery reports conflicts, `confirm_existing_evidence` when relevant evidence needs confirmation, `recover_project_details` when weak resume-derived context is available, and `request_new_evidence` only after the local snapshot is exhausted. It ranks expected information gain relative to acquisition cost and groups needs with compatible action type and requirement category beneath one shared action. The planner never executes that action.
 
+## Capability 003.5 implementation policy
+
+`Acquisition Action` is a first-class executable entity created by 003.4 and referenced, never recreated, by 003.5. `Acquisition Result` is a first-class record of one action's deterministic local outcome. Each execution requires exactly one recorded outcome (`captured`, `skipped`, or `unavailable`) for every action in the supplied immutable Acquisition Plan Run. Captured outcomes preserve caller-supplied raw evidence without normalization or evaluation, plus source type, provenance, limitations, action reference, capture timestamp, and adapter version.
+
+Every execution creates a new immutable Acquisition Result Run with a snapshot of the plan and its actions. Execution cannot plan, search sources, call connectors, resolve evidence, infer confidence or confirmation, or write Candidate Knowledge. Candidate Knowledge Integration (003.6) remains responsible for any future evidence resolution and deliberate acceptance decision.
+
 ## Out of scope
 
-- Runtime implementation of 003.5 or 003.6
+- Runtime implementation of 003.6
 - Job discovery
 - Auto-apply or application submission
 - Resume rewriting or tailoring
