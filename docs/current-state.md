@@ -1,7 +1,7 @@
 # Current State
 
-**Phase:** Capability 003.1 Job Intelligence requirement profiles
-**Last updated:** 2026-08-02
+**Phase:** Capability 003.2 Information Need prioritization
+**Last updated:** 2026-08-03
 
 ## Completed
 
@@ -11,14 +11,15 @@
 - Implemented MVP-001: a local application-to-interview evidence loop with SQLite persistence, versioned artifacts, and non-learning outcome evidence.
 - Implemented Experiment 002: PDF resume intake that bootstraps traceable Candidate Knowledge facts without inferred content.
 - Implemented Capability 003.1: deterministic, versioned Job Intelligence profiles with immutable job-description snapshots, requirement excerpts, policy rationale, and parser/policy metadata.
+- Implemented Capability 003.2: deterministic, persisted, immutable Information Need prioritization runs that retain the job-profile version, candidate-evidence snapshot, policy inputs, evidence references, uncertainty, and rationale.
 
 ## Current focus
 
-Review the Job Intelligence requirement-profile policy and use it as input to the next bounded Information Acquisition design.
+Review the Information Need matching and prioritization policy against representative, consented evidence before adding any acquisition interaction.
 
 ## Next decision
 
-Define Capability 003.2: combine a Job Requirement Profile with Candidate Knowledge to prioritize unresolved information without treating unknown as a negative.
+Define Capability 003.3: recover evidence for high-value Information Needs without generating question wording or treating an evidence gap as a negative candidate claim.
 
 ## Open questions
 

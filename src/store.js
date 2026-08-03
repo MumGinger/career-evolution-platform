@@ -1,6 +1,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const { randomUUID } = require('node:crypto');
 const { PARSER_VERSION, POLICY_VERSION, hash, parseJobDescription } = require('./job-intelligence');
+const { POLICY_VERSION: INFORMATION_NEEDS_POLICY_VERSION, evaluateRequirement } = require('./information-needs');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -24,6 +25,8 @@ class Store {
       CREATE TABLE IF NOT EXISTS job_description_snapshots (id TEXT PRIMARY KEY, company TEXT NOT NULL, role_title TEXT NOT NULL, location TEXT NOT NULL, description TEXT NOT NULL, description_hash TEXT NOT NULL, source_url TEXT NOT NULL, source_metadata TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS job_requirement_profiles (id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES job_description_snapshots(id), version INTEGER NOT NULL, parser_version TEXT NOT NULL, policy_version TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(snapshot_id, version)) STRICT;
       CREATE TABLE IF NOT EXISTS job_requirements (id TEXT PRIMARY KEY, profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), normalized_name TEXT NOT NULL, supporting_excerpts TEXT NOT NULL, category TEXT NOT NULL, explicitness TEXT NOT NULL, importance_level TEXT NOT NULL, importance_score INTEGER NOT NULL, importance_rationale TEXT NOT NULL, resume_value_level TEXT NOT NULL, resume_value_score INTEGER NOT NULL, resume_value_rationale TEXT NOT NULL, source_metadata TEXT NOT NULL, parser_version TEXT NOT NULL, policy_version TEXT NOT NULL, uncertainty TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS information_need_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), job_requirement_profile_version INTEGER NOT NULL, policy_version TEXT NOT NULL, candidate_evidence_snapshot TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS information_needs (id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES information_need_runs(id), job_requirement_id TEXT NOT NULL REFERENCES job_requirements(id), status TEXT NOT NULL CHECK(status IN ('supported', 'needs_confirmation', 'unknown')), priority_level TEXT NOT NULL CHECK(priority_level IN ('none', 'low', 'medium', 'high')), priority_score INTEGER NOT NULL, importance TEXT NOT NULL, resume_value TEXT NOT NULL, discoverability TEXT NOT NULL, acquisition_cost TEXT NOT NULL, existing_evidence TEXT NOT NULL, matched_fact_ids TEXT NOT NULL, rationale TEXT NOT NULL, uncertainty TEXT NOT NULL, policy_version TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(run_id, job_requirement_id)) STRICT;
     `);
     this.seedSkill();
   }
@@ -86,6 +89,24 @@ class Store {
     const snapshot = this.db.prepare('SELECT * FROM job_description_snapshots WHERE id = ?').get(profile.snapshot_id);
     const requirements = this.db.prepare('SELECT * FROM job_requirements WHERE profile_id = ? ORDER BY importance_score DESC, normalized_name').all(id).map((row) => ({ ...row, supporting_excerpts: JSON.parse(row.supporting_excerpts), source_metadata: JSON.parse(row.source_metadata) }));
     return { ...profile, snapshot: { ...snapshot, source_metadata: JSON.parse(snapshot.source_metadata) }, requirements };
+  }
+  createInformationNeedRun({ candidateProfileId, jobRequirementProfileId }) {
+    const knowledge = this.getCandidateKnowledge(candidateProfileId);
+    const jobProfile = this.getJobRequirementProfile(jobRequirementProfileId);
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, job_requirement_profile_id: jobRequirementProfileId, job_requirement_profile_version: jobProfile.version, policy_version: INFORMATION_NEEDS_POLICY_VERSION, candidate_evidence_snapshot: JSON.stringify(knowledge.facts), created_at: this.now() };
+    this.db.prepare('INSERT INTO information_need_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.job_requirement_profile_id, run.job_requirement_profile_version, run.policy_version, run.candidate_evidence_snapshot, run.created_at);
+    for (const requirement of jobProfile.requirements) {
+      const result = evaluateRequirement(requirement, knowledge.facts);
+      const rationale = `Importance: ${result.importance.rationale} Resume Value: ${result.resume_value.rationale} Discoverability: ${result.discoverability.rationale} Acquisition Cost: ${result.acquisition_cost.rationale} Existing Evidence: ${result.existing_evidence.rationale}`;
+      this.db.prepare('INSERT INTO information_needs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, requirement.id, result.status, result.priority_level, result.priority_score, JSON.stringify(result.importance), JSON.stringify(result.resume_value), JSON.stringify(result.discoverability), JSON.stringify(result.acquisition_cost), JSON.stringify(result.existing_evidence), JSON.stringify(result.matched_fact_ids), rationale, result.uncertainty, INFORMATION_NEEDS_POLICY_VERSION, this.now());
+    }
+    return this.getInformationNeedRun(run.id);
+  }
+  getInformationNeedRun(id) {
+    const run = this.db.prepare('SELECT * FROM information_need_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Information need run not found: ${id}`);
+    const needs = this.db.prepare(`SELECT information_needs.*, job_requirements.normalized_name, job_requirements.category FROM information_needs JOIN job_requirements ON job_requirements.id = information_needs.job_requirement_id WHERE run_id = ? ORDER BY CASE priority_level WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC, priority_score DESC, normalized_name`).all(id).map((row) => ({ ...row, importance: JSON.parse(row.importance), resume_value: JSON.parse(row.resume_value), discoverability: JSON.parse(row.discoverability), acquisition_cost: JSON.parse(row.acquisition_cost), existing_evidence: JSON.parse(row.existing_evidence), matched_fact_ids: JSON.parse(row.matched_fact_ids) }));
+    return { ...run, candidate_evidence_snapshot: JSON.parse(run.candidate_evidence_snapshot), candidate_profile: this.getProfile(run.candidate_profile_id), job_requirement_profile: this.getJobRequirementProfile(run.job_requirement_profile_id), information_needs: needs };
   }
   createArtifact({ applicationId, artifactType, content, modelMetadata }) {
     const version = this.db.prepare('SELECT COALESCE(MAX(version), 0) + 1 AS version FROM artifacts WHERE application_id = ? AND artifact_type = ?').get(applicationId, artifactType).version;
