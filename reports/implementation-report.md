@@ -1,5 +1,9 @@
 # Implementation Report — Capability 004.3
 
+## Capability 002.5 update (2026-08-03)
+
+Added immutable source-resume artifact versions, semantic runs, exact evidence spans, and traceable entity/relation candidates under `resume-semantic-policy/1.0.0`. The implementation preserves the existing 004.2 generated-resume schema and adds bounded `resume_semantic` retrieval to the established 003.3 Evidence Discovery flow. It never writes Candidate Knowledge.
+
 ## Scope
 
 Implemented the deterministic Truth Firewall for Resume Artifacts. Immutable Resume Validation Runs snapshot one artifact run and its linked tailoring plan, persist first-class findings, and report `passed`, `passed_with_warnings`, or `failed`. Checks cover provenance integrity, bounded claim wording, selection state and placement, uncovered requirements, duplicates, ordering, and traceability completeness.
