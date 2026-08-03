@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 003.6 Candidate Knowledge Integration implemented
+**Phase:** Capability 004.1 Resume Tailoring Planning implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -16,14 +16,16 @@
 - Redefined the remaining Capability 003 sequence: 003.4 is Acquisition Planning, 003.5 is Acquisition Execution, and 003.6 is Candidate Knowledge Integration.
 - Implemented Capability 003.4: deterministic, immutable Acquisition Plan Runs with first-class plans, separate actions, explainable gain-versus-cost rationales, and grouping of compatible unresolved needs under shared actions.
 - Implemented Capability 003.5: deterministic local Acquisition Execution with immutable Acquisition Result Runs, first-class per-action results, raw evidence capture, provenance, timestamps, and independent re-runs for the same plan.
+- Implemented Capability 003.6: deterministic Candidate Knowledge Integration with immutable decisions, accepted-only writes, evidence links, and append-only revisions.
+- Implemented Capability 004.1: immutable, deterministic Resume Tailoring Plan Runs that select committed facts, record requirement coverage and bounded claim scopes, and analyze source-resume wording without editing it.
 
 ## Current focus
 
-Review deterministic Acquisition Execution outcome vocabulary, local capture ergonomics, and the future authorization/consent boundary before adding non-local adapters.
+Review 004.1 selection policy and claim-scope vocabulary before rendering any resume artifacts.
 
 ## Next decision
 
-Define Capability 003.6 Candidate Knowledge Integration: evidence resolution, acceptance thresholds, conflict handling, and auditable durable-write decisions.
+Define Capability 004.2 artifact rendering from an approved tailoring plan, with no expansion beyond its bounded claims.
 
 ## Open questions
 

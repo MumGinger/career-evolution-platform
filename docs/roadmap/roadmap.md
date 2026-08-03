@@ -4,13 +4,9 @@
 | --- | --- | --- |
 | 001 — Application Evidence Loop | Complete | Record applications, artifacts, and outcome/preference evidence without automatic learning. |
 | 002 — Resume Intake & Candidate Knowledge Bootstrap | Complete | Import explicit resume evidence into traceable Candidate Knowledge facts; ambiguous facts remain `needs_confirmation`. |
-| 003.1 — Job Intelligence | Complete | Create deterministic, explainable Requirement Profiles from job context. |
-| 003.2 — Information Need Prioritization | Complete | Identify and prioritize material unresolved candidate information. |
-| 003.3 — Evidence Discovery | Complete | Search bounded, consented evidence and record candidates, resolutions, and sufficiency. |
-| 003.4 — Acquisition Planning | Complete | Produce an Acquisition Plan that selects the highest-value permitted strategy for each unresolved Information Need. |
-| 003.5 — Acquisition Execution | Complete | Execute an immutable Acquisition Plan Run through deterministic local actions and capture immutable raw-evidence results without integration. |
-| 003.6 — Candidate Knowledge Integration | Complete | Deterministically commit only accepted bounded evidence into append-only Candidate Knowledge through its sole Capability 003 write path. |
-| 004 — Resume Tailoring | Planned | Create truthful role-specific resume artifacts from Candidate Knowledge and job requirements. |
+| 003.1–003.6 — Information Acquisition | Complete | Deterministically derive requirements, recover evidence, and commit only accepted bounded facts. |
+| 004.1 — Resume Tailoring Planning | Complete | Create immutable, truth-preserving selection and coverage plans from committed Candidate Knowledge and job requirements. |
+| 004.2–004.3 — Resume Artifact Generation & Validation | Planned | Render approved plans and validate every generated claim before output. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
 | 007 — Outcome Learning | Planned | Learn priorities and guidance from reviewed application and interview outcomes. |

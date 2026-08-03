@@ -6,6 +6,7 @@ const discovery = require('./evidence-discovery');
 const planning = require('./acquisition-planning');
 const execution = require('./acquisition-execution');
 const integration = require('./candidate-knowledge-integration');
+const tailoring = require('./resume-tailoring');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -48,6 +49,11 @@ class Store {
       CREATE TABLE IF NOT EXISTS candidate_knowledge_facts (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), entity_type TEXT NOT NULL, canonical_value TEXT NOT NULL, display_value TEXT, identity_key TEXT NOT NULL, confirmation_status TEXT NOT NULL, confidence_level TEXT NOT NULL CHECK(confidence_level IN ('high', 'medium', 'low')), validity_dates TEXT, integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS candidate_fact_evidence_links (candidate_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), evidence_observation_id TEXT NOT NULL REFERENCES evidence_observations(id), integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), relationship TEXT NOT NULL CHECK(relationship IN ('supports', 'confirms', 'extends', 'contradicts')), created_at TEXT NOT NULL, PRIMARY KEY(candidate_fact_id, evidence_observation_id));
       CREATE TABLE IF NOT EXISTS candidate_fact_revisions (id TEXT PRIMARY KEY, prior_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), new_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), relation TEXT NOT NULL CHECK(relation IN ('confirms', 'extends', 'supersedes')), integration_decision_id TEXT NOT NULL REFERENCES integration_decisions(id), created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_tailoring_plan_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), job_requirement_profile_version INTEGER NOT NULL, tailoring_policy_version TEXT NOT NULL, candidate_knowledge_snapshot TEXT NOT NULL, source_resume_snapshot TEXT, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_content_selections (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), candidate_fact_id TEXT NOT NULL REFERENCES candidate_knowledge_facts(id), candidate_fact_revision TEXT NOT NULL, mapped_requirement_ids TEXT NOT NULL, selection_state TEXT NOT NULL CHECK(selection_state IN ('include', 'deprioritize', 'omit', 'blocked')), relevance_rationale TEXT NOT NULL, inherited_provenance_references TEXT NOT NULL, recommended_section TEXT NOT NULL, emphasis_level TEXT NOT NULL, priority_score INTEGER NOT NULL, permitted_claim_scope TEXT NOT NULL, blocked_claim_scopes TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS requirement_coverage (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), job_requirement_id TEXT NOT NULL REFERENCES job_requirements(id), coverage_status TEXT NOT NULL CHECK(coverage_status IN ('covered', 'partially_covered', 'uncovered', 'not_resume_relevant')), supporting_candidate_fact_ids TEXT NOT NULL, coverage_rationale TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(tailoring_plan_run_id, job_requirement_id)) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_section_plans (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), section TEXT NOT NULL, recommended_order INTEGER NOT NULL, candidate_fact_ids TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS source_resume_analysis_flags (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), source_artifact_id TEXT NOT NULL, source_artifact_version TEXT, text TEXT NOT NULL, status TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
     `);
     this.seedSkill();
   }
@@ -255,6 +261,28 @@ class Store {
     this.getProfile(profileId);
     return this.db.prepare('SELECT * FROM candidate_knowledge_facts WHERE candidate_profile_id = ? ORDER BY created_at, id').all(profileId)
       .map((fact) => ({ ...fact, canonical_value: JSON.parse(fact.canonical_value), value: JSON.parse(fact.canonical_value), validity_dates: fact.validity_dates ? JSON.parse(fact.validity_dates) : null }));
+  }
+  createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
+    this.getProfile(candidateProfileId);
+    const job = this.getJobRequirementProfile(jobRequirementProfileId);
+    const facts = this.getCommittedCandidateKnowledge(candidateProfileId);
+    const output = tailoring.plan({ facts, requirements: job.requirements, sourceResumeArtifact });
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, job_requirement_profile_id: job.id, job_requirement_profile_version: job.version, tailoring_policy_version: tailoring.POLICY_VERSION, candidate_knowledge_snapshot: JSON.stringify(facts), source_resume_snapshot: sourceResumeArtifact ? JSON.stringify(sourceResumeArtifact) : null, limitations: output.limitations, created_at: this.now() };
+    this.db.prepare('INSERT INTO resume_tailoring_plan_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.job_requirement_profile_id, run.job_requirement_profile_version, run.tailoring_policy_version, run.candidate_knowledge_snapshot, run.source_resume_snapshot, run.limitations, run.created_at);
+    for (const item of output.selections) this.db.prepare('INSERT INTO resume_content_selections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.candidate_fact_id, item.candidate_fact_revision, JSON.stringify(item.mapped_job_requirement_ids), item.selection_state, item.relevance_rationale, JSON.stringify(item.inherited_provenance_references), item.recommended_section, item.emphasis_level, item.priority_score, JSON.stringify(item.permitted_claim_scope), JSON.stringify(item.blocked_claim_scopes), item.limitations, run.created_at);
+    for (const item of output.coverage) this.db.prepare('INSERT INTO requirement_coverage VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.requirement_id, item.coverage_status, JSON.stringify(item.supporting_candidate_fact_ids), item.coverage_rationale, item.limitations, run.created_at);
+    for (const item of output.sectionPlans) this.db.prepare('INSERT INTO resume_section_plans VALUES (?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.section, item.recommended_order, JSON.stringify(item.candidate_fact_ids), run.created_at);
+    for (const item of output.sourceFlags) this.db.prepare('INSERT INTO source_resume_analysis_flags VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.source_artifact_id, item.source_artifact_version || null, item.text, item.status, item.rationale, run.created_at);
+    return this.getResumeTailoringPlanRun(run.id);
+  }
+  getResumeTailoringPlanRun(id) {
+    const run = this.db.prepare('SELECT * FROM resume_tailoring_plan_runs WHERE id = ?').get(id); if (!run) throw new Error(`Resume Tailoring Plan Run not found: ${id}`);
+    const parse = (row, keys) => Object.assign(row, ...keys.map((key) => ({ [key]: JSON.parse(row[key]) })));
+    return { ...run, candidate_knowledge_snapshot: JSON.parse(run.candidate_knowledge_snapshot), source_resume_snapshot: run.source_resume_snapshot ? JSON.parse(run.source_resume_snapshot) : null,
+      resume_content_selections: this.db.prepare('SELECT * FROM resume_content_selections WHERE tailoring_plan_run_id = ? ORDER BY priority_score DESC, id').all(id).map((row) => parse(row, ['mapped_requirement_ids', 'inherited_provenance_references', 'permitted_claim_scope', 'blocked_claim_scopes'])),
+      requirement_coverage: this.db.prepare('SELECT * FROM requirement_coverage WHERE tailoring_plan_run_id = ? ORDER BY job_requirement_id').all(id).map((row) => parse(row, ['supporting_candidate_fact_ids'])),
+      section_plans: this.db.prepare('SELECT * FROM resume_section_plans WHERE tailoring_plan_run_id = ? ORDER BY recommended_order').all(id).map((row) => parse(row, ['candidate_fact_ids'])),
+      source_resume_analysis_flags: this.db.prepare('SELECT * FROM source_resume_analysis_flags WHERE tailoring_plan_run_id = ? ORDER BY id').all(id) };
   }
   integrationSource(upstreamRunType, upstreamRunId, ref) {
     if (upstreamRunType === 'evidence_discovery_run' && ref.type === 'evidence_candidate') {
