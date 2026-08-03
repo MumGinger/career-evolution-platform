@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Capability 003.4 Acquisition Planning implemented
+**Phase:** Capability 003.5 Acquisition Execution implemented
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -15,14 +15,15 @@
 - Implemented Capability 003.3: deterministic local Evidence Discovery Runs that search bounded snapshot sources, retain candidate provenance and resolutions, stop when evidence is sufficient, and leave unresolved needs without asking a user or updating Candidate Knowledge.
 - Redefined the remaining Capability 003 sequence: 003.4 is Acquisition Planning, 003.5 is Acquisition Execution, and 003.6 is Candidate Knowledge Integration.
 - Implemented Capability 003.4: deterministic, immutable Acquisition Plan Runs with first-class plans, separate actions, explainable gain-versus-cost rationales, and grouping of compatible unresolved needs under shared actions.
+- Implemented Capability 003.5: deterministic local Acquisition Execution with immutable Acquisition Result Runs, first-class per-action results, raw evidence capture, provenance, timestamps, and independent re-runs for the same plan.
 
 ## Current focus
 
-Review deterministic Acquisition Planning policy weights, grouping boundaries, and permitted future action adapters against representative, consented local evidence.
+Review deterministic Acquisition Execution outcome vocabulary, local capture ergonomics, and the future authorization/consent boundary before adding non-local adapters.
 
 ## Next decision
 
-Define Capability 003.5 Acquisition Execution: authorization, consent, interaction context, action-result persistence, and evidence-candidate boundaries.
+Define Capability 003.6 Candidate Knowledge Integration: evidence resolution, acceptance thresholds, conflict handling, and auditable durable-write decisions.
 
 ## Open questions
 
