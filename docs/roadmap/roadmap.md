@@ -2,6 +2,7 @@
 
 | Capability | Status | Purpose |
 | --- | --- | --- |
+| 002.7 — LLM-Assisted Resume AST | Complete (offline/mock) | Preferred blocking path with provenance validation and direct retrieval. |
 | 002.5 — Resume Semantic Understanding | Complete | Create immutable, traceable resume semantic candidates before Information Acquisition. |
 | 002.6 — Resume Semantic Graph Construction | Complete | Build immutable, provenance-preserving graph candidates from 002.5 working evidence before Information Acquisition. |
 | 001 — Application Evidence Loop | Complete | Record applications, artifacts, and outcome/preference evidence without automatic learning. |

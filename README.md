@@ -43,6 +43,10 @@ Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its
 
 ## Milestone 1 Demo — end-to-end resume tailoring
 
+The preferred Demo path uses the offline deterministic mock Resume AST extractor and emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`. Request semantic graph explainability explicitly with `--build-semantic-graph`.
+
+For an OpenAI-compatible provider, configure `CEP_LLM_PROVIDER=openai-compatible`, `CEP_LLM_MODEL`, `CEP_LLM_API_KEY`, and optional `CEP_LLM_BASE_URL`. Never commit keys, private inputs, or raw provider responses.
+
 ```powershell
 node src/demo.js `
   --resume "examples\synthetic-resume.txt" `
