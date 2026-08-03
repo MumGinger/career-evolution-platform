@@ -4,6 +4,8 @@
 
 Implemented deterministic Resume Tailoring Planning only: immutable plan runs, resume-content selections, requirement coverage, bounded claim scopes, section planning, and non-mutating source-resume analysis.
 
+Capability 003.6 remains complete and unchanged: Candidate Knowledge Integration is the accepted-only, append-only write boundary. This change reads its committed facts; it does not alter the integration model.
+
 ## Changed
 
 - `src/resume-tailoring.js`, `src/store.js`, and `src/cli.js`
