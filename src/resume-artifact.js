@@ -24,6 +24,7 @@ function renderStatement(selection, fact) {
   const text = displayValue(fact);
   if (!text) return null;
   return {
+    statement_id: `statement:${selection.id}`,
     template,
     text,
     resume_content_selection_ids: [selection.id],

@@ -1,6 +1,6 @@
 # Capability 004 — Resume Tailoring
 
-**Status:** 004.1 and 004.2 implemented; 004.3 planned
+**Status:** 004.1, 004.2, and 004.3 implemented
 
 ## Mission
 
@@ -24,8 +24,14 @@ Omitted selections, coverage gaps, blocked claim scopes, and rendering limitatio
 
 ## 004.3 Truthfulness & Quality Validation
 
-This planned capability will validate rendered artifacts independently. It is not implemented by 004.2.
+An immutable Resume Validation Run validates exactly one immutable Resume Artifact Run and its linked Tailoring Plan Run using a versioned deterministic policy. It snapshots both inputs, persists first-class Validation Findings, and is independently re-runnable; every re-run creates a new Validation Run.
+
+Artifact-level statuses are `passed`, `passed_with_warnings`, and `failed`. Finding severities are `info`, `warning`, `error`, and `critical`; errors or critical findings fail the artifact, warnings without errors pass with warnings, and no findings above info pass.
+
+Validation checks provenance integrity (visible statements, selections, committed facts, integration decisions, and evidence links), claim-scope compliance, plan placement/state, uncovered-requirement assertions, duplication/consistency, and required traceability metadata. It deterministically blocks unbounded wording such as unsupported proficiency, years, ownership, leadership, and quantified outcomes. It does not use LLM judgment or semantic rewriting.
+
+The CLI commands are `resume-artifact-validate --db ... --resume-artifact-run-id ...` and `resume-validation-show --db ... --resume-validation-run-id ...`.
 
 ## Boundary
 
-004.1 performs no prose generation, DOCX/PDF/HTML rendering, LLM use, Candidate Knowledge write, evidence acquisition, apply recommendation, or source-resume edit. 004.2 only renders deterministic structured intermediate artifacts from an approved plan; it performs no tailoring decisions, Candidate Knowledge write, acquisition, validation, LLM use, or final-document rendering. 004.3 may validate generated artifacts.
+004.1 performs no prose generation, DOCX/PDF/HTML rendering, LLM use, Candidate Knowledge write, evidence acquisition, apply recommendation, or source-resume edit. 004.2 only renders deterministic structured intermediate artifacts from an approved plan; it performs no tailoring decisions, Candidate Knowledge write, acquisition, validation, LLM use, or final-document rendering. 004.3 validates only; it never generates or rewrites content, changes Candidate Knowledge, performs acquisition, uses an LLM, or renders final documents.
