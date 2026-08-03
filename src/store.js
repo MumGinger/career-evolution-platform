@@ -8,6 +8,7 @@ const execution = require('./acquisition-execution');
 const integration = require('./candidate-knowledge-integration');
 const tailoring = require('./resume-tailoring');
 const artifactGeneration = require('./resume-artifact');
+const validation = require('./resume-validation');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -57,6 +58,8 @@ class Store {
       CREATE TABLE IF NOT EXISTS source_resume_analysis_flags (id TEXT PRIMARY KEY, tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), source_artifact_id TEXT NOT NULL, source_artifact_version TEXT, text TEXT NOT NULL, status TEXT NOT NULL, rationale TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS resume_artifact_runs (id TEXT PRIMARY KEY, resume_tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), candidate_knowledge_snapshot TEXT NOT NULL, job_requirement_profile_reference TEXT NOT NULL, artifact_policy_version TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS resume_artifacts (id TEXT PRIMARY KEY, resume_artifact_run_id TEXT NOT NULL REFERENCES resume_artifact_runs(id), artifact_type TEXT NOT NULL, format_version TEXT NOT NULL, content TEXT NOT NULL, metadata TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(resume_artifact_run_id, artifact_type)) STRICT;
+      CREATE TABLE IF NOT EXISTS resume_validation_runs (id TEXT PRIMARY KEY, resume_artifact_run_id TEXT NOT NULL REFERENCES resume_artifact_runs(id), resume_tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), validation_policy_version TEXT NOT NULL, artifact_snapshot TEXT NOT NULL, plan_snapshot TEXT NOT NULL, validation_status TEXT NOT NULL CHECK(validation_status IN ('passed', 'passed_with_warnings', 'failed')), limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS validation_findings (id TEXT PRIMARY KEY, resume_validation_run_id TEXT NOT NULL REFERENCES resume_validation_runs(id), category TEXT NOT NULL, rule_code TEXT NOT NULL, severity TEXT NOT NULL CHECK(severity IN ('info', 'warning', 'error', 'critical')), message TEXT NOT NULL, references_json TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
     `);
     this.seedSkill();
   }
@@ -292,6 +295,7 @@ class Store {
     const generated = artifactGeneration.generate(plan);
     const run = { id: this.id(), resume_tailoring_plan_run_id: plan.id, candidate_knowledge_snapshot: JSON.stringify(plan.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.stringify({ id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version }), artifact_policy_version: artifactGeneration.POLICY_VERSION, limitations: generated.metadata.limitations, created_at: this.now() };
     this.db.prepare('INSERT INTO resume_artifact_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_tailoring_plan_run_id, run.candidate_knowledge_snapshot, run.job_requirement_profile_reference, run.artifact_policy_version, run.limitations, run.created_at);
+    generated.metadata.traceability = { resume_artifact_run_id: run.id, resume_tailoring_plan_run_id: plan.id };
     const artifact = { id: this.id(), resume_artifact_run_id: run.id, artifact_type: 'structured_resume', format_version: generated.format, content: JSON.stringify({ format: generated.format, sections: generated.sections }), metadata: JSON.stringify(generated.metadata), created_at: run.created_at };
     this.db.prepare('INSERT INTO resume_artifacts VALUES (?, ?, ?, ?, ?, ?, ?)').run(artifact.id, artifact.resume_artifact_run_id, artifact.artifact_type, artifact.format_version, artifact.content, artifact.metadata, artifact.created_at);
     return this.getResumeArtifactRun(run.id);
@@ -300,6 +304,31 @@ class Store {
     const run = this.db.prepare('SELECT * FROM resume_artifact_runs WHERE id = ?').get(id); if (!run) throw new Error(`Resume Artifact Run not found: ${id}`);
     const artifacts = this.db.prepare('SELECT * FROM resume_artifacts WHERE resume_artifact_run_id = ? ORDER BY artifact_type, id').all(id).map((item) => ({ ...item, content: JSON.parse(item.content), metadata: JSON.parse(item.metadata) }));
     return { ...run, candidate_knowledge_snapshot: JSON.parse(run.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.parse(run.job_requirement_profile_reference), resume_artifacts: artifacts };
+  }
+  candidateFactIntegrity(factIds) {
+    const statement = this.db.prepare(`SELECT candidate_knowledge_facts.id, candidate_knowledge_facts.integration_decision_id,
+      integration_decisions.id AS integration_id,
+      EXISTS(SELECT 1 FROM candidate_fact_evidence_links WHERE candidate_fact_evidence_links.candidate_fact_id = candidate_knowledge_facts.id) AS provenance_exists
+      FROM candidate_knowledge_facts LEFT JOIN integration_decisions ON integration_decisions.id = candidate_knowledge_facts.integration_decision_id WHERE candidate_knowledge_facts.id = ?`);
+    return new Map(factIds.map((id) => {
+      const row = statement.get(id);
+      return [id, { fact_exists: Boolean(row), integration_exists: Boolean(row && row.integration_id), provenance_exists: Boolean(row && row.provenance_exists) }];
+    }));
+  }
+  createResumeValidationRun({ resumeArtifactRunId, validationPolicyVersion = validation.POLICY_VERSION }) {
+    const artifactRun = this.getResumeArtifactRun(resumeArtifactRunId);
+    const plan = this.getResumeTailoringPlanRun(artifactRun.resume_tailoring_plan_run_id);
+    const factIds = plan.resume_content_selections.map((selection) => selection.candidate_fact_id);
+    const result = validation.validate({ artifactRun, plan, integrity: this.candidateFactIntegrity(factIds) });
+    const run = { id: this.id(), resume_artifact_run_id: artifactRun.id, resume_tailoring_plan_run_id: plan.id, validation_policy_version: validationPolicyVersion, artifact_snapshot: JSON.stringify(artifactRun), plan_snapshot: JSON.stringify(plan), validation_status: validation.statusFor(result.findings), limitations: 'Validation is deterministic and structural. It does not generate, rewrite, infer semantic equivalence, update Candidate Knowledge, acquire evidence, or render final documents.', created_at: this.now() };
+    this.db.prepare('INSERT INTO resume_validation_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_artifact_run_id, run.resume_tailoring_plan_run_id, run.validation_policy_version, run.artifact_snapshot, run.plan_snapshot, run.validation_status, run.limitations, run.created_at);
+    for (const item of result.findings) this.db.prepare('INSERT INTO validation_findings VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.category, item.rule, item.severity, item.message, JSON.stringify(item.references), run.created_at);
+    return this.getResumeValidationRun(run.id);
+  }
+  getResumeValidationRun(id) {
+    const run = this.db.prepare('SELECT * FROM resume_validation_runs WHERE id = ?').get(id); if (!run) throw new Error(`Resume Validation Run not found: ${id}`);
+    const findings = this.db.prepare('SELECT * FROM validation_findings WHERE resume_validation_run_id = ? ORDER BY created_at, id').all(id).map((item) => ({ ...item, references: JSON.parse(item.references_json) }));
+    return { ...run, artifact_snapshot: JSON.parse(run.artifact_snapshot), plan_snapshot: JSON.parse(run.plan_snapshot), validation_findings: findings };
   }
   integrationSource(upstreamRunType, upstreamRunId, ref) {
     if (upstreamRunType === 'evidence_discovery_run' && ref.type === 'evidence_candidate') {
