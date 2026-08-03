@@ -1,11 +1,11 @@
 # Implementation Report
 
 **Date:** 2026-08-03
-**Status:** Capability 003.5 Acquisition Execution implemented
+**Status:** Capability 003.6 Candidate Knowledge Integration implemented
 
 ## Scope
 
-Implemented GitHub Issue #16: deterministic local execution of an immutable Acquisition Plan Run. Each execution creates a new immutable Acquisition Result Run and one first-class Acquisition Result for every planned Acquisition Action. Results preserve the action reference, execution status, raw caller-supplied evidence, provenance, source type, limitations, timestamps, adapter version, and a plan snapshot.
+Implemented GitHub Issue #18: deterministic append-only integration of accepted bounded evidence into Candidate Knowledge. It persists Integration Runs, Decisions, Observations, evidence links, Candidate Facts, and revision relationships; only accepted decisions write facts.
 
 ## Delivered
 

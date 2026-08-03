@@ -9,7 +9,7 @@
 | 003.3 — Evidence Discovery | Complete | Search bounded, consented evidence and record candidates, resolutions, and sufficiency. |
 | 003.4 — Acquisition Planning | Complete | Produce an Acquisition Plan that selects the highest-value permitted strategy for each unresolved Information Need. |
 | 003.5 — Acquisition Execution | Complete | Execute an immutable Acquisition Plan Run through deterministic local actions and capture immutable raw-evidence results without integration. |
-| 003.6 — Candidate Knowledge Integration | Planned | Deliberately integrate accepted evidence into Candidate Knowledge through its sole Capability 003 write path. |
+| 003.6 — Candidate Knowledge Integration | Complete | Deterministically commit only accepted bounded evidence into append-only Candidate Knowledge through its sole Capability 003 write path. |
 | 004 — Resume Tailoring | Planned | Create truthful role-specific resume artifacts from Candidate Knowledge and job requirements. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
