@@ -27,6 +27,8 @@ try {
     case 'evidence-discovery-show': print(store.getEvidenceDiscoveryRun(required(input['evidence-discovery-run-id'], 'evidence-discovery-run-id'))); break;
     case 'acquisition-plan-create': print(store.createAcquisitionPlanRun({ informationNeedRunId: required(input['information-need-run-id'], 'information-need-run-id'), evidenceDiscoveryRunId: required(input['evidence-discovery-run-id'], 'evidence-discovery-run-id') })); break;
     case 'acquisition-plan-show': print(store.getAcquisitionPlanRun(required(input['acquisition-plan-run-id'], 'acquisition-plan-run-id'))); break;
-    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show, information-needs-create, information-needs-show, evidence-discovery-create, evidence-discovery-show, acquisition-plan-create, acquisition-plan-show'); process.exitCode = 1;
+    case 'acquisition-execution-create': print(store.createAcquisitionResultRun({ acquisitionPlanRunId: required(input['acquisition-plan-run-id'], 'acquisition-plan-run-id'), captures: JSON.parse(required(input.captures, 'captures')) })); break;
+    case 'acquisition-execution-show': print(store.getAcquisitionResultRun(required(input['acquisition-result-run-id'], 'acquisition-result-run-id'))); break;
+    default: console.error('Commands: profile-create, resume-import, profile-show, application-create, application-generate, outcome-record, edit-record, application-show, job-profile-create, job-profile-show, information-needs-create, information-needs-show, evidence-discovery-create, evidence-discovery-show, acquisition-plan-create, acquisition-plan-show, acquisition-execution-create, acquisition-execution-show'); process.exitCode = 1;
   }
 } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } finally { store.close(); }
