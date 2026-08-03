@@ -2,6 +2,8 @@
 
 Review remains pending human review. Automated tests cover selection ordering, generic-language deprioritization, uncovered gaps, bounded claim scopes, source-resume flags, and immutable re-runs.
 
+Capability 003.6 documentation and its accepted-only Candidate Knowledge commit boundary are preserved. 004.1 is a read-only consumer of committed facts.
+
 ## Governance gates
 
 1. No Product Principle is violated: only committed facts are read, gaps remain unknown, and source text cannot override Candidate Knowledge.
