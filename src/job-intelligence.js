@@ -14,6 +14,8 @@ const CATALOG = [
   ['Communication', /\bcommunication skills?\b|\bcommunicat(?:e|ing|ion)\b/i, 'interpersonal_capability', true],
   ['Teamwork', /\bteamwork\b|\bteam player\b|\bcollaborat(?:e|ion|ing)\b/i, 'interpersonal_capability', true],
   ['Stakeholder management', /\bstakeholder management\b|\bmanage stakeholders?\b|\bstakeholders?\b/i, 'interpersonal_capability', true, ['stakeholder manager']],
+  ["Bachelor's degree", /\b(?:bachelor'?s|bsc|ba)\s+(?:degree|in)\b/i, 'credential', false],
+  ['Years of experience', /\b(?:\d+\+?\s+years?|at least\s+\d+\s+years?)\s+(?:of\s+)?experience\b/i, 'experience_constraint', false],
 ];
 
 function hash(text) { return createHash('sha256').update(text).digest('hex'); }
