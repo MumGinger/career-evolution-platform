@@ -1,6 +1,6 @@
 # Capability 004 — Resume Tailoring
 
-**Status:** 004.1 implemented (planning only)
+**Status:** 004.1 and 004.2 implemented; 004.3 planned
 
 ## Mission
 
@@ -14,6 +14,18 @@ Resume Content Selections retain the Candidate Fact/revision, requirement mappin
 
 The deterministic policy ranks explicit, confirmed facts matched to high-importance/high-resume-value requirements. It favors concrete context and deprioritizes generic language unless role context makes it central. It never infers proficiency, duration, ownership, leadership, or impact. Uncovered requirements remain gaps, never claims. Source-resume text is retained only as a reference and may be flagged for validation; it never overrides Candidate Knowledge or is modified.
 
+## 004.2 Resume Artifact Generation
+
+An immutable Resume Artifact Run renders one structured Resume Artifact from exactly one immutable Resume Tailoring Plan Run. It reads only the plan, its Candidate Knowledge snapshot, and its Job Requirement Profile reference. It never reads mutable current Candidate Knowledge to augment a plan.
+
+Every visible rendered statement references one or more persisted Resume Content Selections and retains Candidate Fact ID/revision plus inherited Integration Decision provenance. Deterministic templates render only selection-permitted values. The structured intermediate model contains the ordered Summary placeholder, Skills, Experience, Projects, Education, and Certifications sections. It is neither a DOCX nor a PDF.
+
+Omitted selections, coverage gaps, blocked claim scopes, and rendering limitations are metadata, never visible resume claims. The Summary remains a placeholder in this capability because it would otherwise require synthesis beyond a bounded selection value.
+
+## 004.3 Truthfulness & Quality Validation
+
+This planned capability will validate rendered artifacts independently. It is not implemented by 004.2.
+
 ## Boundary
 
-004.1 performs no prose generation, DOCX/PDF/HTML rendering, LLM use, Candidate Knowledge write, evidence acquisition, apply recommendation, or source-resume edit. 004.2 may render an approved plan; 004.3 may validate generated artifacts.
+004.1 performs no prose generation, DOCX/PDF/HTML rendering, LLM use, Candidate Knowledge write, evidence acquisition, apply recommendation, or source-resume edit. 004.2 only renders deterministic structured intermediate artifacts from an approved plan; it performs no tailoring decisions, Candidate Knowledge write, acquisition, validation, LLM use, or final-document rendering. 004.3 may validate generated artifacts.
