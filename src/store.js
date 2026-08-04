@@ -334,6 +334,46 @@ class Store {
     return this.db.prepare('SELECT * FROM candidate_knowledge_facts WHERE candidate_profile_id = ? ORDER BY created_at, id').all(profileId)
       .map((fact) => ({ ...fact, canonical_value: JSON.parse(fact.canonical_value), value: JSON.parse(fact.canonical_value), validity_dates: fact.validity_dates ? JSON.parse(fact.validity_dates) : null }));
   }
+  getEvidenceReviewCandidate(discoveryRunId, candidateId) {
+    const item = this.db.prepare(`SELECT evidence_candidates.*, evidence_resolutions.state AS resolution_state, evidence_resolutions.rationale AS resolution_rationale
+      FROM evidence_candidates JOIN evidence_resolutions ON evidence_resolutions.evidence_candidate_id = evidence_candidates.id
+      WHERE evidence_candidates.id = ? AND evidence_candidates.discovery_run_id = ?`).get(candidateId, discoveryRunId);
+    if (!item) throw new Error('Evidence Review decision must reference a candidate in its Evidence Discovery Run');
+    const candidate = { ...item, supporting_value: JSON.parse(item.supporting_value), provenance: JSON.parse(item.provenance) };
+    let entityType = candidate.provenance.block_kind || 'skill';
+    if (candidate.source_type === 'candidate_fact' || candidate.source_type === 'resume_import') {
+      const source = this.db.prepare('SELECT entity_type FROM candidate_facts WHERE id = ?').get(candidate.source_reference);
+      if (source) entityType = source.entity_type;
+    }
+    return { candidate, entity_type: entityType, resolution: { state: item.resolution_state, rationale: item.resolution_rationale } };
+  }
+  createEvidenceReviewRun({ candidateProfileId, jobRequirementProfileId, evidenceDiscoveryRunId, decisions, reviewActor = 'user' }) {
+    if (!Array.isArray(decisions)) throw new Error('Evidence Review decisions must be an array');
+    const profile = this.getProfile(candidateProfileId);
+    const job = this.getJobRequirementProfile(jobRequirementProfileId);
+    const discoveryRun = this.getEvidenceDiscoveryRun(evidenceDiscoveryRunId);
+    if (discoveryRun.information_need_run.candidate_profile_id !== candidateProfileId || discoveryRun.information_need_run.job_requirement_profile_id !== jobRequirementProfileId) throw new Error('Evidence Review inputs must share the same candidate, job profile, and discovery run');
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, job_requirement_profile_id: jobRequirementProfileId, evidence_discovery_run_id: evidenceDiscoveryRunId, candidate_profile_snapshot: JSON.stringify(profile), job_profile_snapshot: JSON.stringify(job), discovery_snapshot: JSON.stringify(discoveryRun), review_actor: reviewActor, created_at: this.now() };
+    this.db.prepare('INSERT INTO evidence_review_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.job_requirement_profile_id, run.evidence_discovery_run_id, run.candidate_profile_snapshot, run.job_profile_snapshot, run.discovery_snapshot, run.review_actor, run.created_at);
+    const seen = new Set();
+    for (const submitted of decisions) {
+      if (seen.has(submitted.evidenceCandidateId)) continue;
+      seen.add(submitted.evidenceCandidateId);
+      const item = this.getEvidenceReviewCandidate(evidenceDiscoveryRunId, submitted.evidenceCandidateId);
+      if (item.resolution.state !== 'needs_confirmation') throw new Error('Only needs_confirmation evidence candidates may be reviewed');
+      const action = submitted.action;
+      if (!['accepted', 'skipped', 'edited', 'blocked'].includes(action)) throw new Error(`Unsupported Evidence Review action: ${action}`);
+      const originalClaim = submitted.originalClaim || item.candidate.supporting_text;
+      this.db.prepare('INSERT INTO evidence_review_decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(this.id(), run.id, item.candidate.job_requirement_id, item.candidate.id, action, originalClaim, submitted.editedClaim ? JSON.stringify(submitted.editedClaim) : null, JSON.stringify([{ type: 'evidence_candidate', id: item.candidate.id, reviewedConfirmation: action === 'accepted' || action === 'edited' }]), submitted.rationale || null, reviewActor, this.now(), this.now());
+    }
+    return this.getEvidenceReviewRun(run.id);
+  }
+  getEvidenceReviewRun(id) {
+    const run = this.db.prepare('SELECT * FROM evidence_review_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Evidence Review Run not found: ${id}`);
+    const decisions = this.db.prepare('SELECT * FROM evidence_review_decisions WHERE review_run_id = ? ORDER BY reviewed_at, id').all(id).map((item) => ({ ...item, edited_claim: item.edited_claim ? JSON.parse(item.edited_claim) : null, source_evidence_refs: JSON.parse(item.source_evidence_refs) }));
+    return { ...run, candidate_profile_snapshot: JSON.parse(run.candidate_profile_snapshot), job_profile_snapshot: JSON.parse(run.job_profile_snapshot), discovery_snapshot: JSON.parse(run.discovery_snapshot), review_decisions: decisions };
+  }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);
     const job = this.getJobRequirementProfile(jobRequirementProfileId);
@@ -399,7 +439,7 @@ class Store {
   integrationSource(upstreamRunType, upstreamRunId, ref) {
     if (upstreamRunType === 'evidence_discovery_run' && ref.type === 'evidence_candidate') {
       const row = this.db.prepare(`SELECT evidence_candidates.*, evidence_resolutions.state AS resolution_state FROM evidence_candidates JOIN evidence_resolutions ON evidence_resolutions.evidence_candidate_id = evidence_candidates.id WHERE evidence_candidates.id = ? AND evidence_candidates.discovery_run_id = ?`).get(ref.id, upstreamRunId);
-      return row ? { valid: true, positive: row.resolution_state === 'accepted_for_need', source_type: ref.type, source_id: ref.id, raw_value: JSON.parse(row.supporting_value), provenance: JSON.parse(row.provenance) } : { valid: false, positive: false };
+      return row ? { valid: true, positive: row.resolution_state === 'accepted_for_need' || ref.reviewedConfirmation === true, source_type: ref.type, source_id: ref.id, raw_value: JSON.parse(row.supporting_value), provenance: JSON.parse(row.provenance) } : { valid: false, positive: false };
     }
     if (upstreamRunType === 'acquisition_result_run' && ref.type === 'acquisition_result') {
       const row = this.db.prepare('SELECT * FROM acquisition_results WHERE id = ? AND acquisition_result_run_id = ?').get(ref.id, upstreamRunId);
