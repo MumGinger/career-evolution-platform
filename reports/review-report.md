@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Career Review Version 1.0 integration self-review (2026-08-04)
+
+No blocking findings. Career Review is a terminology and existing-flow integration only: the immutable Human Review Run remains the sole review/export boundary, and `exportResumeArtifact()` remains the release gate. The draft, every explicit approve/edit decision, the final approved version, provenance, and timestamps remain auditable. No Product Principle is violated; no ADR or PRD update is required; the roadmap and current state now mark this as the final Version 1.0 integration step before Beta.
+
 ## Human Review MVP self-review (2026-08-04)
 
 No blocking findings after self-review. This aligns with facts-are-sacred and explain-understanding: users make the final presentation decision and evidence stays visible. No new ADR is needed because this extends existing immutable-run and Candidate Knowledge commit boundaries. No existing PRD update is required. The roadmap marks Human Review MVP as the final Version 1.0 release blocker; future renderers must call `exportResumeArtifact`.

@@ -1,5 +1,9 @@
 # Human Review MVP self-review
 
+## Career Review naming integration
+
+The product-facing Career Review label does not change this immutable Human Review architecture. It is the final Version 1.0 integration step before Beta and adds no new capability.
+
 Date: 2026-08-04
 
 No blocking findings after self-review.

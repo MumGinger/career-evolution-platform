@@ -1,16 +1,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
-const { OUTPUT_FILES, confirmationProposals, runDemo, jobIdentity } = require('../src/demo');
+const { OUTPUT_FILES, confirmationProposals, runDemo, summary, jobIdentity } = require('../src/demo');
 
 const root = path.join(__dirname, '..');
 function fixture(name) { return path.join(root, 'examples', name); }
 function tempOutput() { return fs.mkdtempSync(path.join(os.tmpdir(), 'career-demo-output-')); }
+function careerReviewFixture() { return fixture('synthetic-career-review.json'); }
 
 test('synthetic demo runs the complete immutable pipeline and writes every expected output', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output });
     assert.equal(result.validation.validation_status, 'passed');
     assert.deepEqual(fs.readdirSync(output).sort(), OUTPUT_FILES.slice().sort());
     assert.equal(result.semantic, null);
@@ -24,7 +25,14 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.match(report, /Intelligent Resume v1/);
     assert.match(report, /Career Understanding/);
     assert.match(report, /Presentation Strategy/);
-    assert.match(report, /Generated Resume/);
+    assert.match(report, /Resume Draft/);
+    assert.match(report, /Career Review/);
+    assert.match(report, /Complete — export allowed/);
+    assert.match(report, /Approved Resume Export/);
+    assert.equal(result.humanReviewRun.review_complete, true);
+    assert.equal(result.exportedResume.human_review_run_id, result.humanReviewRun.id);
+    assert.match(summary(result), /Career Review: complete — export allowed/);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(output, 'career-evolution-loop-summary.json'), 'utf8')).career_review.product_label, 'Career Review');
     assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
@@ -37,17 +45,17 @@ test('integrated demo confirmation proposals retain provenance-rich review field
 test('career evolution demo joins every milestone stage into one bounded companion journey', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
     assert.equal(result.conversation.answer, 'Data Analytics');
     assert.equal(result.snapshot.current_direction.label, 'Data Analytics');
     assert.equal(result.reflection.action, 'looks_right');
     assert.equal(result.curiosity.status, 'available');
     assert.equal(result.curiosityObservation.user_response, 'interesting');
     const loop = JSON.parse(fs.readFileSync(path.join(output, 'career-evolution-loop-summary.json'), 'utf8'));
-    assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'presentation_strategy', 'truthful_resume']);
+    assert.deepEqual(loop.flow, ['Resume + JD', 'Career Understanding', 'Presentation Strategy', 'Resume Draft', 'Career Review', 'Approved Resume Export']);
     assert.equal(loop.presentation_strategy.shared_understanding.current_direction, 'Data Analytics');
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    for (const section of ['Career Understanding', 'Presentation Strategy', 'Generated Resume', 'Still Unknown']) assert.match(report, new RegExp(section));
+    for (const section of ['Career Understanding', 'Presentation Strategy', 'Resume Draft', 'Career Review', 'Approved Resume Export', 'Still Unknown']) assert.match(report, new RegExp(section));
     assert.match(report, /career_direction/);
     assert.match(report, /never converts context into candidate facts/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
@@ -56,7 +64,7 @@ test('career evolution demo joins every milestone stage into one bounded compani
 test('without a capture fixture, unresolved acquisition is skipped and no unsupported evidence is integrated', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output });
     assert.equal(result.integration.applied_facts.length, 0);
     assert.equal(result.knowledge.facts.length, 0);
     assert.ok(result.integration.upstream_snapshot.acquisition_results.every((item) => item.execution_status === 'skipped'));
@@ -74,7 +82,7 @@ test('requires a clean output directory so every invocation is a new run set', a
 test('optional graph flag preserves existing graph output while preferred path remains graph-free', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-complex-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output, buildSemanticGraph: true });
+    const result = await runDemo({ resumePath: fixture('synthetic-complex-resume.txt'), jobInput: fixture('synthetic-job.txt'), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, buildSemanticGraph: true });
     const graphStates = [...result.graph.nodes, ...result.graph.edges].filter((item) => item.decision_state === 'derived_structurally');
     assert.ok(result.graph.edges.length > 0); assert.ok(graphStates.length > 0);
     assert.ok(result.needs.available_working_evidence_summary.length > 0);
@@ -84,4 +92,14 @@ test('optional graph flag preserves existing graph output while preferred path r
 test('uses one canonical identity for three-line LinkedIn and Role at Company openings', () => {
   assert.deepEqual(jobIdentity('Zurich Canada\nFall 2026 Internship/Co-op - Data Analytics & AI\nToronto, ON'), { company: 'Zurich Canada', roleTitle: 'Fall 2026 Internship/Co-op - Data Analytics & AI', location: 'Toronto, ON' });
   assert.deepEqual(jobIdentity('Data Analyst at Acme'), { company: 'Acme', roleTitle: 'Data Analyst' });
+});
+
+test('primary demo requires an explicit Career Review fixture and does not add duplicate review or export modules', async () => {
+  const output = tempOutput();
+  try {
+    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output }), /Career Review requires/);
+    const sourceFiles = fs.readdirSync(path.join(root, 'src'));
+    assert.ok(!sourceFiles.includes('career-review.js'));
+    assert.ok(!sourceFiles.includes('final-export.js'));
+  } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });

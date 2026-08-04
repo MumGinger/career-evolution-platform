@@ -1,0 +1,8 @@
+{
+  "decisions": [
+    { "section": "Professional Summary", "action": "approve" },
+    { "section": "Skills", "action": "approve" },
+    { "section": "Experience", "action": "approve" },
+    { "section": "Projects", "action": "approve" }
+  ]
+}
