@@ -2,6 +2,14 @@
 
 Evidence-driven career intelligence: acquire the highest-value missing information before making career decisions or generating career artifacts. The platform treats a resume as one source and snapshot—not the candidate—and improves recommendations from traceable evidence and outcomes.
 
+## Version 1.0 Beta
+
+The local beta completes one bounded, explainable resume journey:
+
+`Upload Resume → Upload Job Description → Understanding → optional evidence conversation → Shared Understanding → optional Decision Companion → Presentation Strategy → Resume Draft → required Career Review → Final Export`
+
+Career Review is an explicit, section-by-section candidate approval of the way their supported evidence is presented. It has no skip path: final export is blocked unless every section is approved and structural validation passes. The platform guides; the candidate has the final word.
+
 ## Current capabilities
 
 - **Capability 001 — Application Evidence Loop:** record applications, generated artifacts, and outcome/preference evidence without automatic learning.
@@ -48,9 +56,10 @@ node src/demo.js `
   --resume "examples\synthetic-resume.txt" `
   --job "examples\synthetic-job.txt" `
   --captures "examples\synthetic-capture.json" `
+  --review "examples\synthetic-career-review.json" `
   --output "demo-output"
 ```
 
 This copy-paste PowerShell example runs the full deterministic local pipeline. `--resume` accepts a PDF (using the existing local `pdftotext` dependency) or a UTF-8 `.txt` fixture. `--job` accepts a text file or direct description text. `--captures` is optional: without it, every unresolved acquisition action is explicitly recorded as `skipped`, no evidence is invented, and no unconfirmed fact is integrated.
 
-The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. It contains `candidate-knowledge.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. The demo uses no external connectors or LLMs and does not render DOCX/PDF.
+The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. It contains the pipeline JSON artifacts plus `presentation-strategy.json`, `career-review.json`, `final-export.json`, `resume.md`, and `report.html`. `report.html` explains the presentation choices, evidence coverage, review state, and export state. Without `--review`, the draft and reports are still produced, but `career-review.json` is incomplete and `final-export.json` is explicitly blocked. The demo uses no external connectors or LLMs and exports the final deterministic resume as Markdown rather than DOCX/PDF.

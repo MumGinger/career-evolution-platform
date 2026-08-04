@@ -4,8 +4,11 @@ const os = require('node:os');
 const path = require('node:path');
 const { Store } = require('./store');
 const { extractPdfText, parseResumeText } = require('./resume');
+const { createPresentationStrategy } = require('./presentation-strategy');
+const { createCareerReview } = require('./career-review');
+const { markdown, createFinalExport } = require('./final-export');
 
-const OUTPUT_FILES = ['candidate-knowledge.json', 'job-requirement-profile.json', 'information-needs.json', 'evidence-discovery.json', 'acquisition-plan.json', 'integration-run.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'resume.md', 'report.html'];
+const OUTPUT_FILES = ['candidate-knowledge.json', 'job-requirement-profile.json', 'information-needs.json', 'evidence-discovery.json', 'acquisition-plan.json', 'integration-run.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'presentation-strategy.json', 'career-review.json', 'final-export.json', 'resume.md', 'report.html'];
 
 function options(args) { const result = {}; for (let i = 0; i < args.length; i += 1) if (args[i].startsWith('--')) result[args[i].slice(2)] = args[i + 1]; return result; }
 function required(value, name) { if (!value) throw new Error(`Missing --${name}. Run node src/demo.js --help for an example.`); return value; }
@@ -44,6 +47,12 @@ function loadFixture(filePath) {
   return fixture;
 }
 
+function loadReview(filePath) {
+  if (!filePath) return { sections: [] };
+  if (!fs.existsSync(filePath)) throw new Error(`Career Review fixture file not found: ${filePath}`);
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch { throw new Error('Career Review fixture must be valid JSON.'); }
+}
+
 function createCaptures(planRun, fixture) {
   const actions = planRun.acquisition_plans.flatMap((plan) => plan.acquisition_actions);
   const used = new Set();
@@ -69,13 +78,6 @@ function proposalsFor(resultRun, fixture) {
   return proposals;
 }
 
-function markdown(artifact) {
-  return artifact.content.sections.map((section) => {
-    const statements = section.statements.map((statement) => `- ${statement.text}`).join('\n');
-    return `## ${section.section}\n\n${section.placeholder || statements || '_No supported content selected._'}`;
-  }).join('\n\n') + '\n';
-}
-
 function reportHtml({ knowledge, job, needs, discovery, acquisition, integration, tailoring, artifact, validation }) {
   const resumeArtifact = artifact.resume_artifacts[0];
   const coverage = tailoring.requirement_coverage.map((item) => `<li><code>${escapeHtml(item.job_requirement_id)}</code>: ${escapeHtml(item.coverage_status)} — ${escapeHtml(item.coverage_rationale)}</li>`).join('');
@@ -86,14 +88,22 @@ function reportHtml({ knowledge, job, needs, discovery, acquisition, integration
   return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Career Evolution Platform Demo</title><style>body{font:16px system-ui;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18212f}main{display:grid;grid-template-columns:1fr 1fr;gap:2rem}section{margin:1rem 0}code,small{color:#475569}h1{grid-column:1/-1}.status{padding:.4rem .7rem;background:#e2f3eb;border-radius:.4rem;display:inline-block}</style><h1>Career Evolution Platform — Milestone 1 Demo</h1><p class="status">Validation: ${escapeHtml(validation.validation_status)}</p><p>${escapeHtml(knowledge.profile.name || 'Unnamed candidate')} · ${escapeHtml(job.snapshot.role_title)} at ${escapeHtml(job.snapshot.company)}</p><main><div><h2>Rendered resume preview</h2>${resume}</div><div><h2>Requirement coverage</h2><ul>${coverage}</ul><h2>Selections (included, omitted, deprioritized, blocked)</h2><ul>${selections}</ul><h2>Blocked claim scopes</h2><ul>${blocked}</ul><h2>Validation findings</h2><ul>${findings}</ul></div></main><h2>Provenance and run references</h2><ul><li>Candidate profile: <code>${escapeHtml(knowledge.profile.id)}</code></li><li>Job Requirement Profile: <code>${escapeHtml(job.id)}</code></li><li>Information Need Run: <code>${escapeHtml(needs.id)}</code></li><li>Evidence Discovery Run: <code>${escapeHtml(discovery.id)}</code></li><li>Acquisition Plan Run: <code>${escapeHtml(acquisition.id)}</code></li><li>Integration Run: <code>${escapeHtml(integration.id)}</code></li><li>Tailoring Plan Run: <code>${escapeHtml(tailoring.id)}</code></li><li>Artifact Run: <code>${escapeHtml(artifact.id)}</code></li><li>Validation Run: <code>${escapeHtml(validation.id)}</code></li></ul></html>`;
 }
 
-function writeOutputs(outputDirectory, models) {
-  const json = { 'candidate-knowledge.json': models.knowledge, 'job-requirement-profile.json': models.job, 'information-needs.json': models.needs, 'evidence-discovery.json': models.discovery, 'acquisition-plan.json': models.acquisition, 'integration-run.json': models.integration, 'tailoring-plan.json': models.tailoring, 'resume-artifact.json': models.artifact, 'validation-report.json': models.validation };
-  for (const [name, value] of Object.entries(json)) fs.writeFileSync(path.join(outputDirectory, name), `${JSON.stringify(value, null, 2)}\n`);
-  fs.writeFileSync(path.join(outputDirectory, 'resume.md'), markdown(models.artifact.resume_artifacts[0]));
-  fs.writeFileSync(path.join(outputDirectory, 'report.html'), reportHtml(models));
+function betaReportHtml({ knowledge, job, tailoring, artifact, validation, presentation, review, finalExport }) {
+  const resume = artifact.resume_artifacts[0].content.sections.map((section) => `<section><h3>${escapeHtml(section.section)}</h3>${section.placeholder ? `<p>${escapeHtml(section.placeholder)}</p>` : `<ul>${section.statements.map((item) => `<li>${escapeHtml(item.text)}</li>`).join('')}</ul>`}</section>`).join('');
+  const decisions = presentation.decisions.map((item) => `<li><strong>${escapeHtml(item.section)}</strong>: ${escapeHtml(item.rationale)}</li>`).join('');
+  const reviews = review.section_reviews.map((item) => `<li><strong>${escapeHtml(item.section)}</strong>: ${escapeHtml(item.status)}${item.comment ? ` — ${escapeHtml(item.comment)}` : ''}</li>`).join('');
+  const coverage = tailoring.requirement_coverage.map((item) => `<li>${escapeHtml(item.coverage_status)}: ${escapeHtml(item.coverage_rationale)}</li>`).join('');
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Career Evolution Platform Version 1.0 Beta</title><style>body{font:16px system-ui;max-width:1000px;margin:2rem auto;padding:0 1rem;color:#18212f}main{display:grid;grid-template-columns:1fr 1fr;gap:2rem}section{margin:1rem 0}.status{display:inline-block;padding:.4rem .7rem;background:#e2f3eb;border-radius:.4rem}.blocked{background:#fee2e2}</style><h1>Career Evolution Platform — Version 1.0 Beta</h1><p class="status">Validation: ${escapeHtml(validation.validation_status)}</p><p class="status ${review.completed ? '' : 'blocked'}">${escapeHtml(review.completed ? 'Career Review complete — final export ready' : 'Career Review required — final export blocked')}</p><p>${escapeHtml(knowledge.profile.name || 'Unnamed candidate')} · ${escapeHtml(job.snapshot.role_title)} at ${escapeHtml(job.snapshot.company)}</p><main><div><h2>Resume draft</h2>${resume}</div><div><h2>Presentation strategy</h2><p>${escapeHtml(presentation.principle)}</p><ul>${decisions}</ul><h2>Requirement coverage</h2><ul>${coverage}</ul></div></main><h2>Career Review — the candidate has the final word</h2><p>${escapeHtml(review.statement)}</p><ul>${reviews}</ul><p>Final export: <strong>${escapeHtml(finalExport?.export_status || 'blocked')}</strong></p></html>`;
 }
 
-function runDemo({ resumePath, jobInput, outputDirectory, capturePath }) {
+function writeOutputs(outputDirectory, models) {
+  const json = { 'candidate-knowledge.json': models.knowledge, 'job-requirement-profile.json': models.job, 'information-needs.json': models.needs, 'evidence-discovery.json': models.discovery, 'acquisition-plan.json': models.acquisition, 'integration-run.json': models.integration, 'tailoring-plan.json': models.tailoring, 'resume-artifact.json': models.artifact, 'validation-report.json': models.validation, 'presentation-strategy.json': models.presentation, 'career-review.json': models.review, 'final-export.json': models.finalExport || { artifact_type: 'final_resume_export', export_status: 'blocked', block_reasons: models.review.block_reasons } };
+  for (const [name, value] of Object.entries(json)) fs.writeFileSync(path.join(outputDirectory, name), `${JSON.stringify(value, null, 2)}\n`);
+  fs.writeFileSync(path.join(outputDirectory, 'resume.md'), markdown(models.artifact.resume_artifacts[0]));
+  fs.writeFileSync(path.join(outputDirectory, 'report.html'), betaReportHtml(models));
+}
+
+function runDemo({ resumePath, jobInput, outputDirectory, capturePath, reviewPath }) {
   if (fs.existsSync(outputDirectory) && fs.readdirSync(outputDirectory).length) throw new Error(`Output directory must be empty for a new immutable run set: ${outputDirectory}`);
   fs.mkdirSync(outputDirectory, { recursive: true });
   const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'career-evolution-demo-'));
@@ -111,7 +121,10 @@ function runDemo({ resumePath, jobInput, outputDirectory, capturePath }) {
     const tailoring = store.createResumeTailoringPlanRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id });
     const artifact = store.createResumeArtifactRun({ resumeTailoringPlanRunId: tailoring.id });
     const validation = store.createResumeValidationRun({ resumeArtifactRunId: artifact.id });
-    const models = { knowledge: store.getCandidateKnowledge(knowledge.profile.id), job, needs, discovery, acquisition, integration, tailoring, artifact, validation };
+    const presentation = createPresentationStrategy({ job, tailoring, artifact });
+    const review = createCareerReview({ artifact, presentationStrategy: presentation, reviewInput: loadReview(reviewPath) });
+    const finalExport = review.completed ? createFinalExport({ artifact, validation, careerReview: review }) : null;
+    const models = { knowledge: store.getCandidateKnowledge(knowledge.profile.id), job, needs, discovery, acquisition, integration, tailoring, artifact, validation, presentation, review, finalExport };
     writeOutputs(outputDirectory, models);
     return { ...models, outputDirectory };
   } finally { store.close(); fs.rmSync(temporaryDirectory, { recursive: true, force: true }); }
@@ -127,8 +140,8 @@ function summary(result) {
 
 function main() {
   const input = options(process.argv.slice(2));
-  if (input.help) { console.log('Example: node src/demo.js --resume examples/synthetic-resume.txt --job examples/synthetic-job.txt --captures examples/synthetic-capture.json --output demo-output'); return; }
-  const result = runDemo({ resumePath: required(input.resume, 'resume'), jobInput: required(input.job, 'job'), outputDirectory: required(input.output, 'output'), capturePath: input.captures });
+  if (input.help) { console.log('Example: node src/demo.js --resume examples/synthetic-resume.txt --job examples/synthetic-job.txt --captures examples/synthetic-capture.json --review examples/synthetic-career-review.json --output demo-output'); return; }
+  const result = runDemo({ resumePath: required(input.resume, 'resume'), jobInput: required(input.job, 'job'), outputDirectory: required(input.output, 'output'), capturePath: input.captures, reviewPath: input.review });
   console.log(summary(result));
 }
 

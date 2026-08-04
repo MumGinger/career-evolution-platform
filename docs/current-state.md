@@ -5,6 +5,10 @@
 
 ## Completed
 
+- Version 1.0 Beta integration: a complete local Intelligent Resume journey from resume/job intake through understanding, evidence acquisition, draft, presentation explanation, Career Review, and final-export decision.
+- Mandatory Career Review: every rendered resume section needs explicit candidate approval; export remains blocked without it or without a passing validation run.
+- Explainable beta artifacts: presentation strategy, Career Review state, final-export state, and a final HTML report are exported beside the existing immutable pipeline artifacts.
+
 - Established project foundation and working agreement.
 - Documented the product-first vision, architecture principles, and initial design models.
 - Recorded the decision to validate Career before extracting a framework.
@@ -24,11 +28,11 @@
 
 ## Current focus
 
-Review the deterministic truth firewall before introducing final-document renderers.
+Run the Version 1.0 Beta checklist with real candidates and collect reviewed feedback without expanding product scope.
 
 ## Next decision
 
-Decide the bounded final-document renderer and whether it must require a passing 004.3 Validation Run at release time.
+Use beta feedback to decide whether a later release needs a DOCX/PDF renderer; Version 1.0 retains a traceable Markdown final export.
 
 ## Open questions
 

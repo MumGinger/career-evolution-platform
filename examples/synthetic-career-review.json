@@ -1,0 +1,12 @@
+{
+  "reviewer": "synthetic candidate",
+  "reviewed_at": "2026-08-04T00:00:00.000Z",
+  "sections": [
+    { "section": "Professional Summary", "status": "approved", "comment": "I agree with leaving unsupported summary language out." },
+    { "section": "Skills", "status": "approved" },
+    { "section": "Experience", "status": "approved" },
+    { "section": "Projects", "status": "approved" },
+    { "section": "Education", "status": "approved" },
+    { "section": "Certifications", "status": "approved" }
+  ]
+}

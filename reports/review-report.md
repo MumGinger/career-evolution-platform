@@ -23,3 +23,17 @@ Human review remains pending. Automated demo tests cover the complete synthetic 
 2. No ADR update is required: ADR-004 governs immutable runs, ADR-005 preserves the single Candidate Knowledge write path, and ADR-006 preserves append-only accepted-only commits.
 3. No PRD update is required: this is an integration/demo milestone that uses Capability 003 and 004 within their existing boundaries.
 4. Yes, the roadmap is updated to mark Milestone 1 Demo complete; final-document rendering remains a future decision.
+# Version 1.0 Beta review report
+
+## Findings
+
+No unresolved implementation findings from the local regression suite.
+
+## Review gates
+
+1. Product principles: complies with the existing evidence, explainability, and candidate-authority principles. Career Review strengthens the boundary that facts are sacred and the candidate has the final word.
+2. ADR: no new architectural decision is required; the work composes existing immutable run artifacts and validation.
+3. PRD: no new product capability is introduced; this completes the existing resume artifact delivery boundary.
+4. Roadmap: Version 1.0 Beta Integration is documented in the beta guide.
+
+Human review remains required before any merge or beta distribution.
