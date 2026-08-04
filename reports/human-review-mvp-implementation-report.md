@@ -1,5 +1,9 @@
 # Human Review MVP implementation report
 
+## Career Review naming integration
+
+Career Review is the product-facing name of this existing Human Review capability. The Version 1.0 integration routes the primary demo through `createHumanReviewRun()` and `exportResumeArtifact()` without adding a second module, schema, or gate.
+
 Date: 2026-08-04
 
 ## Scope

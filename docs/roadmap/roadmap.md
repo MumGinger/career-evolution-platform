@@ -1,5 +1,7 @@
 # Product Roadmap
 
+Version 1.0 final integration is complete: **Career Review** is the product-facing name for the existing Human Review capability. The primary demo uses that immutable review run and its established export gate; Version 1.0 Beta is next.
+
 | Capability | Status | Purpose |
 | --- | --- | --- |
 
