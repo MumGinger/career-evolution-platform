@@ -18,9 +18,10 @@ function adapter(input, output) {
     throw new Error('Choose 1, 2, or 3');
   }, close: () => rl.close() };
 }
+function escapeHtml(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function html(result) {
-  const decisions = result.reviewRun.review_decisions.map((item) => `<li><strong>${item.action}</strong>: ${item.original_claim} — provenance ${item.source_evidence_refs.map((ref) => ref.id).join(', ')}</li>`).join('');
-  return `<!doctype html><meta charset="utf-8"><title>Evidence Review</title><h1>Evidence Review</h1><h2>Review queue</h2><p>Needs review: ${result.kpi.needs_review_count}; auto accepted: ${result.kpi.auto_accepted_evidence_count}</p><ul>${decisions}</ul><h2>Outcome</h2><p>Coverage: ${result.kpi.committed_coverage_before}% → ${result.kpi.committed_coverage_after}%<br>Candidate Knowledge facts: ${result.kpi.candidate_knowledge_facts_before} → ${result.kpi.candidate_knowledge_facts_after}<br>Validation: ${result.validation.status}</p><h2>Resume preview</h2><pre>${result.artifact.markdown.replace(/</g, '&lt;')}</pre><h2>Validation findings</h2><pre>${JSON.stringify(result.validation.findings, null, 2)}</pre>`;
+  const decisions = result.reviewRun.review_decisions.map((item) => `<li><strong>${escapeHtml(item.action)}</strong>: ${escapeHtml(item.original_claim)} — provenance ${item.source_evidence_refs.map((ref) => escapeHtml(ref.id)).join(', ')}</li>`).join('');
+  return `<!doctype html><meta charset="utf-8"><title>Evidence Review</title><h1>Evidence Review</h1><h2>Review queue</h2><p>Needs review: ${result.kpi.needs_review_count}; auto accepted: ${result.kpi.auto_accepted_evidence_count}</p><ul>${decisions}</ul><h2>Outcome</h2><p>Coverage: ${result.kpi.committed_coverage_before}% → ${result.kpi.committed_coverage_after}%<br>Candidate Knowledge facts: ${result.kpi.candidate_knowledge_facts_before} → ${result.kpi.candidate_knowledge_facts_after}<br>Validation: ${escapeHtml(result.validation.status)}</p><h2>Resume preview</h2><pre>${escapeHtml(result.artifact.markdown)}</pre><h2>Validation findings</h2><pre>${escapeHtml(JSON.stringify(result.validation.findings, null, 2))}</pre>`;
 }
 async function main(argv = process.argv.slice(2), io = process) {
   const input = options(argv); const store = new Store(input.db || 'career-evolution.db'); let prompt;
