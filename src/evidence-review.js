@@ -9,7 +9,7 @@ function queue(discoveryRun) {
   const needs = new Map(discoveryRun.information_need_run.information_needs.map((need) => [need.id, need]));
   return discoveryRun.need_results.map((result) => ({
     requirement: needs.get(result.information_need_id),
-    candidates: result.candidates.filter((item) => item.resolution.state === 'needs_confirmation').map((item, index) => ({
+    candidates: result.candidates.filter((item) => ['needs_confirmation', 'accepted_for_need'].includes(item.resolution.state)).map((item, index) => ({
       ...item,
       rank: index + 1,
       score: (item.candidate.confidence_level === 'high' ? 100 : 70) - index,

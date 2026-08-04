@@ -60,6 +60,7 @@ node src/demo.js `
   --resume "examples\synthetic-resume.txt" `
   --job "examples\synthetic-job.txt" `
   --captures "examples\synthetic-capture.json" `
+  --evidence-review-fixture "examples\synthetic-evidence-review.json" `
   --career-review-fixture "examples\synthetic-career-review.json" `
   --output "demo-output" `
   --career-direction "Data Analytics" `
@@ -102,6 +103,7 @@ node src/demo.js `
   --resume "examples\synthetic-resume.txt" `
   --job "examples\synthetic-job.txt" `
   --captures "examples\synthetic-capture.json" `
+  --evidence-review-fixture "examples\synthetic-evidence-review.json" `
   --career-review-fixture "examples\synthetic-career-review.json" `
   --output "demo-output"
 ```
@@ -110,7 +112,7 @@ For a real PDF, select a provider explicitly. The Demo refuses an implicit mock 
 
 ```powershell
 $env:CEP_LLM_PROVIDER='openai-compatible'; $env:CEP_LLM_MODEL='your-model'; $env:CEP_LLM_API_KEY='...'
-node src/demo.js --resume "my-test\resume.pdf" --job "my-test\job.txt" --output "my-test\real-output" --provider openai-compatible
+node src/demo.js --resume "my-test\resume.pdf" --job "my-test\job.txt" --evidence-review-fixture "my-test\evidence-review.json" --career-review-fixture "my-test\career-review.json" --output "my-test\real-output" --provider openai-compatible
 ```
 
 Use `--provider mock` only for explicit offline/synthetic testing; its output carries a prominent offline warning.

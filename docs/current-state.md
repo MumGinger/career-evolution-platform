@@ -2,7 +2,7 @@
 
 ## Version 1.0 final integration before Beta
 
-Career Review is the product-facing name for the existing immutable Human Review capability. The primary synthetic demo now uses `createHumanReviewRun()` and `exportResumeArtifact()` as the sole review/export boundary, displays the resume draft before review, and reports completion plus approved export. No new review/export module, schema, gate, Candidate Knowledge path, or Version 2 capability was added.
+Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo now requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. Export is blocked when no committed facts populate a core section. No new capability or Candidate Knowledge write path was added.
 
 **Phase:** Milestone 2 — Career Evolution Loop v1 complete for local CLI demo
 **Last updated:** 2026-08-04
