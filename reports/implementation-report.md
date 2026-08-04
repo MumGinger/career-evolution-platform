@@ -1,5 +1,9 @@
 # Implementation Report — Capability 004.3
 
+## Capability 002.7 Resume AST refactor (2026-08-03)
+
+Implemented async immutable Resume AST runs, strict nested local validation, `structurally_grouped` source-layout state, direct ranked `resume_ast` retrieval, and complete confirmation proposals. The real-failure regression covers a project title, technology subtitle, wrapped bullet, and structurally inferred grouping. Candidate Knowledge integration remains unchanged: 003.6 is the only writer. `npm.cmd test`: 89 passing.
+
 ## Capability 002.5 update (2026-08-03)
 
 Added immutable source-resume artifact versions, semantic runs, exact evidence spans, and traceable entity/relation candidates under `resume-semantic-policy/1.0.0`. The implementation preserves the existing 004.2 generated-resume schema and adds bounded `resume_semantic` retrieval to the established 003.3 Evidence Discovery flow. It never writes Candidate Knowledge.

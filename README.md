@@ -12,7 +12,7 @@ Start with the [product documentation](docs/README.md): the [vision](docs/vision
 
 ## Local use
 
-Capability 002.5 creates immutable, provenance-preserving working semantic candidates from a versioned resume artifact; it never writes Candidate Knowledge. The current deterministic hardening policy normalizes uppercase compound headings, ignores PDF bullet glyph noise, merges bounded wrapped bullets, and emits anchor-supported relations only where source structure supports them.
+Capability 002.7 is the preferred working-evidence path: the Resume AST preserves exact source text and marks layout/order-inferred attachment as `structurally_grouped`. Requirement-driven retrieval ranks validated AST blocks with rank, score, exactness, block kind, section, and rationale. Only exact, validated explicit `skill` or `tool` blocks may satisfy a need automatically; all project, organization, role, bullet, `structurally_grouped`, and `possible` blocks remain confirmation-required. It never writes Candidate Knowledge.
 
 The current MVP is a local SQLite CLI with no external packages. It creates a candidate profile, imports a PDF resume, stores a job-specific application, generates a traceable application note, and records outcome or preference evidence without changing the active skill.
 
@@ -43,6 +43,10 @@ Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its
 
 ## Milestone 1 Demo — end-to-end resume tailoring
 
+The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
+
+For an OpenAI-compatible provider, configure `CEP_LLM_PROVIDER=openai-compatible`, `CEP_LLM_MODEL`, `CEP_LLM_API_KEY`, and optional `CEP_LLM_BASE_URL`. Never commit keys, private inputs, or raw provider responses.
+
 ```powershell
 node src/demo.js `
   --resume "examples\synthetic-resume.txt" `
@@ -50,6 +54,15 @@ node src/demo.js `
   --captures "examples\synthetic-capture.json" `
   --output "demo-output"
 ```
+
+For a real PDF, select a provider explicitly. The Demo refuses an implicit mock fallback for PDF inputs:
+
+```powershell
+$env:CEP_LLM_PROVIDER='openai-compatible'; $env:CEP_LLM_MODEL='your-model'; $env:CEP_LLM_API_KEY='...'
+node src/demo.js --resume "my-test\resume.pdf" --job "my-test\job.txt" --output "my-test\real-output" --provider openai-compatible
+```
+
+Use `--provider mock` only for explicit offline/synthetic testing; its output carries a prominent offline warning.
 
 This copy-paste PowerShell example runs the full deterministic local pipeline. `--resume` accepts a PDF (using the existing local `pdftotext` dependency) or a UTF-8 `.txt` fixture. `--job` accepts a text file or direct description text. `--captures` is optional: without it, every unresolved acquisition action is explicitly recorded as `skipped`, no evidence is invented, and no unconfirmed fact is integrated.
 

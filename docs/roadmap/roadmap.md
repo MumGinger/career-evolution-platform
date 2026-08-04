@@ -2,6 +2,9 @@
 
 | Capability | Status | Purpose |
 | --- | --- | --- |
+
+For 002.7, “Complete” means the offline/mock path now validates nested AST leaves, preserves `structurally_grouped` placement, retrieves ranked AST blocks directly, and keeps all but explicit skill/tool evidence behind confirmation; it does not modify Candidate Knowledge outside 003.6.
+| 002.7 — LLM-Assisted Resume AST | Complete (offline/mock) | Preferred blocking path with provenance validation and direct retrieval. |
 | 002.5 — Resume Semantic Understanding | Complete | Create immutable, traceable resume semantic candidates before Information Acquisition. |
 | 002.6 — Resume Semantic Graph Construction | Complete | Build immutable, provenance-preserving graph candidates from 002.5 working evidence before Information Acquisition. |
 | 001 — Application Evidence Loop | Complete | Record applications, artifacts, and outcome/preference evidence without automatic learning. |
