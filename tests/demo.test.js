@@ -21,11 +21,30 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.ok(result.integration.integration_decisions.every((decision) => decision.state !== 'accepted' || decision.source_evidence_refs.length));
     assert.equal(result.integration.applied_facts.length, 0);
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    assert.match(report, /Evidence-to-requirement matches/);
-    assert.match(report, /Resume AST/);
-    assert.match(report, /Optional semantic graph/);
+    assert.match(report, /1\. Resume Intelligence/);
+    assert.match(report, /2\. Career Conversation/);
+    assert.match(report, /3\. Career Understanding/);
     assert.match(report, /Career Curiosity/);
     assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
+  } finally { fs.rmSync(output, { recursive: true, force: true }); }
+});
+
+test('career evolution demo joins every milestone stage into one bounded companion journey', async () => {
+  const output = tempOutput();
+  try {
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
+    assert.equal(result.conversation.answer, 'Data Analytics');
+    assert.equal(result.snapshot.current_direction.label, 'Data Analytics');
+    assert.equal(result.reflection.action, 'looks_right');
+    assert.equal(result.curiosity.status, 'available');
+    assert.equal(result.curiosityObservation.user_response, 'interesting');
+    const loop = JSON.parse(fs.readFileSync(path.join(output, 'career-evolution-loop-summary.json'), 'utf8'));
+    assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'completion']);
+    assert.equal(loop.completion.one_new_possibility_explored.label, 'Business Intelligence Analyst');
+    const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
+    for (const section of ['1. Resume Intelligence', '2. Career Conversation', '3. Career Understanding', '4. Shared Understanding', '5. Career Curiosity', '6. Your first loop is complete']) assert.match(report, new RegExp(section));
+    assert.match(report, /Based on what I know today/);
+    assert.match(report, /Return after a future career experience/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
