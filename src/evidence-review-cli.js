@@ -44,6 +44,7 @@ async function main(argv = process.argv.slice(2), io = process) {
     prompt = fixture ? null : adapter(io.stdin, io.stdout);
     const result = await review.run({ store, candidateProfileId: required(input['candidate-profile-id'], 'candidate-profile-id'), jobRequirementProfileId: required(input['job-profile-id'], 'job-profile-id'), fixture, adapter: prompt, nonInteractive: Boolean(input['non-interactive']) });
     const suppliedConversation = fixture?.careerConversation;
+    if (prompt) { prompt.close(); prompt = null; }
     careerPrompt = suppliedConversation || input['non-interactive'] ? null : careerAdapter(io.stdin, io.stdout);
     const response = suppliedConversation || (careerPrompt ? await careerPrompt.ask() : null);
     result.careerConversation = response ? conversation.observe({ store, reviewRun: result.reviewRun, answer: response.answer, skipped: response.skipped }) : null;
