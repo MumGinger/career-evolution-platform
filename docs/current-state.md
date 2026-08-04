@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Evidence Review and Career Conversation MVPs implemented for local CLI beta
+**Phase:** Evidence Review, Career Conversation, and Career Understanding MVPs implemented for local CLI beta
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -26,6 +26,7 @@
 - Implemented Capability 004.3: immutable, independently re-runnable Resume Validation Runs with first-class findings and deterministic provenance, claim-scope, plan, coverage, duplication, and completeness checks.
 - Implemented Issue #39 Evidence Review MVP: immutable review runs, interactive and fixture decisions, strict source-bounded edits, 003.6-only integration, regenerated tailoring/artifact/validation, and user-review KPIs.
 - Implemented Career Conversation MVP: after the validated resume workflow completes, ask at most one optional career-direction question and persist only its answer or skipped observation against that workflow. Observations never write Candidate Knowledge or create inferences.
+- Implemented Career Understanding MVP: immutable, read-only Current Career Snapshot Runs explain bounded direction, committed strengths, neutral application activity, unknowns, and feedback without modifying Candidate Knowledge.
 
 ## Current focus
 
