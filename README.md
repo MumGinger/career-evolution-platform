@@ -41,6 +41,16 @@ node src/cli.js acquisition-execution-show --db career-evolution.db --acquisitio
 
 Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.
 
+## Evidence Review beta
+
+Use the local review CLI to review `needs_confirmation` evidence with Accept, Skip, or Edit. Keep the database, resume, job description, and output directory private.
+
+```powershell
+node src/evidence-review-cli.js --db C:\private\career.db --candidate-profile-id <profile-id> --job-profile-id <job-profile-id> --output-dir C:\private\evidence-review-output
+```
+
+For a repeatable non-interactive run, add `--review-fixture C:\private\review-fixture.json --non-interactive`.
+
 ## Milestone 1 Demo — end-to-end resume tailoring
 
 The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
