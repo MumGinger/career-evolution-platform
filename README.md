@@ -1,6 +1,6 @@
 # Career Evolution Platform
 
-The platform explains every belief it presents about a user. Run `node src/cli.js career-snapshot-show --candidate-profile-id <id> --format text` to create and read an immutable Current Career Snapshot. Then run `node src/cli.js career-reflection-review --candidate-profile-id <id> --format text` to review the latest snapshot, or add `--action looks_right|not_quite|missing_something [--note "..."]` to record one immutable reflection without changing Candidate Knowledge. After reflection, run `node src/cli.js career-curiosity-show --candidate-profile-id <id> --format text`, optionally adding `--response interesting|not_for_me|maybe_later`, to explore one supported adjacent possibility.
+The platform explains every belief it presents about a user. Career Evolution Loop v1 is the primary demo: it joins Resume Intelligence, one optional Career Conversation, Current Career Understanding, Shared Understanding, and one supported Career Curiosity possibility into a single bounded journey. It never turns the user's answers, a resume, or a possibility into Candidate Knowledge automatically.
 
 Evidence-driven career intelligence: acquire the highest-value missing information before making career decisions or generating career artifacts. The platform treats a resume as one source and snapshot—not the candidate—and improves recommendations from traceable evidence and outcomes.
 
@@ -42,6 +42,23 @@ node src/cli.js acquisition-execution-show --db career-evolution.db --acquisitio
 ```
 
 Run `npm test` to execute the automated tests. Node.js 22.5+ is required for its built-in SQLite module.
+
+## Career Evolution Loop v1
+
+Run the complete first-time companion journey with one command:
+
+```powershell
+node src/demo.js `
+  --resume "examples\synthetic-resume.txt" `
+  --job "examples\synthetic-job.txt" `
+  --captures "examples\synthetic-capture.json" `
+  --output "demo-output" `
+  --career-direction "Data Analytics" `
+  --reflection-action "looks_right" `
+  --curiosity-response "interesting"
+```
+
+The interaction flags represent three existing, bounded user inputs: one optional direction, one reflection response, and one curiosity response. Omit `--career-direction` to record a skip; the direction remains unknown and Career Curiosity may explicitly be suppressed. The output includes one integrated `report.html` and `career-evolution-loop-summary.json`, with uncertainty retained rather than filled with a claim.
 
 ## Evidence Review beta
 
