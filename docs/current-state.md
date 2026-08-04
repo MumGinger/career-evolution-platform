@@ -4,6 +4,8 @@
 
 Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo now requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. Export is blocked when no committed facts populate a core section. No new capability or Candidate Knowledge write path was added.
 
+The local Beta UI is available through `node src/beta-ui.js`. It is a temporary, plain-HTML testing wrapper around the existing Resume AST, Evidence Review/003.6, tailoring, presentation, artifact, validation, Career Review, and export APIs; it is not production frontend architecture. API keys stay in request memory and never enter the local session database or generated outputs.
+
 **Phase:** Milestone 2 — Career Evolution Loop v1 complete for local CLI demo
 **Last updated:** 2026-08-04
 

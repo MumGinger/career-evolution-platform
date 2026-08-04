@@ -60,6 +60,13 @@ async function collectInteractive(queueItems, adapter) {
   }
   return decisions;
 }
+function integrateReviewedEvidence({ store, candidateProfileId, discoveryRunId, reviewRun }) {
+  const proposals = reviewRun.review_decisions.filter((item) => item.action === 'accepted' || item.action === 'edited').map((item) => {
+    const source = store.getEvidenceReviewCandidate(discoveryRunId, item.evidence_candidate_id);
+    return { entityType: source.entity_type, value: item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
+  });
+  return proposals.length ? store.createCandidateKnowledgeIntegrationRun({ candidateProfileId, evidenceDiscoveryRunId: discoveryRunId, proposals }) : null;
+}
 async function run({ store, candidateProfileId, jobRequirementProfileId, fixture, adapter, nonInteractive = false }) {
   const beforeFacts = store.getCommittedCandidateKnowledge(candidateProfileId);
   const beforePlan = store.createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId });
@@ -78,11 +85,7 @@ async function run({ store, candidateProfileId, jobRequirementProfileId, fixture
   else if (nonInteractive && queueItems.length) throw new Error('Non-interactive review requires a fixture for every needs_confirmation candidate');
   else decisions = [];
   const reviewRun = store.createEvidenceReviewRun({ candidateProfileId, jobRequirementProfileId, evidenceDiscoveryRunId: discovery.id, decisions });
-  const proposals = reviewRun.review_decisions.filter((item) => item.action === 'accepted' || item.action === 'edited').map((item) => {
-    const source = store.getEvidenceReviewCandidate(discovery.id, item.evidence_candidate_id);
-    return { entityType: source.entity_type, value: item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
-  });
-  const integrationRun = proposals.length ? store.createCandidateKnowledgeIntegrationRun({ candidateProfileId, evidenceDiscoveryRunId: discovery.id, proposals }) : null;
+  const integrationRun = integrateReviewedEvidence({ store, candidateProfileId, discoveryRunId: discovery.id, reviewRun });
   const afterFacts = store.getCommittedCandidateKnowledge(candidateProfileId);
   const afterPlan = store.createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId });
   const artifact = buildArtifact(store.getProfile(candidateProfileId), afterPlan);
@@ -92,4 +95,4 @@ async function run({ store, candidateProfileId, jobRequirementProfileId, fixture
   return { discovery, queue: queueItems, reviewRun, integrationRun, beforePlan, afterPlan, artifact, validation, kpi: { total_requirements: needs.information_needs.length, auto_accepted_evidence_count: autoAccepted, needs_review_count: queueItems.reduce((sum, item) => sum + item.candidates.length, 0), accepted_count: counts.accepted || 0, skipped_count: counts.skipped || 0, edited_count: counts.edited || 0, blocked_edits_count: counts.blocked || 0, committed_coverage_before: coverage(beforePlan), committed_coverage_after: coverage(afterPlan), candidate_knowledge_facts_before: beforeFacts.length, candidate_knowledge_facts_after: afterFacts.length, validation_status: validation.status } };
 }
 
-module.exports = { queue, supportedEdit, decisionFrom, collectInteractive, buildArtifact, validate, run };
+module.exports = { queue, supportedEdit, decisionFrom, collectInteractive, integrateReviewedEvidence, buildArtifact, validate, run };

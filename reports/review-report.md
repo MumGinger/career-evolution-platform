@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Local Beta UI self-review (Issue #60, 2026-08-04)
+
+Human review remains pending. No Product Principle is violated: the UI treats the resume as working evidence, retains the 003.6-only Candidate Knowledge write boundary, shows the generated draft before required Career Review, and does not invent facts. No ADR or PRD update is needed because this is a thin local adapter over existing capabilities, not a new domain capability or architecture. The roadmap is unchanged. Automated coverage verifies server start, synthetic submission, secret non-persistence, Evidence Review-to-003.6 integration, populated regenerated draft, blocked pre-review export, mandatory Career Review, and completed outputs.
+
 ## Career Review Version 1.0 integration self-review (2026-08-04)
 
 No blocking findings. Career Review is a terminology and existing-flow integration only: the immutable Human Review Run remains the sole review/export boundary, and `exportResumeArtifact()` remains the release gate. The draft, every explicit approve/edit decision, the final approved version, provenance, and timestamps remain auditable. No Product Principle is violated; no ADR or PRD update is required; the roadmap and current state now mark this as the final Version 1.0 integration step before Beta.
