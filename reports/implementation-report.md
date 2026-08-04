@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## Intelligent Resume v1
+
+Implemented the final Version 1.0 step before beta: an immutable Presentation Strategy Run connects a Job Requirement Profile and existing Resume Tailoring Plan with read-only Career Understanding and optional Reflection, Curiosity, and Decision Companion context. Its decisions only order already-included committed Candidate Knowledge facts; it cannot add facts, change selection state, create stronger language, or use thinking context as a resume claim.
+
+The end-to-end demo now forms shared understanding before generation and exports `presentation-strategy.json`, an integrated HTML explanation, the structured resume artifact, and validation output. Focused demo and strategy tests pass; full regression is run before review.
+
 ## Decision Companion MVP (Issue #51)
 
 Implemented the final Thinking Layer vertical slice. A Decision Companion Run stores a candidate-scoped, source-linked comparison of 2–4 user-provided options and up to 3 criteria, including supports, trade-offs, unknowns, and provenance. It asks exactly one reflective question and captures leaning, undecided, need-more-information, or stopped. The CLI is readable in JSON or text. The slice never recommends, scores, ranks, infers preferences/goals, writes Candidate Knowledge, or mutates Career Understanding.

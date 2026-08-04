@@ -1,5 +1,14 @@
 # Review Report — Capability 004.3
 
+## Intelligent Resume v1 self-review
+
+Human review remains pending. The Presentation Strategy is an immutable, narrow ordering decision—not a prose generator or a new career capability.
+
+1. No Product Principle is violated: it keeps Resume and Candidate Knowledge separate, preserves unknowns, explains decisions, and never invents facts.
+2. No new ADR is required: ADR-001 through ADR-004 already govern the source boundary, uncertainty, acquisition threshold, and immutable decisions.
+3. Capability 004 remains the artifact-generation boundary; this adds explainable presentation ordering without changing fact selection or scope.
+4. The roadmap now marks Intelligent Resume v1 as the final step before Version 1.0 beta.
+
 ## Decision Companion MVP review (Issue #51)
 
 Codex self-review: pending human review. This is one bounded, immutable comparison slice, not a generic decision framework. It uses only explicit option inputs and a referenced Career Understanding Snapshot; it visibly preserves unknowns and gives no recommendation.

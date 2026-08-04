@@ -1,0 +1,643 @@
+{
+  "id": "bd606732-b55c-4b56-bab7-67010222352a",
+  "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+  "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+  "resume_tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+  "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+  "reflection_run_id": "55975cc1-2630-4158-a155-91c92bc988f0",
+  "decision_companion_run_id": null,
+  "input_snapshot": {
+    "plan": {
+      "id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+      "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+      "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "job_requirement_profile_version": 1,
+      "tailoring_policy_version": "resume-tailoring-policy/1.0.0",
+      "candidate_knowledge_snapshot": [],
+      "source_resume_snapshot": null,
+      "limitations": "No prose, rendering, acquisition, or Candidate Knowledge write is performed.",
+      "created_at": "2026-08-04T19:35:55.743Z",
+      "resume_content_selections": [],
+      "requirement_coverage": [
+        {
+          "id": "dd82e731-f1aa-4f99-aaef-8f29e2b95d9b",
+          "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+          "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+          "coverage_status": "uncovered",
+          "supporting_candidate_fact_ids": [],
+          "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+          "limitations": "Unknown is preserved; no content is invented.",
+          "created_at": "2026-08-04T19:35:55.743Z"
+        },
+        {
+          "id": "e17967d4-bcfb-4276-b637-7896cc442130",
+          "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+          "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+          "coverage_status": "uncovered",
+          "supporting_candidate_fact_ids": [],
+          "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+          "limitations": "Unknown is preserved; no content is invented.",
+          "created_at": "2026-08-04T19:35:55.743Z"
+        },
+        {
+          "id": "a1bacfca-017b-4915-b9fd-45743638033a",
+          "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+          "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+          "coverage_status": "not_resume_relevant",
+          "supporting_candidate_fact_ids": [],
+          "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+          "limitations": "Unknown is preserved; no content is invented.",
+          "created_at": "2026-08-04T19:35:55.743Z"
+        },
+        {
+          "id": "2294a4e0-b0b4-4fdc-a0be-8c948dab607f",
+          "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+          "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+          "coverage_status": "uncovered",
+          "supporting_candidate_fact_ids": [],
+          "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+          "limitations": "Unknown is preserved; no content is invented.",
+          "created_at": "2026-08-04T19:35:55.743Z"
+        }
+      ],
+      "section_plans": [],
+      "source_resume_analysis_flags": []
+    },
+    "job": {
+      "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+      "version": 1,
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "created_at": "2026-08-04T19:35:54.919Z",
+      "snapshot": {
+        "id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "company": "Northstar Analytics",
+        "role_title": "Data Analyst",
+        "location": "",
+        "description": "Company: Northstar Analytics\r\nRole Title: Data Analyst\r\n\r\nRequired Qualifications:\r\nSQL required.\r\nPython required.\r\nData visualization required.\r\nCommunication preferred.\r\n",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        },
+        "created_at": "2026-08-04T19:35:54.909Z"
+      },
+      "requirements": [
+        {
+          "id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Data visualization",
+          "supporting_excerpts": [
+            "Data visualization required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.956Z"
+        },
+        {
+          "id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Python",
+          "supporting_excerpts": [
+            "Python required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.945Z"
+        },
+        {
+          "id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "SQL",
+          "supporting_excerpts": [
+            "SQL required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.935Z"
+        },
+        {
+          "id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Communication",
+          "supporting_excerpts": [
+            "Communication preferred."
+          ],
+          "category": "interpersonal_capability",
+          "explicitness": "required",
+          "importance_level": "low",
+          "importance_score": 3,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "low",
+          "resume_value_score": 1,
+          "resume_value_rationale": "Explicitly mentioned general capability retained with lower initial resume value.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.967Z"
+        }
+      ]
+    },
+    "snapshot": {
+      "id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+      "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+      "source_snapshots": {
+        "candidate_knowledge": [],
+        "resume_ast_evidence": [
+          {
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+            "entity_type": "skill",
+            "value": {
+              "name": "SQL",
+              "text": "SQL"
+            },
+            "source": "resume_ast",
+            "confirmation_status": "confirmed",
+            "provenance": {
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+              "block_kind": "skill",
+              "section": "skills",
+              "source_span_ids": [
+                "line-5"
+              ],
+              "exact_source_text": "SQL",
+              "source_line_start": 5,
+              "source_line_end": 5,
+              "extraction_state": "explicit",
+              "confidence": "high",
+              "rationale": "Mock extraction copied exact source text."
+            }
+          },
+          {
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+            "entity_type": "skill",
+            "value": {
+              "name": "Python",
+              "text": "Python"
+            },
+            "source": "resume_ast",
+            "confirmation_status": "confirmed",
+            "provenance": {
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+              "block_kind": "skill",
+              "section": "skills",
+              "source_span_ids": [
+                "line-5"
+              ],
+              "exact_source_text": "Python",
+              "source_line_start": 5,
+              "source_line_end": 5,
+              "extraction_state": "explicit",
+              "confidence": "high",
+              "rationale": "Mock extraction copied exact source text."
+            }
+          },
+          {
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+            "entity_type": "skill",
+            "value": {
+              "name": "Data visualization",
+              "text": "Data visualization"
+            },
+            "source": "resume_ast",
+            "confirmation_status": "confirmed",
+            "provenance": {
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+              "block_kind": "skill",
+              "section": "skills",
+              "source_span_ids": [
+                "line-5"
+              ],
+              "exact_source_text": "Data visualization",
+              "source_line_start": 5,
+              "source_line_end": 5,
+              "extraction_state": "explicit",
+              "confidence": "high",
+              "rationale": "Mock extraction copied exact source text."
+            }
+          },
+          {
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+            "entity_type": "skill",
+            "value": {
+              "name": "Communication",
+              "text": "Communication"
+            },
+            "source": "resume_ast",
+            "confirmation_status": "confirmed",
+            "provenance": {
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+              "block_kind": "skill",
+              "section": "skills",
+              "source_span_ids": [
+                "line-5"
+              ],
+              "exact_source_text": "Communication",
+              "source_line_start": 5,
+              "source_line_end": 5,
+              "extraction_state": "explicit",
+              "confidence": "high",
+              "rationale": "Mock extraction copied exact source text."
+            }
+          },
+          {
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:4",
+            "entity_type": "project",
+            "value": {
+              "name": "Sales reporting dashboard using SQL and Python",
+              "text": "Sales reporting dashboard using SQL and Python"
+            },
+            "source": "resume_ast",
+            "confirmation_status": "needs_confirmation",
+            "provenance": {
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+              "block_kind": "project",
+              "section": "projects",
+              "source_span_ids": [
+                "line-8"
+              ],
+              "exact_source_text": "Sales reporting dashboard using SQL and Python",
+              "source_line_start": 8,
+              "source_line_end": 8,
+              "extraction_state": "explicit",
+              "confidence": "high",
+              "rationale": "Mock extraction copied exact source text."
+            }
+          }
+        ],
+        "career_conversations": [
+          {
+            "id": "8595df6d-a137-4b61-84b6-2135b9b51adf",
+            "question": "Which direction feels most interesting to you right now?",
+            "answer": "Data Analytics",
+            "observed_at": "2026-08-04T19:35:55.685Z",
+            "workflow_source": "evidence_review:da36f7a5-97bf-47f5-a746-02f71049716c",
+            "skipped": false
+          }
+        ],
+        "applications": []
+      },
+      "generated_at": "2026-08-04T19:35:55.701Z",
+      "understanding_policy_version": "career-understanding/1.0.0",
+      "current_direction": {
+        "state": "exploring",
+        "label": "Data Analytics"
+      },
+      "understanding_items": [
+        {
+          "label": "Data Analytics",
+          "category": "direction",
+          "state": "user_confirmed",
+          "confidence": "medium",
+          "supporting_source_references": [
+            {
+              "type": "career_conversation_observation",
+              "id": "8595df6d-a137-4b61-84b6-2135b9b51adf"
+            }
+          ],
+          "rationale": "You selected Data Analytics in the career conversation.",
+          "last_observed_at": "2026-08-04T19:35:55.685Z"
+        },
+        {
+          "label": "SQL",
+          "category": "strength",
+          "state": "supported_signal",
+          "confidence": "medium",
+          "supporting_source_references": [
+            {
+              "type": "resume_ast",
+              "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+            }
+          ],
+          "rationale": "Your validated resume explicitly lists SQL.",
+          "last_observed_at": null
+        },
+        {
+          "label": "Python",
+          "category": "strength",
+          "state": "supported_signal",
+          "confidence": "medium",
+          "supporting_source_references": [
+            {
+              "type": "resume_ast",
+              "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+            }
+          ],
+          "rationale": "Your validated resume explicitly lists Python.",
+          "last_observed_at": null
+        },
+        {
+          "label": "Data visualization",
+          "category": "strength",
+          "state": "supported_signal",
+          "confidence": "medium",
+          "supporting_source_references": [
+            {
+              "type": "resume_ast",
+              "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+            }
+          ],
+          "rationale": "Your validated resume explicitly lists Data visualization.",
+          "last_observed_at": null
+        },
+        {
+          "label": "Communication",
+          "category": "strength",
+          "state": "supported_signal",
+          "confidence": "medium",
+          "supporting_source_references": [
+            {
+              "type": "resume_ast",
+              "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+              "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+              "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+            }
+          ],
+          "rationale": "Your validated resume explicitly lists Communication.",
+          "last_observed_at": null
+        }
+      ],
+      "unknowns": [
+        "Preferred industry",
+        "Long-term role goal",
+        "Preferred work style"
+      ],
+      "limitations": [
+        "This is a read-only summary of committed facts, validated resume evidence, confirmed conversation answers, and recorded applications.",
+        "Applications are neutral activity signals, not preferences.",
+        "Unknowns are intentionally not inferred."
+      ],
+      "neutral_activity_signals": [],
+      "feedback": [],
+      "feedback_state": "not_reviewed"
+    },
+    "reflectionRun": {
+      "id": "55975cc1-2630-4158-a155-91c92bc988f0",
+      "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+      "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+      "source_snapshot_reference": {
+        "id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+        "understanding_policy_version": "career-understanding/1.0.0",
+        "generated_at": "2026-08-04T19:35:55.701Z"
+      },
+      "action": "looks_right",
+      "note": "This is a useful starting point.",
+      "actor": "user",
+      "reflected_at": "2026-08-04T19:35:55.716Z",
+      "reflection_policy_version": "career-reflection/1.0.0",
+      "submission_key": "669c01604392522d22e187e7da08ac7b87a0f6e76505e3aac524cf42701b1bf7",
+      "duplicate_submission": false
+    },
+    "curiosityResult": {
+      "status": "available",
+      "possibility": {
+        "id": "business-intelligence-analyst",
+        "label": "Business Intelligence Analyst",
+        "introduction": "Based on what we've explored together, here's one path you may not have considered: Business Intelligence Analyst.",
+        "explanation": "This path often builds on turning data into clear reporting and decision support. Your snapshot includes SQL and Python.",
+        "supporting_snapshot": {
+          "snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+          "items": [
+            {
+              "label": "Data Analytics",
+              "category": "direction",
+              "state": "user_confirmed",
+              "confidence": "medium",
+              "supporting_source_references": [
+                {
+                  "type": "career_conversation_observation",
+                  "id": "8595df6d-a137-4b61-84b6-2135b9b51adf"
+                }
+              ],
+              "rationale": "You selected Data Analytics in the career conversation.",
+              "last_observed_at": "2026-08-04T19:35:55.685Z"
+            },
+            {
+              "label": "SQL",
+              "category": "strength",
+              "state": "supported_signal",
+              "confidence": "medium",
+              "supporting_source_references": [
+                {
+                  "type": "resume_ast",
+                  "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+                }
+              ],
+              "rationale": "Your validated resume explicitly lists SQL.",
+              "last_observed_at": null
+            },
+            {
+              "label": "Python",
+              "category": "strength",
+              "state": "supported_signal",
+              "confidence": "medium",
+              "supporting_source_references": [
+                {
+                  "type": "resume_ast",
+                  "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+                }
+              ],
+              "rationale": "Your validated resume explicitly lists Python.",
+              "last_observed_at": null
+            }
+          ]
+        }
+      }
+    },
+    "curiosityObservation": {
+      "id": "b44e860e-db84-4f1c-99db-38054b1cb50e",
+      "possibility_id": "business-intelligence-analyst",
+      "supporting_snapshot": {
+        "snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+        "items": [
+          {
+            "label": "Data Analytics",
+            "category": "direction",
+            "state": "user_confirmed",
+            "confidence": "medium",
+            "supporting_source_references": [
+              {
+                "type": "career_conversation_observation",
+                "id": "8595df6d-a137-4b61-84b6-2135b9b51adf"
+              }
+            ],
+            "rationale": "You selected Data Analytics in the career conversation.",
+            "last_observed_at": "2026-08-04T19:35:55.685Z"
+          },
+          {
+            "label": "SQL",
+            "category": "strength",
+            "state": "supported_signal",
+            "confidence": "medium",
+            "supporting_source_references": [
+              {
+                "type": "resume_ast",
+                "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+                "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+              }
+            ],
+            "rationale": "Your validated resume explicitly lists SQL.",
+            "last_observed_at": null
+          },
+          {
+            "label": "Python",
+            "category": "strength",
+            "state": "supported_signal",
+            "confidence": "medium",
+            "supporting_source_references": [
+              {
+                "type": "resume_ast",
+                "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+                "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+              }
+            ],
+            "rationale": "Your validated resume explicitly lists Python.",
+            "last_observed_at": null
+          }
+        ]
+      },
+      "user_response": "interesting",
+      "timestamp": "2026-08-04T19:35:55.728Z"
+    },
+    "decisionRun": null
+  },
+  "policy_version": "intelligent-resume-presentation-strategy/1.0.0",
+  "strategy": {
+    "policy_version": "intelligent-resume-presentation-strategy/1.0.0",
+    "target_job": {
+      "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "job_requirement_profile_version": 1,
+      "company": "Northstar Analytics",
+      "role_title": "Data Analyst"
+    },
+    "shared_understanding": {
+      "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+      "current_direction": "Data Analytics",
+      "context": [
+        {
+          "type": "career_direction",
+          "state": "considered",
+          "value": "Data Analytics",
+          "source_reference": {
+            "type": "career_understanding_snapshot_run",
+            "id": "0908bf55-df70-4832-bf43-a03f08bba59b"
+          },
+          "rationale": "The user explicitly selected this direction. It frames the target-job context but is not converted into a skill, achievement, preference, or other candidate fact."
+        },
+        {
+          "type": "shared_understanding",
+          "state": "considered",
+          "value": "looks_right",
+          "source_reference": {
+            "type": "career_reflection_run",
+            "id": "55975cc1-2630-4158-a155-91c92bc988f0"
+          },
+          "rationale": "The response records whether the snapshot felt accurate; it validates neither individual facts nor new claims."
+        }
+      ],
+      "exclusions": [
+        {
+          "type": "career_curiosity",
+          "state": "not_used_for_resume_claims",
+          "source_reference": {
+            "type": "career_curiosity_observation",
+            "id": "b44e860e-db84-4f1c-99db-38054b1cb50e"
+          },
+          "rationale": "An adjacent possibility expands perspective; it is not evidence that the candidate has a skill, goal, or qualification."
+        }
+      ],
+      "unknowns": [
+        "Preferred industry",
+        "Long-term role goal",
+        "Preferred work style"
+      ]
+    },
+    "presentation_decisions": [],
+    "ordered_resume_content_selection_ids": [],
+    "limitations": "The strategy only orders already-included, committed candidate facts. It never turns Career Understanding, reflection, curiosity, or Decision Companion context into a resume claim, changes selection state, acquires evidence, or writes Candidate Knowledge."
+  },
+  "limitations": "The strategy only orders already-included, committed candidate facts. It never turns Career Understanding, reflection, curiosity, or Decision Companion context into a resume claim, changes selection state, acquires evidence, or writes Candidate Knowledge.",
+  "created_at": "2026-08-04T19:35:55.798Z"
+}

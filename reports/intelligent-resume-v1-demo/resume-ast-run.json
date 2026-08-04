@@ -1,0 +1,116 @@
+{
+  "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+  "profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+  "extractor_provider": "mock",
+  "extractor_model": "deterministic-fixture",
+  "extractor_version": "resume-ast/1.1.0",
+  "prompt_version": "resume-ast-extraction/1.1.0",
+  "schema_version": "resume-ast/1.1.0",
+  "raw_response_hash": "70577a3d2fdda355dd622afa4e83d9d0bdb444c7d836a70d54e20f221b49d6fd",
+  "normalized_ast": {
+    "identity": {
+      "value": "Taylor Example",
+      "provenance": {
+        "source_span_ids": [
+          "line-1"
+        ],
+        "exact_source_text": "Taylor Example",
+        "source_line_start": 1,
+        "source_line_end": 1,
+        "extraction_state": "explicit",
+        "confidence": "high",
+        "rationale": "Mock extraction copied exact source text."
+      }
+    },
+    "summary_blocks": [],
+    "education": [],
+    "credentials": [],
+    "skills": [
+      {
+        "value": "SQL",
+        "provenance": {
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "SQL",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "value": "Python",
+        "provenance": {
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Python",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "value": "Data visualization",
+        "provenance": {
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Data visualization",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "value": "Communication",
+        "provenance": {
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Communication",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      }
+    ],
+    "experiences": [],
+    "projects": [
+      {
+        "title": {
+          "value": "Sales reporting dashboard using SQL and Python",
+          "provenance": {
+            "source_span_ids": [
+              "line-8"
+            ],
+            "exact_source_text": "Sales reporting dashboard using SQL and Python",
+            "source_line_start": 8,
+            "source_line_end": 8,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        },
+        "technologies": [],
+        "start_date": null,
+        "end_date": null,
+        "bullets": []
+      }
+    ],
+    "additional_sections": []
+  },
+  "validation_status": "passed",
+  "validation_findings": [],
+  "created_at": "2026-08-04T19:35:54.896Z"
+}

@@ -1,0 +1,109 @@
+{
+  "id": "afda258b-f32f-4c82-a205-cb2e05eac0fb",
+  "resume_tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+  "candidate_knowledge_snapshot": [],
+  "job_requirement_profile_reference": {
+    "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+    "version": 1
+  },
+  "artifact_policy_version": "resume-artifact-generation-policy/1.0.0",
+  "limitations": "Visible content is deterministic and contains only values permitted by a Resume Content Selection. Omissions and blocked claims are metadata, not resume output.",
+  "created_at": "2026-08-04T19:35:55.817Z",
+  "resume_artifacts": [
+    {
+      "id": "b127100e-b5b3-46db-84c4-25ef5abd1266",
+      "resume_artifact_run_id": "afda258b-f32f-4c82-a205-cb2e05eac0fb",
+      "artifact_type": "structured_resume",
+      "format_version": "resume-artifact-model/1.0.0",
+      "content": {
+        "format": "resume-artifact-model/1.0.0",
+        "sections": [
+          {
+            "section": "Professional Summary",
+            "position": 1,
+            "placeholder": "Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.",
+            "statements": []
+          },
+          {
+            "section": "Skills",
+            "position": 2,
+            "placeholder": null,
+            "statements": []
+          },
+          {
+            "section": "Experience",
+            "position": 3,
+            "placeholder": null,
+            "statements": []
+          },
+          {
+            "section": "Projects",
+            "position": 4,
+            "placeholder": null,
+            "statements": []
+          },
+          {
+            "section": "Education",
+            "position": 5,
+            "placeholder": null,
+            "statements": []
+          },
+          {
+            "section": "Certifications",
+            "position": 6,
+            "placeholder": null,
+            "statements": []
+          }
+        ]
+      },
+      "metadata": {
+        "job_requirement_profile_reference": {
+          "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "version": 1
+        },
+        "omissions": [],
+        "blocked_claims": [],
+        "requirement_coverage": [
+          {
+            "requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+            "status": "uncovered",
+            "rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim."
+          },
+          {
+            "requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+            "status": "uncovered",
+            "rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim."
+          },
+          {
+            "requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+            "status": "not_resume_relevant",
+            "rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim."
+          },
+          {
+            "requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+            "status": "uncovered",
+            "rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim."
+          }
+        ],
+        "presentation_strategy": {
+          "policy_version": "intelligent-resume-presentation-strategy/1.0.0",
+          "target_job": {
+            "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+            "job_requirement_profile_version": 1,
+            "company": "Northstar Analytics",
+            "role_title": "Data Analyst"
+          },
+          "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+          "limitations": "The strategy only orders already-included, committed candidate facts. It never turns Career Understanding, reflection, curiosity, or Decision Companion context into a resume claim, changes selection state, acquires evidence, or writes Candidate Knowledge."
+        },
+        "limitations": "Visible content is deterministic and contains only values permitted by a Resume Content Selection. Omissions and blocked claims are metadata, not resume output.",
+        "traceability": {
+          "resume_artifact_run_id": "afda258b-f32f-4c82-a205-cb2e05eac0fb",
+          "resume_tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+          "presentation_strategy_run_id": "bd606732-b55c-4b56-bab7-67010222352a"
+        }
+      },
+      "created_at": "2026-08-04T19:35:55.817Z"
+    }
+  ]
+}

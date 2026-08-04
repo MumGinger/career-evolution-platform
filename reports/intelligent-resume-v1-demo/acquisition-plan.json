@@ -1,0 +1,2042 @@
+{
+  "id": "a63423fb-aa9e-4a6c-a01f-e8cc04a7d577",
+  "information_need_run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+  "evidence_discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+  "acquisition_policy_version": "acquisition-planning-policy/1.0.0",
+  "input_snapshot": {
+    "information_need_run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+    "evidence_discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+    "unresolved_need_ids": [
+      "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+      "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+      "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+      "acfd5cd9-907a-4e8f-85a0-59939b6c720e"
+    ],
+    "discovery_results": [
+      {
+        "id": "a57b4532-efb8-4b37-9f8f-8962ae8ddd94",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.170Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "e2f94e12-8c20-4f54-b17a-2c0d93bc7101",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+              "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+              "normalized_claim": "data visualization",
+              "supporting_value": {
+                "name": "Data visualization",
+                "text": "Data visualization"
+              },
+              "supporting_text": "Data visualization",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Data visualization",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 124,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "data",
+                      "visualization"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 124,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "data",
+                    "visualization"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Data visualization"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.108Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "0b705ff5-3c3a-4679-ae43-2eb3ba4452dc",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.268Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "c00ae557-ba97-418e-aa55-244b5049b178",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+              "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+              "normalized_claim": "python",
+              "supporting_value": {
+                "name": "Python",
+                "text": "Python"
+              },
+              "supporting_text": "Python",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Python",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "python"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "python"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Python"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.214Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "26165953-fb1a-463a-9acb-a8500a894643",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.366Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "f0610a75-4c27-4b36-ae32-7841dbbbeb74",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+              "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+              "normalized_claim": "sql",
+              "supporting_value": {
+                "name": "SQL",
+                "text": "SQL"
+              },
+              "supporting_text": "SQL",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "SQL",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "sql"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "sql"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "SQL"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.310Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "b44bfb35-ab6c-4ef3-b723-e6ff94fb72c6",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.466Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "c04ec255-e734-4cb7-ac55-aad854cf88c8",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+              "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+              "normalized_claim": "communication",
+              "supporting_value": {
+                "name": "Communication",
+                "text": "Communication"
+              },
+              "supporting_text": "Communication",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Communication",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "communication"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "communication"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Communication"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.408Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "created_at": "2026-08-04T19:35:55.488Z",
+  "acquisition_plans": [
+    {
+      "id": "0c19f5d8-6cad-49b9-9ded-f0f0ba63b525",
+      "acquisition_plan_run_id": "a63423fb-aa9e-4a6c-a01f-e8cc04a7d577",
+      "strategy": "request_new_evidence",
+      "expected_information_gain": "high",
+      "expected_information_gain_score": 19,
+      "estimated_acquisition_cost": "high",
+      "confidence": "medium",
+      "rationale": "Discovery exhausted the available local evidence snapshot without sufficient evidence. Expected information gain is high (19) from the need priority of high (21) relative to high acquisition cost.",
+      "limitations": "This is a deterministic recommendation only. It does not generate wording, contact a source, execute an acquisition action, or update Candidate Knowledge.",
+      "stop_condition": "Stop when evidence is sufficient for the bounded Information Need or when the selected action cannot produce permitted evidence.",
+      "created_at": "2026-08-04T19:35:55.499Z",
+      "information_needs": [
+        {
+          "id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Deterministic role-section policy: required-qualifications context.\"}",
+          "resume_value": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete role-relevant skill, practice, or responsibility.\"}",
+          "discoverability": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts.\"}",
+          "acquisition_cost": "{\"level\":\"low\",\"score\":2,\"rationale\":\"Confirming a concrete tool in a known project or role is a low-friction evidence request.\"}",
+          "existing_evidence": "{\"assessment\":\"absent\",\"score\":2,\"rationale\":\"No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.\"}",
+          "matched_fact_ids": "[]",
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:54.991Z",
+          "normalized_name": "Data visualization",
+          "category": "technical_skill"
+        },
+        {
+          "id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Deterministic role-section policy: required-qualifications context.\"}",
+          "resume_value": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete role-relevant skill, practice, or responsibility.\"}",
+          "discoverability": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts.\"}",
+          "acquisition_cost": "{\"level\":\"low\",\"score\":2,\"rationale\":\"Confirming a concrete tool in a known project or role is a low-friction evidence request.\"}",
+          "existing_evidence": "{\"assessment\":\"absent\",\"score\":2,\"rationale\":\"No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.\"}",
+          "matched_fact_ids": "[]",
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.002Z",
+          "normalized_name": "Python",
+          "category": "technical_skill"
+        },
+        {
+          "id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Deterministic role-section policy: required-qualifications context.\"}",
+          "resume_value": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete role-relevant skill, practice, or responsibility.\"}",
+          "discoverability": "{\"level\":\"high\",\"score\":7,\"rationale\":\"Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts.\"}",
+          "acquisition_cost": "{\"level\":\"low\",\"score\":2,\"rationale\":\"Confirming a concrete tool in a known project or role is a low-friction evidence request.\"}",
+          "existing_evidence": "{\"assessment\":\"absent\",\"score\":2,\"rationale\":\"No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.\"}",
+          "matched_fact_ids": "[]",
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.012Z",
+          "normalized_name": "SQL",
+          "category": "technical_skill"
+        }
+      ],
+      "acquisition_actions": [
+        {
+          "id": "7fb043b7-882e-4f8a-864e-b52293e59079",
+          "acquisition_plan_id": "0c19f5d8-6cad-49b9-9ded-f0f0ba63b525",
+          "action_type": "request_supporting_evidence",
+          "action_key": "request_supporting_evidence:technical_skill",
+          "estimated_acquisition_cost": "high",
+          "rationale": "A shared request_supporting_evidence action addresses 3 compatible unresolved Information Need(s).",
+          "created_at": "2026-08-04T19:35:55.537Z"
+        }
+      ]
+    },
+    {
+      "id": "dda776c3-fa6a-4a83-bfe0-de003dd944c3",
+      "acquisition_plan_run_id": "a63423fb-aa9e-4a6c-a01f-e8cc04a7d577",
+      "strategy": "request_new_evidence",
+      "expected_information_gain": "low",
+      "expected_information_gain_score": 1,
+      "estimated_acquisition_cost": "high",
+      "confidence": "medium",
+      "rationale": "Discovery exhausted the available local evidence snapshot without sufficient evidence. Expected information gain is low (1) from the need priority of low (0) relative to high acquisition cost.",
+      "limitations": "This is a deterministic recommendation only. It does not generate wording, contact a source, execute an acquisition action, or update Candidate Knowledge.",
+      "stop_condition": "Stop when evidence is sufficient for the bounded Information Need or when the selected action cannot produce permitted evidence.",
+      "created_at": "2026-08-04T19:35:55.548Z",
+      "information_needs": [
+        {
+          "id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+          "status": "unknown",
+          "priority_level": "low",
+          "priority_score": 0,
+          "importance": "{\"level\":\"low\",\"score\":3,\"rationale\":\"Deterministic role-section policy: required-qualifications context.\"}",
+          "resume_value": "{\"level\":\"low\",\"score\":1,\"rationale\":\"Explicitly mentioned general capability retained with lower initial resume value.\"}",
+          "discoverability": "{\"level\":\"low\",\"score\":2,\"rationale\":\"Generic interpersonal language is not assumed recoverable without role-specific evidence.\"}",
+          "acquisition_cost": "{\"level\":\"high\",\"score\":8,\"rationale\":\"Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes.\"}",
+          "existing_evidence": "{\"assessment\":\"absent\",\"score\":2,\"rationale\":\"No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.\"}",
+          "matched_fact_ids": "[]",
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Explicitly mentioned general capability retained with lower initial resume value. Discoverability: Generic interpersonal language is not assumed recoverable without role-specific evidence. Acquisition Cost: Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.022Z",
+          "normalized_name": "Communication",
+          "category": "interpersonal_capability"
+        }
+      ],
+      "acquisition_actions": [
+        {
+          "id": "e345badf-565a-404b-b7c8-8b38930d7778",
+          "acquisition_plan_id": "dda776c3-fa6a-4a83-bfe0-de003dd944c3",
+          "action_type": "request_supporting_evidence",
+          "action_key": "request_supporting_evidence:interpersonal_capability",
+          "estimated_acquisition_cost": "high",
+          "rationale": "A shared request_supporting_evidence action addresses 1 compatible unresolved Information Need(s).",
+          "created_at": "2026-08-04T19:35:55.568Z"
+        }
+      ]
+    }
+  ],
+  "information_need_run": {
+    "id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+    "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+    "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+    "job_requirement_profile_version": 1,
+    "policy_version": "information-needs-policy/1.0.0",
+    "candidate_evidence_snapshot": [],
+    "created_at": "2026-08-04T19:35:54.980Z",
+    "available_working_evidence_summary": [
+      {
+        "source": "resume_ast",
+        "node_type": "skill",
+        "label": "SQL",
+        "decision_state": "explicit",
+        "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+        "evidence_span_ids": [
+          "line-5"
+        ]
+      },
+      {
+        "source": "resume_ast",
+        "node_type": "skill",
+        "label": "Python",
+        "decision_state": "explicit",
+        "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+        "evidence_span_ids": [
+          "line-5"
+        ]
+      },
+      {
+        "source": "resume_ast",
+        "node_type": "skill",
+        "label": "Data visualization",
+        "decision_state": "explicit",
+        "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+        "evidence_span_ids": [
+          "line-5"
+        ]
+      },
+      {
+        "source": "resume_ast",
+        "node_type": "skill",
+        "label": "Communication",
+        "decision_state": "explicit",
+        "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+        "evidence_span_ids": [
+          "line-5"
+        ]
+      },
+      {
+        "source": "resume_ast",
+        "node_type": "project",
+        "label": "Sales reporting dashboard using SQL and Python",
+        "decision_state": "explicit",
+        "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+        "evidence_span_ids": [
+          "line-8"
+        ]
+      }
+    ],
+    "candidate_profile": {
+      "id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+      "name": "Taylor Example",
+      "email": "taylor.example@example.test",
+      "headline": "",
+      "skills": [],
+      "created_at": "2026-08-04T19:35:54.845Z"
+    },
+    "job_requirement_profile": {
+      "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+      "version": 1,
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "created_at": "2026-08-04T19:35:54.919Z",
+      "snapshot": {
+        "id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "company": "Northstar Analytics",
+        "role_title": "Data Analyst",
+        "location": "",
+        "description": "Company: Northstar Analytics\r\nRole Title: Data Analyst\r\n\r\nRequired Qualifications:\r\nSQL required.\r\nPython required.\r\nData visualization required.\r\nCommunication preferred.\r\n",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        },
+        "created_at": "2026-08-04T19:35:54.909Z"
+      },
+      "requirements": [
+        {
+          "id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Data visualization",
+          "supporting_excerpts": [
+            "Data visualization required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.956Z"
+        },
+        {
+          "id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Python",
+          "supporting_excerpts": [
+            "Python required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.945Z"
+        },
+        {
+          "id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "SQL",
+          "supporting_excerpts": [
+            "SQL required."
+          ],
+          "category": "technical_skill",
+          "explicitness": "required",
+          "importance_level": "high",
+          "importance_score": 7,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "high",
+          "resume_value_score": 7,
+          "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.935Z"
+        },
+        {
+          "id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+          "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+          "normalized_name": "Communication",
+          "supporting_excerpts": [
+            "Communication preferred."
+          ],
+          "category": "interpersonal_capability",
+          "explicitness": "required",
+          "importance_level": "low",
+          "importance_score": 3,
+          "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+          "resume_value_level": "low",
+          "resume_value_score": 1,
+          "resume_value_rationale": "Explicitly mentioned general capability retained with lower initial resume value.",
+          "source_metadata": {
+            "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+            "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+            "source_url": "",
+            "source_metadata": {
+              "source": "local_demo"
+            }
+          },
+          "parser_version": "job-intelligence-parser/1.1.0",
+          "policy_version": "job-requirement-policy/1.1.0",
+          "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+          "created_at": "2026-08-04T19:35:54.967Z"
+        }
+      ]
+    },
+    "information_needs": [
+      {
+        "id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+        "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+        "status": "unknown",
+        "priority_level": "high",
+        "priority_score": 21,
+        "importance": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Deterministic role-section policy: required-qualifications context."
+        },
+        "resume_value": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete role-relevant skill, practice, or responsibility."
+        },
+        "discoverability": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+        },
+        "acquisition_cost": {
+          "level": "low",
+          "score": 2,
+          "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+        },
+        "existing_evidence": {
+          "assessment": "absent",
+          "score": 2,
+          "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+        },
+        "matched_fact_ids": [],
+        "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+        "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+        "policy_version": "information-needs-policy/1.0.0",
+        "created_at": "2026-08-04T19:35:54.991Z",
+        "normalized_name": "Data visualization",
+        "category": "technical_skill"
+      },
+      {
+        "id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+        "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+        "status": "unknown",
+        "priority_level": "high",
+        "priority_score": 21,
+        "importance": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Deterministic role-section policy: required-qualifications context."
+        },
+        "resume_value": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete role-relevant skill, practice, or responsibility."
+        },
+        "discoverability": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+        },
+        "acquisition_cost": {
+          "level": "low",
+          "score": 2,
+          "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+        },
+        "existing_evidence": {
+          "assessment": "absent",
+          "score": 2,
+          "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+        },
+        "matched_fact_ids": [],
+        "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+        "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+        "policy_version": "information-needs-policy/1.0.0",
+        "created_at": "2026-08-04T19:35:55.002Z",
+        "normalized_name": "Python",
+        "category": "technical_skill"
+      },
+      {
+        "id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+        "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+        "status": "unknown",
+        "priority_level": "high",
+        "priority_score": 21,
+        "importance": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Deterministic role-section policy: required-qualifications context."
+        },
+        "resume_value": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete role-relevant skill, practice, or responsibility."
+        },
+        "discoverability": {
+          "level": "high",
+          "score": 7,
+          "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+        },
+        "acquisition_cost": {
+          "level": "low",
+          "score": 2,
+          "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+        },
+        "existing_evidence": {
+          "assessment": "absent",
+          "score": 2,
+          "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+        },
+        "matched_fact_ids": [],
+        "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+        "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+        "policy_version": "information-needs-policy/1.0.0",
+        "created_at": "2026-08-04T19:35:55.012Z",
+        "normalized_name": "SQL",
+        "category": "technical_skill"
+      },
+      {
+        "id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+        "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+        "status": "unknown",
+        "priority_level": "low",
+        "priority_score": 0,
+        "importance": {
+          "level": "low",
+          "score": 3,
+          "rationale": "Deterministic role-section policy: required-qualifications context."
+        },
+        "resume_value": {
+          "level": "low",
+          "score": 1,
+          "rationale": "Explicitly mentioned general capability retained with lower initial resume value."
+        },
+        "discoverability": {
+          "level": "low",
+          "score": 2,
+          "rationale": "Generic interpersonal language is not assumed recoverable without role-specific evidence."
+        },
+        "acquisition_cost": {
+          "level": "high",
+          "score": 8,
+          "rationale": "Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes."
+        },
+        "existing_evidence": {
+          "assessment": "absent",
+          "score": 2,
+          "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+        },
+        "matched_fact_ids": [],
+        "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Explicitly mentioned general capability retained with lower initial resume value. Discoverability: Generic interpersonal language is not assumed recoverable without role-specific evidence. Acquisition Cost: Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+        "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+        "policy_version": "information-needs-policy/1.0.0",
+        "created_at": "2026-08-04T19:35:55.022Z",
+        "normalized_name": "Communication",
+        "category": "interpersonal_capability"
+      }
+    ]
+  },
+  "evidence_discovery_run": {
+    "id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+    "information_need_run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+    "discovery_policy_version": "evidence-discovery-policy/1.1.0",
+    "source_snapshot": {
+      "candidate_evidence": [],
+      "resume_ast": [
+        {
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+          "entity_type": "skill",
+          "value": {
+            "name": "SQL",
+            "text": "SQL"
+          },
+          "source": "resume_ast",
+          "confirmation_status": "confirmed",
+          "provenance": {
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+            "block_kind": "skill",
+            "section": "skills",
+            "source_span_ids": [
+              "line-5"
+            ],
+            "exact_source_text": "SQL",
+            "source_line_start": 5,
+            "source_line_end": 5,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        },
+        {
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+          "entity_type": "skill",
+          "value": {
+            "name": "Python",
+            "text": "Python"
+          },
+          "source": "resume_ast",
+          "confirmation_status": "confirmed",
+          "provenance": {
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+            "block_kind": "skill",
+            "section": "skills",
+            "source_span_ids": [
+              "line-5"
+            ],
+            "exact_source_text": "Python",
+            "source_line_start": 5,
+            "source_line_end": 5,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        },
+        {
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+          "entity_type": "skill",
+          "value": {
+            "name": "Data visualization",
+            "text": "Data visualization"
+          },
+          "source": "resume_ast",
+          "confirmation_status": "confirmed",
+          "provenance": {
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+            "block_kind": "skill",
+            "section": "skills",
+            "source_span_ids": [
+              "line-5"
+            ],
+            "exact_source_text": "Data visualization",
+            "source_line_start": 5,
+            "source_line_end": 5,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        },
+        {
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+          "entity_type": "skill",
+          "value": {
+            "name": "Communication",
+            "text": "Communication"
+          },
+          "source": "resume_ast",
+          "confirmation_status": "confirmed",
+          "provenance": {
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+            "block_kind": "skill",
+            "section": "skills",
+            "source_span_ids": [
+              "line-5"
+            ],
+            "exact_source_text": "Communication",
+            "source_line_start": 5,
+            "source_line_end": 5,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        },
+        {
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:4",
+          "entity_type": "project",
+          "value": {
+            "name": "Sales reporting dashboard using SQL and Python",
+            "text": "Sales reporting dashboard using SQL and Python"
+          },
+          "source": "resume_ast",
+          "confirmation_status": "needs_confirmation",
+          "provenance": {
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+            "block_kind": "project",
+            "section": "projects",
+            "source_span_ids": [
+              "line-8"
+            ],
+            "exact_source_text": "Sales reporting dashboard using SQL and Python",
+            "source_line_start": 8,
+            "source_line_end": 8,
+            "extraction_state": "explicit",
+            "confidence": "high",
+            "rationale": "Mock extraction copied exact source text."
+          }
+        }
+      ],
+      "resume_semantic": [],
+      "resume_semantic_graph": []
+    },
+    "selected_information_need_ids": [
+      "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+      "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+      "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+      "acfd5cd9-907a-4e8f-85a0-59939b6c720e"
+    ],
+    "created_at": "2026-08-04T19:35:55.040Z",
+    "source_searches": [
+      {
+        "id": "045e8c09-5323-4dbc-b129-7576ec7ecfd2",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "candidate_fact",
+        "source_reference": "candidate_fact:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 1,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.051Z"
+      },
+      {
+        "id": "4c1ef850-a100-4370-a10c-367545b2f726",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "profile_skill",
+        "source_reference": "profile_skill:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 2,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.061Z"
+      },
+      {
+        "id": "34781440-b21c-4272-a722-43b7c73e7673",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "resume_import",
+        "source_reference": "resume_import:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 3,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.074Z"
+      },
+      {
+        "id": "2f998e47-af21-4434-92db-9756035b3cb9",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "resume_ast",
+        "source_reference": "resume_ast:snapshot",
+        "availability_status": "available",
+        "search_order": 4,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_with_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.107Z"
+      },
+      {
+        "id": "b252d4cf-5602-459c-a3b6-b218bc8e3e78",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "resume_semantic",
+        "source_reference": "resume_semantic:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 5,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.149Z"
+      },
+      {
+        "id": "1930d26a-2e51-4359-b26d-d61eec89e882",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "source_type": "resume_semantic_graph",
+        "source_reference": "resume_semantic_graph:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 6,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.160Z"
+      },
+      {
+        "id": "9495dd58-83df-4c5e-9558-224942651e77",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "candidate_fact",
+        "source_reference": "candidate_fact:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 1,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.278Z"
+      },
+      {
+        "id": "c5082645-1718-4976-a2e4-513244cdf4d5",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "profile_skill",
+        "source_reference": "profile_skill:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 2,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.288Z"
+      },
+      {
+        "id": "f3c9a705-ce87-420e-8a4d-819baf4d797f",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "resume_import",
+        "source_reference": "resume_import:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 3,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.298Z"
+      },
+      {
+        "id": "819b499e-a065-44e8-88cd-8a87f1ac2ea9",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "resume_ast",
+        "source_reference": "resume_ast:snapshot",
+        "availability_status": "available",
+        "search_order": 4,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_with_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.310Z"
+      },
+      {
+        "id": "4ea996a5-29b4-41ad-9127-12d80c8cf8f6",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "resume_semantic",
+        "source_reference": "resume_semantic:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 5,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.342Z"
+      },
+      {
+        "id": "54ff216a-db31-447c-a869-6819e37e7788",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "source_type": "resume_semantic_graph",
+        "source_reference": "resume_semantic_graph:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 6,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.353Z"
+      },
+      {
+        "id": "5525085b-0a2b-437d-a93b-8c39b5041e6e",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "candidate_fact",
+        "source_reference": "candidate_fact:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 1,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.375Z"
+      },
+      {
+        "id": "aef57eae-37fd-41ca-bb51-456927ac402a",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "profile_skill",
+        "source_reference": "profile_skill:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 2,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.385Z"
+      },
+      {
+        "id": "fa768e3f-7f06-4545-bcfe-7c4b609ff796",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "resume_import",
+        "source_reference": "resume_import:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 3,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.397Z"
+      },
+      {
+        "id": "e6ddfb74-64fc-4552-b37d-1366957d6734",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "resume_ast",
+        "source_reference": "resume_ast:snapshot",
+        "availability_status": "available",
+        "search_order": 4,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_with_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.408Z"
+      },
+      {
+        "id": "d371a0c5-c20f-4f8a-81d6-3da5b73a864b",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "resume_semantic",
+        "source_reference": "resume_semantic:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 5,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.445Z"
+      },
+      {
+        "id": "f51f5995-e4ff-48d2-91ae-507b960ed33e",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "source_type": "resume_semantic_graph",
+        "source_reference": "resume_semantic_graph:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 6,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.455Z"
+      },
+      {
+        "id": "a74f6c5b-17df-4ec7-a65c-dc893b1703ae",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "candidate_fact",
+        "source_reference": "candidate_fact:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 1,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.180Z"
+      },
+      {
+        "id": "8c497ab8-aeb0-46a8-bbaa-b149596f5f61",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "profile_skill",
+        "source_reference": "profile_skill:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 2,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.190Z"
+      },
+      {
+        "id": "357ba20b-9ed7-4206-bfaa-a865eb9bf8ec",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "resume_import",
+        "source_reference": "resume_import:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 3,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.202Z"
+      },
+      {
+        "id": "bee8c949-327d-44f4-9705-e57e5e93e449",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "resume_ast",
+        "source_reference": "resume_ast:snapshot",
+        "availability_status": "available",
+        "search_order": 4,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_with_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.214Z"
+      },
+      {
+        "id": "a00249e3-e870-459b-b064-eae683df3f06",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "resume_semantic",
+        "source_reference": "resume_semantic:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 5,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.245Z"
+      },
+      {
+        "id": "06e09dd5-8966-4ce9-970c-383d3404b3d6",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "source_type": "resume_semantic_graph",
+        "source_reference": "resume_semantic_graph:snapshot",
+        "availability_status": "available_empty",
+        "search_order": 6,
+        "adapter_version": "local-evidence-adapters/1.0.0",
+        "result_status": "completed_no_candidates",
+        "rationale": "Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.",
+        "limitations": "No external connector, semantic inference, or Candidate Knowledge update is performed.",
+        "created_at": "2026-08-04T19:35:55.257Z"
+      }
+    ],
+    "need_results": [
+      {
+        "id": "a57b4532-efb8-4b37-9f8f-8962ae8ddd94",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.170Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "e2f94e12-8c20-4f54-b17a-2c0d93bc7101",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+              "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+              "normalized_claim": "data visualization",
+              "supporting_value": {
+                "name": "Data visualization",
+                "text": "Data visualization"
+              },
+              "supporting_text": "Data visualization",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Data visualization",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 124,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "data",
+                      "visualization"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 124,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "data",
+                    "visualization"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Data visualization"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.108Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "0b705ff5-3c3a-4679-ae43-2eb3ba4452dc",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.268Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "c00ae557-ba97-418e-aa55-244b5049b178",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+              "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+              "normalized_claim": "python",
+              "supporting_value": {
+                "name": "Python",
+                "text": "Python"
+              },
+              "supporting_text": "Python",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Python",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "python"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "python"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Python"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.214Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "26165953-fb1a-463a-9acb-a8500a894643",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.366Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "f0610a75-4c27-4b36-ae32-7841dbbbeb74",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+              "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+              "normalized_claim": "sql",
+              "supporting_value": {
+                "name": "SQL",
+                "text": "SQL"
+              },
+              "supporting_text": "SQL",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "SQL",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "sql"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "sql"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "SQL"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.310Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      },
+      {
+        "id": "b44bfb35-ab6c-4ef3-b723-e6ff94fb72c6",
+        "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+        "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+        "sufficient": false,
+        "terminal_status": "unresolved_after_search",
+        "rationale": "Accepted evidence is not yet sufficient under the deterministic threshold.",
+        "created_at": "2026-08-04T19:35:55.466Z",
+        "candidates": [
+          {
+            "candidate": {
+              "id": "c04ec255-e734-4cb7-ac55-aad854cf88c8",
+              "discovery_run_id": "4de70033-7cd7-485c-ac14-4d0aa9a4ac4c",
+              "information_need_id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+              "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+              "source_type": "resume_ast",
+              "source_reference": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+              "normalized_claim": "communication",
+              "supporting_value": {
+                "name": "Communication",
+                "text": "Communication"
+              },
+              "supporting_text": "Communication",
+              "extraction_method": "validated_resume_ast_requirement_retrieval",
+              "confidence_level": "medium",
+              "parser_version": "local-evidence-adapters/1.0.0",
+              "provenance": {
+                "source": "resume_ast",
+                "confirmation_status": "confirmed",
+                "resume_import_id": null,
+                "semantic": {
+                  "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+                  "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+                  "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+                  "block_kind": "skill",
+                  "section": "skills",
+                  "source_span_ids": [
+                    "line-5"
+                  ],
+                  "exact_source_text": "Communication",
+                  "source_line_start": 5,
+                  "source_line_end": 5,
+                  "extraction_state": "explicit",
+                  "confidence": "high",
+                  "rationale": "Mock extraction copied exact source text.",
+                  "retrieval": {
+                    "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                    "rank": 1,
+                    "score": 114,
+                    "exactness": "exact",
+                    "rationale": "Exact requirement text occurs in this validated AST block.",
+                    "matched_terms": [
+                      "communication"
+                    ]
+                  }
+                },
+                "retrieval": {
+                  "retriever_version": "resume-ast-requirement-retriever/1.1.0",
+                  "rank": 1,
+                  "score": 114,
+                  "exactness": "exact",
+                  "rationale": "Exact requirement text occurs in this validated AST block.",
+                  "matched_terms": [
+                    "communication"
+                  ]
+                },
+                "extraction_state": "explicit",
+                "block_kind": "skill",
+                "section": "skills",
+                "exact_source_text": "Communication"
+              },
+              "limitations": "Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.",
+              "created_at": "2026-08-04T19:35:55.408Z",
+              "resolution_state": "accepted_for_need",
+              "resolution_rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            },
+            "resolution": {
+              "state": "accepted_for_need",
+              "rationale": "Explicit confirmed evidence matches the bounded requirement through an exact value or explicit alias."
+            }
+          }
+        ]
+      }
+    ],
+    "information_need_run": {
+      "id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+      "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+      "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "job_requirement_profile_version": 1,
+      "policy_version": "information-needs-policy/1.0.0",
+      "candidate_evidence_snapshot": [],
+      "created_at": "2026-08-04T19:35:54.980Z",
+      "available_working_evidence_summary": [
+        {
+          "source": "resume_ast",
+          "node_type": "skill",
+          "label": "SQL",
+          "decision_state": "explicit",
+          "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "evidence_span_ids": [
+            "line-5"
+          ]
+        },
+        {
+          "source": "resume_ast",
+          "node_type": "skill",
+          "label": "Python",
+          "decision_state": "explicit",
+          "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "evidence_span_ids": [
+            "line-5"
+          ]
+        },
+        {
+          "source": "resume_ast",
+          "node_type": "skill",
+          "label": "Data visualization",
+          "decision_state": "explicit",
+          "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "evidence_span_ids": [
+            "line-5"
+          ]
+        },
+        {
+          "source": "resume_ast",
+          "node_type": "skill",
+          "label": "Communication",
+          "decision_state": "explicit",
+          "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "evidence_span_ids": [
+            "line-5"
+          ]
+        },
+        {
+          "source": "resume_ast",
+          "node_type": "project",
+          "label": "Sales reporting dashboard using SQL and Python",
+          "decision_state": "explicit",
+          "run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "evidence_span_ids": [
+            "line-8"
+          ]
+        }
+      ],
+      "candidate_profile": {
+        "id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+        "name": "Taylor Example",
+        "email": "taylor.example@example.test",
+        "headline": "",
+        "skills": [],
+        "created_at": "2026-08-04T19:35:54.845Z"
+      },
+      "job_requirement_profile": {
+        "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+        "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "version": 1,
+        "parser_version": "job-intelligence-parser/1.1.0",
+        "policy_version": "job-requirement-policy/1.1.0",
+        "created_at": "2026-08-04T19:35:54.919Z",
+        "snapshot": {
+          "id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+          "company": "Northstar Analytics",
+          "role_title": "Data Analyst",
+          "location": "",
+          "description": "Company: Northstar Analytics\r\nRole Title: Data Analyst\r\n\r\nRequired Qualifications:\r\nSQL required.\r\nPython required.\r\nData visualization required.\r\nCommunication preferred.\r\n",
+          "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+          "source_url": "",
+          "source_metadata": {
+            "source": "local_demo"
+          },
+          "created_at": "2026-08-04T19:35:54.909Z"
+        },
+        "requirements": [
+          {
+            "id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+            "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+            "normalized_name": "Data visualization",
+            "supporting_excerpts": [
+              "Data visualization required."
+            ],
+            "category": "technical_skill",
+            "explicitness": "required",
+            "importance_level": "high",
+            "importance_score": 7,
+            "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+            "resume_value_level": "high",
+            "resume_value_score": 7,
+            "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+            "source_metadata": {
+              "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+              "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+              "source_url": "",
+              "source_metadata": {
+                "source": "local_demo"
+              }
+            },
+            "parser_version": "job-intelligence-parser/1.1.0",
+            "policy_version": "job-requirement-policy/1.1.0",
+            "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+            "created_at": "2026-08-04T19:35:54.956Z"
+          },
+          {
+            "id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+            "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+            "normalized_name": "Python",
+            "supporting_excerpts": [
+              "Python required."
+            ],
+            "category": "technical_skill",
+            "explicitness": "required",
+            "importance_level": "high",
+            "importance_score": 7,
+            "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+            "resume_value_level": "high",
+            "resume_value_score": 7,
+            "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+            "source_metadata": {
+              "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+              "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+              "source_url": "",
+              "source_metadata": {
+                "source": "local_demo"
+              }
+            },
+            "parser_version": "job-intelligence-parser/1.1.0",
+            "policy_version": "job-requirement-policy/1.1.0",
+            "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+            "created_at": "2026-08-04T19:35:54.945Z"
+          },
+          {
+            "id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+            "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+            "normalized_name": "SQL",
+            "supporting_excerpts": [
+              "SQL required."
+            ],
+            "category": "technical_skill",
+            "explicitness": "required",
+            "importance_level": "high",
+            "importance_score": 7,
+            "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+            "resume_value_level": "high",
+            "resume_value_score": 7,
+            "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+            "source_metadata": {
+              "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+              "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+              "source_url": "",
+              "source_metadata": {
+                "source": "local_demo"
+              }
+            },
+            "parser_version": "job-intelligence-parser/1.1.0",
+            "policy_version": "job-requirement-policy/1.1.0",
+            "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+            "created_at": "2026-08-04T19:35:54.935Z"
+          },
+          {
+            "id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+            "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+            "normalized_name": "Communication",
+            "supporting_excerpts": [
+              "Communication preferred."
+            ],
+            "category": "interpersonal_capability",
+            "explicitness": "required",
+            "importance_level": "low",
+            "importance_score": 3,
+            "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+            "resume_value_level": "low",
+            "resume_value_score": 1,
+            "resume_value_rationale": "Explicitly mentioned general capability retained with lower initial resume value.",
+            "source_metadata": {
+              "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+              "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+              "source_url": "",
+              "source_metadata": {
+                "source": "local_demo"
+              }
+            },
+            "parser_version": "job-intelligence-parser/1.1.0",
+            "policy_version": "job-requirement-policy/1.1.0",
+            "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+            "created_at": "2026-08-04T19:35:54.967Z"
+          }
+        ]
+      },
+      "information_needs": [
+        {
+          "id": "92964e1e-e925-4063-87d1-15cdb1d82d6c",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Deterministic role-section policy: required-qualifications context."
+          },
+          "resume_value": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete role-relevant skill, practice, or responsibility."
+          },
+          "discoverability": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+          },
+          "acquisition_cost": {
+            "level": "low",
+            "score": 2,
+            "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+          },
+          "existing_evidence": {
+            "assessment": "absent",
+            "score": 2,
+            "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+          },
+          "matched_fact_ids": [],
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:54.991Z",
+          "normalized_name": "Data visualization",
+          "category": "technical_skill"
+        },
+        {
+          "id": "c075c503-a97a-4fa6-8616-fddc9c4f7806",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Deterministic role-section policy: required-qualifications context."
+          },
+          "resume_value": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete role-relevant skill, practice, or responsibility."
+          },
+          "discoverability": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+          },
+          "acquisition_cost": {
+            "level": "low",
+            "score": 2,
+            "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+          },
+          "existing_evidence": {
+            "assessment": "absent",
+            "score": 2,
+            "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+          },
+          "matched_fact_ids": [],
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.002Z",
+          "normalized_name": "Python",
+          "category": "technical_skill"
+        },
+        {
+          "id": "94ef4c4d-efd8-4ec4-bfb3-100119e5ab6c",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+          "status": "unknown",
+          "priority_level": "high",
+          "priority_score": 21,
+          "importance": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Deterministic role-section policy: required-qualifications context."
+          },
+          "resume_value": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete role-relevant skill, practice, or responsibility."
+          },
+          "discoverability": {
+            "level": "high",
+            "score": 7,
+            "rationale": "Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts."
+          },
+          "acquisition_cost": {
+            "level": "low",
+            "score": 2,
+            "rationale": "Confirming a concrete tool in a known project or role is a low-friction evidence request."
+          },
+          "existing_evidence": {
+            "assessment": "absent",
+            "score": 2,
+            "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+          },
+          "matched_fact_ids": [],
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Concrete role-relevant skill, practice, or responsibility. Discoverability: Concrete tools are commonly evidenced in academic, internship, work, research, or side-project contexts. Acquisition Cost: Confirming a concrete tool in a known project or role is a low-friction evidence request. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.012Z",
+          "normalized_name": "SQL",
+          "category": "technical_skill"
+        },
+        {
+          "id": "acfd5cd9-907a-4e8f-85a0-59939b6c720e",
+          "run_id": "74dd618c-edb6-4593-9db7-fdc2169a5526",
+          "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+          "status": "unknown",
+          "priority_level": "low",
+          "priority_score": 0,
+          "importance": {
+            "level": "low",
+            "score": 3,
+            "rationale": "Deterministic role-section policy: required-qualifications context."
+          },
+          "resume_value": {
+            "level": "low",
+            "score": 1,
+            "rationale": "Explicitly mentioned general capability retained with lower initial resume value."
+          },
+          "discoverability": {
+            "level": "low",
+            "score": 2,
+            "rationale": "Generic interpersonal language is not assumed recoverable without role-specific evidence."
+          },
+          "acquisition_cost": {
+            "level": "high",
+            "score": 8,
+            "rationale": "Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes."
+          },
+          "existing_evidence": {
+            "assessment": "absent",
+            "score": 2,
+            "rationale": "No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate."
+          },
+          "matched_fact_ids": [],
+          "rationale": "Importance: Deterministic role-section policy: required-qualifications context. Resume Value: Explicitly mentioned general capability retained with lower initial resume value. Discoverability: Generic interpersonal language is not assumed recoverable without role-specific evidence. Acquisition Cost: Recovering broad interpersonal or stakeholder history generally requires reconstructing context and outcomes. Existing Evidence: No matching candidate fact is stored; this is an evidence gap, not a claim about the candidate.",
+          "uncertainty": "No matching evidence is stored; unknown does not assert the candidate lacks this requirement.",
+          "policy_version": "information-needs-policy/1.0.0",
+          "created_at": "2026-08-04T19:35:55.022Z",
+          "normalized_name": "Communication",
+          "category": "interpersonal_capability"
+        }
+      ]
+    }
+  }
+}
