@@ -385,7 +385,7 @@ class Store {
       if (seen.has(submitted.evidenceCandidateId)) continue;
       seen.add(submitted.evidenceCandidateId);
       const item = this.getEvidenceReviewCandidate(evidenceDiscoveryRunId, submitted.evidenceCandidateId);
-      if (item.resolution.state !== 'needs_confirmation') throw new Error('Only needs_confirmation evidence candidates may be reviewed');
+      if (!['needs_confirmation', 'accepted_for_need'].includes(item.resolution.state)) throw new Error('Only reviewable evidence candidates may be reviewed');
       const action = submitted.action;
       if (!['accepted', 'skipped', 'edited', 'blocked'].includes(action)) throw new Error(`Unsupported Evidence Review action: ${action}`);
       const originalClaim = submitted.originalClaim || item.candidate.supporting_text;
@@ -571,6 +571,11 @@ class Store {
   }
   exportResumeArtifact({ resumeArtifactRunId, humanReviewRunId }) {
     if (!humanReviewRunId) throw new Error('Export blocked: a complete Human Review Run is required before export');
+    const artifactRun = this.getResumeArtifactRun(resumeArtifactRunId);
+    const artifact = artifactRun.resume_artifacts[0];
+    const coreSections = ['Professional Summary', 'Skills', 'Experience', 'Projects'];
+    const populatedCoreSections = artifact.content.sections.filter((section) => coreSections.includes(section.section) && section.statements.length > 0);
+    if (!populatedCoreSections.length) throw new Error('Export blocked: resume is not ready for export because no committed facts support populated core resume sections. Complete Evidence Review and regenerate the resume draft.');
     const run = this.getHumanReviewRun(humanReviewRunId);
     if (run.resume_artifact_run_id !== resumeArtifactRunId) throw new Error('Human Review Run does not belong to this Resume Artifact Run');
     return this.exportReviewedResume({ humanReviewRunId });
