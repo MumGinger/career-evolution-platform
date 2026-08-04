@@ -1,0 +1,135 @@
+{
+  "id": "68223da5-6c31-455f-a263-a942950b2fbd",
+  "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+  "version": 1,
+  "parser_version": "job-intelligence-parser/1.1.0",
+  "policy_version": "job-requirement-policy/1.1.0",
+  "created_at": "2026-08-04T19:35:54.919Z",
+  "snapshot": {
+    "id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+    "company": "Northstar Analytics",
+    "role_title": "Data Analyst",
+    "location": "",
+    "description": "Company: Northstar Analytics\r\nRole Title: Data Analyst\r\n\r\nRequired Qualifications:\r\nSQL required.\r\nPython required.\r\nData visualization required.\r\nCommunication preferred.\r\n",
+    "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+    "source_url": "",
+    "source_metadata": {
+      "source": "local_demo"
+    },
+    "created_at": "2026-08-04T19:35:54.909Z"
+  },
+  "requirements": [
+    {
+      "id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+      "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "normalized_name": "Data visualization",
+      "supporting_excerpts": [
+        "Data visualization required."
+      ],
+      "category": "technical_skill",
+      "explicitness": "required",
+      "importance_level": "high",
+      "importance_score": 7,
+      "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+      "resume_value_level": "high",
+      "resume_value_score": 7,
+      "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+      "source_metadata": {
+        "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        }
+      },
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+      "created_at": "2026-08-04T19:35:54.956Z"
+    },
+    {
+      "id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+      "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "normalized_name": "Python",
+      "supporting_excerpts": [
+        "Python required."
+      ],
+      "category": "technical_skill",
+      "explicitness": "required",
+      "importance_level": "high",
+      "importance_score": 7,
+      "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+      "resume_value_level": "high",
+      "resume_value_score": 7,
+      "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+      "source_metadata": {
+        "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        }
+      },
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+      "created_at": "2026-08-04T19:35:54.945Z"
+    },
+    {
+      "id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+      "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "normalized_name": "SQL",
+      "supporting_excerpts": [
+        "SQL required."
+      ],
+      "category": "technical_skill",
+      "explicitness": "required",
+      "importance_level": "high",
+      "importance_score": 7,
+      "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+      "resume_value_level": "high",
+      "resume_value_score": 7,
+      "resume_value_rationale": "Concrete role-relevant skill, practice, or responsibility.",
+      "source_metadata": {
+        "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        }
+      },
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+      "created_at": "2026-08-04T19:35:54.935Z"
+    },
+    {
+      "id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+      "profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "normalized_name": "Communication",
+      "supporting_excerpts": [
+        "Communication preferred."
+      ],
+      "category": "interpersonal_capability",
+      "explicitness": "required",
+      "importance_level": "low",
+      "importance_score": 3,
+      "importance_rationale": "Deterministic role-section policy: required-qualifications context.",
+      "resume_value_level": "low",
+      "resume_value_score": 1,
+      "resume_value_rationale": "Explicitly mentioned general capability retained with lower initial resume value.",
+      "source_metadata": {
+        "snapshot_id": "2346b77f-c35b-4b35-b77b-cdbe0fd19bc2",
+        "description_hash": "e563f8dc923b28f9ee99531c8c1dc5354582c6f2a272bb54bd9a764b7490d3b2",
+        "source_url": "",
+        "source_metadata": {
+          "source": "local_demo"
+        }
+      },
+      "parser_version": "job-intelligence-parser/1.1.0",
+      "policy_version": "job-requirement-policy/1.1.0",
+      "uncertainty": "Derived only from selected role-relevant job-description sections using deterministic versioned rules.",
+      "created_at": "2026-08-04T19:35:54.967Z"
+    }
+  ]
+}

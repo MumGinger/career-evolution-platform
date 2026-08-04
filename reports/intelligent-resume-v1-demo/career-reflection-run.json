@@ -1,0 +1,17 @@
+{
+  "id": "55975cc1-2630-4158-a155-91c92bc988f0",
+  "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+  "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+  "source_snapshot_reference": {
+    "id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+    "understanding_policy_version": "career-understanding/1.0.0",
+    "generated_at": "2026-08-04T19:35:55.701Z"
+  },
+  "action": "looks_right",
+  "note": "This is a useful starting point.",
+  "actor": "user",
+  "reflected_at": "2026-08-04T19:35:55.716Z",
+  "reflection_policy_version": "career-reflection/1.0.0",
+  "submission_key": "669c01604392522d22e187e7da08ac7b87a0f6e76505e3aac524cf42701b1bf7",
+  "duplicate_submission": false
+}
