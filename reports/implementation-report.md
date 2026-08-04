@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## Decision Companion MVP (Issue #51)
+
+Implemented the final Thinking Layer vertical slice. A Decision Companion Run stores a candidate-scoped, source-linked comparison of 2–4 user-provided options and up to 3 criteria, including supports, trade-offs, unknowns, and provenance. It asks exactly one reflective question and captures leaning, undecided, need-more-information, or stopped. The CLI is readable in JSON or text. The slice never recommends, scores, ranks, infers preferences/goals, writes Candidate Knowledge, or mutates Career Understanding.
+
+Validation: `npm.cmd test` and `git diff --check` (pending final run).
+
 ## AI Career Companion Manifesto (2026-08-04)
 
 Added durable product documentation for the platform's long-term philosophy: helping people discover, develop, and realize the value they can create in the world. The manifesto records the transition from resume artifacts to a life-long career companion and supplies principles for user agency, explainability, gradual learning, and productive uncertainty. This is a documentation-only change; no implementation behavior changed.

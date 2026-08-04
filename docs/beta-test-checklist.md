@@ -16,3 +16,9 @@ Classify defects as extraction, validation, retrieval, or UX; ship one vertical 
 
 - [ ] Verify the snapshot is shown before the one reflective prompt and no follow-up question appears.
 - [ ] Verify each response is source-linked, immutable, and leaves Candidate Knowledge and Career Understanding unchanged.
+
+# Decision Companion check
+
+- [ ] Verify 2–4 options and up to 3 criteria, including one named custom criterion, are readable in CLI/JSON/HTML.
+- [ ] Verify one reflection question, trade-offs, unknowns, and provenance appear with no score, ranking, or recommendation.
+- [ ] Verify every final state is immutable and leaves Candidate Knowledge and Career Understanding unchanged.
