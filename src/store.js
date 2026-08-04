@@ -10,6 +10,7 @@ const tailoring = require('./resume-tailoring');
 const artifactGeneration = require('./resume-artifact');
 const validation = require('./resume-validation');
 const resumeAst = require('./resume-ast');
+const careerUnderstanding = require('./career-understanding');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -74,6 +75,8 @@ class Store {
       CREATE TABLE IF NOT EXISTS evidence_review_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), evidence_discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), candidate_profile_snapshot TEXT NOT NULL, job_profile_snapshot TEXT NOT NULL, discovery_snapshot TEXT NOT NULL, review_actor TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS evidence_review_decisions (id TEXT PRIMARY KEY, review_run_id TEXT NOT NULL REFERENCES evidence_review_runs(id), requirement_id TEXT NOT NULL REFERENCES job_requirements(id), evidence_candidate_id TEXT NOT NULL REFERENCES evidence_candidates(id), action TEXT NOT NULL CHECK(action IN ('accepted', 'skipped', 'edited', 'blocked')), original_claim TEXT NOT NULL, edited_claim TEXT, source_evidence_refs TEXT NOT NULL, rationale TEXT, review_actor TEXT NOT NULL, reviewed_at TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(review_run_id, evidence_candidate_id)) STRICT;
       CREATE TABLE IF NOT EXISTS career_conversation_observations (id TEXT PRIMARY KEY, question TEXT NOT NULL, answer TEXT, observed_at TEXT NOT NULL, workflow_source TEXT NOT NULL UNIQUE, skipped INTEGER NOT NULL CHECK(skipped IN (0, 1))) STRICT;
+      CREATE TABLE IF NOT EXISTS career_understanding_snapshot_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), source_snapshots TEXT NOT NULL, generated_at TEXT NOT NULL, understanding_policy_version TEXT NOT NULL, current_direction TEXT NOT NULL, understanding_items TEXT NOT NULL, unknowns TEXT NOT NULL, limitations TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS career_understanding_snapshot_feedback (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), actor TEXT NOT NULL CHECK(actor IN ('user')), action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite')), note TEXT, timestamp TEXT NOT NULL) STRICT;
     `);
     this.seedSkill();
   }
@@ -388,6 +391,30 @@ class Store {
     const observation = this.db.prepare('SELECT * FROM career_conversation_observations WHERE id = ?').get(id);
     if (!observation) throw new Error(`Career Conversation observation not found: ${id}`);
     return { ...observation, skipped: Boolean(observation.skipped) };
+  }
+  createCareerUnderstandingSnapshotRun({ candidateProfileId }) {
+    this.getProfile(candidateProfileId);
+    const facts = this.getCommittedCandidateKnowledge(candidateProfileId);
+    const astEvidence = this.getResumeAstEvidenceSnapshot(candidateProfileId);
+    const conversations = this.db.prepare("SELECT * FROM career_conversation_observations WHERE workflow_source IN (SELECT 'evidence_review:' || id FROM evidence_review_runs WHERE candidate_profile_id = ?) ORDER BY observed_at, id").all(candidateProfileId).map((row) => ({ ...row, skipped: Boolean(row.skipped) }));
+    const applications = this.db.prepare('SELECT * FROM applications WHERE profile_id = ? ORDER BY application_date, id').all(candidateProfileId);
+    const output = careerUnderstanding.snapshot({ facts, astEvidence, conversations, applications });
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, source_snapshots: JSON.stringify({ candidate_knowledge: facts, resume_ast_evidence: astEvidence, career_conversations: conversations, applications }), generated_at: this.now(), understanding_policy_version: careerUnderstanding.POLICY_VERSION, current_direction: JSON.stringify(output.current_direction), understanding_items: JSON.stringify(output.understanding_items), unknowns: JSON.stringify(output.unknowns), limitations: JSON.stringify(output.limitations) };
+    this.db.prepare('INSERT INTO career_understanding_snapshot_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.source_snapshots, run.generated_at, run.understanding_policy_version, run.current_direction, run.understanding_items, run.unknowns, run.limitations);
+    return this.getCareerUnderstandingSnapshotRun(run.id);
+  }
+  recordCareerUnderstandingFeedback({ snapshotRunId, action, note = null, actor = 'user' }) {
+    if (!['looks_right', 'not_quite'].includes(action) || actor !== 'user') throw new Error('Snapshot feedback must be a user Looks right or Not quite action');
+    this.getCareerUnderstandingSnapshotRun(snapshotRunId);
+    const feedback = { id: this.id(), snapshot_run_id: snapshotRunId, actor, action, note, timestamp: this.now() };
+    this.db.prepare('INSERT INTO career_understanding_snapshot_feedback VALUES (?, ?, ?, ?, ?, ?)').run(feedback.id, feedback.snapshot_run_id, feedback.actor, feedback.action, feedback.note, feedback.timestamp);
+    return feedback;
+  }
+  getCareerUnderstandingSnapshotRun(id) {
+    const run = this.db.prepare('SELECT * FROM career_understanding_snapshot_runs WHERE id = ?').get(id); if (!run) throw new Error(`Career Understanding Snapshot Run not found: ${id}`);
+    const feedback = this.db.prepare('SELECT * FROM career_understanding_snapshot_feedback WHERE snapshot_run_id = ? ORDER BY timestamp, id').all(id);
+    const parsed = { ...run, source_snapshots: JSON.parse(run.source_snapshots), current_direction: JSON.parse(run.current_direction), understanding_items: JSON.parse(run.understanding_items), unknowns: JSON.parse(run.unknowns), limitations: JSON.parse(run.limitations), neutral_activity_signals: JSON.parse(run.source_snapshots).applications.map((application) => ({ type: 'application', id: application.id, role_title: application.role_title, company: application.company, application_date: application.application_date })), feedback };
+    return { ...parsed, feedback_state: careerUnderstanding.feedbackState(feedback) };
   }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);
