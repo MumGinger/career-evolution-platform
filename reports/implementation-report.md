@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## AI Career Companion Manifesto (2026-08-04)
+
+Added durable product documentation for the platform's long-term philosophy: helping people discover, develop, and realize the value they can create in the world. The manifesto records the transition from resume artifacts to a life-long career companion and supplies principles for user agency, explainability, gradual learning, and productive uncertainty. This is a documentation-only change; no implementation behavior changed.
+
+Validation: reviewed Markdown links and repository documentation structure.
+
 ## Career Conversation MVP
 
 Added one optional post-resume question to the Evidence Review CLI. Its answer or explicit skip is recorded once per completed review workflow in a small observation table containing only the question, answer, timestamp, workflow source, and skipped state. The HTML report and fixture output display it. The path does not call Candidate Knowledge Integration or write Candidate Knowledge.
