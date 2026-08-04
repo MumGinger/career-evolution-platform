@@ -1,0 +1,5 @@
+# ADR-007: LLM proposes structure; deterministic validation establishes admissible working evidence
+
+Provider output is a proposal, not a candidate fact. Providers are a deterministic mock or OpenAI-compatible API configured exclusively through environment variables. The system persists a response hash, not raw private responses. Deterministic validation removes any leaf that cannot be reconstructed from its exact source spans.
+
+The Demo defaults to graph-free requirement-driven `resume_ast` retrieval. It ranks validated AST blocks directly and persists rank, score, exactness, block kind, section, and rationale. Exact source text whose parent placement is inferred from layout/order is `structurally_grouped`, never silently confirmed. Only an exact, provenance-valid explicit `skill` or `tool` is eligible for automatic need acceptance; every other AST block remains `needs_confirmation`. Semantic graph construction is explicit/lazy (`--build-semantic-graph`). This preserves 003.6 as the sole Candidate Knowledge writer.

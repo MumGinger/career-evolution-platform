@@ -5,6 +5,8 @@
 
 ## Completed
 
+- Implemented 002.7 Resume AST: async provider runs, nested-schema/provenance firewall, exact `structurally_grouped` layout state, ranked direct `resume_ast` retrieval, and confirmation proposals. Only validated explicit skills/tools may be auto-accepted; 003.6 remains the sole Candidate Knowledge writer. 002.6 remains optional/lazy.
+
 - Established project foundation and working agreement.
 - Documented the product-first vision, architecture principles, and initial design models.
 - Recorded the decision to validate Career before extracting a framework.
