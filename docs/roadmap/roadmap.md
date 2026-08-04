@@ -32,6 +32,10 @@ For 002.7, “Complete” means the offline/mock path now validates nested AST l
 | Intelligent Resume v1 | Complete — final step before Version 1.0 beta | Integrate the Thinking Layer with a provenance-preserving Presentation Strategy that orders only evidence-backed resume content and explains every decision. |
 | Version 1.0 beta | Next | Test whether users say the generated resume feels like them and clearly fits the supplied job. No new capability is in scope before this test. |
 
+| Human Review MVP | Complete — final Version 1.0 release blocker | Require explicit review of Professional Summary, Skills, Experience, and Projects before resume export; preserve AI drafts, edits, evidence, rationale, and timestamps in immutable runs. |
+
+Version 1.0 beta is next: test whether users say the reviewed-and-approved resume feels like them and clearly fits the supplied job. No new capability is in scope before this test.
+
 Capabilities are delivered in order only when their evidence, privacy, review, and product boundaries are ready. A roadmap item is not authorization to implement it.
 
 Milestone 1 Demo — End-to-End Resume Tailoring Pipeline is complete. It integrates existing 002, 003, and 004 slices into one deterministic local demo with fixture-supported confirmation, exported outputs, and no new domain capability.
