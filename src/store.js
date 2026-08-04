@@ -73,6 +73,7 @@ class Store {
       CREATE TABLE IF NOT EXISTS validation_findings (id TEXT PRIMARY KEY, resume_validation_run_id TEXT NOT NULL REFERENCES resume_validation_runs(id), category TEXT NOT NULL, rule_code TEXT NOT NULL, severity TEXT NOT NULL CHECK(severity IN ('info', 'warning', 'error', 'critical')), message TEXT NOT NULL, references_json TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS evidence_review_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), evidence_discovery_run_id TEXT NOT NULL REFERENCES evidence_discovery_runs(id), candidate_profile_snapshot TEXT NOT NULL, job_profile_snapshot TEXT NOT NULL, discovery_snapshot TEXT NOT NULL, review_actor TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS evidence_review_decisions (id TEXT PRIMARY KEY, review_run_id TEXT NOT NULL REFERENCES evidence_review_runs(id), requirement_id TEXT NOT NULL REFERENCES job_requirements(id), evidence_candidate_id TEXT NOT NULL REFERENCES evidence_candidates(id), action TEXT NOT NULL CHECK(action IN ('accepted', 'skipped', 'edited', 'blocked')), original_claim TEXT NOT NULL, edited_claim TEXT, source_evidence_refs TEXT NOT NULL, rationale TEXT, review_actor TEXT NOT NULL, reviewed_at TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(review_run_id, evidence_candidate_id)) STRICT;
+      CREATE TABLE IF NOT EXISTS career_conversation_observations (id TEXT PRIMARY KEY, question TEXT NOT NULL, answer TEXT, observed_at TEXT NOT NULL, workflow_source TEXT NOT NULL UNIQUE, skipped INTEGER NOT NULL CHECK(skipped IN (0, 1))) STRICT;
     `);
     this.seedSkill();
   }
@@ -373,6 +374,20 @@ class Store {
     if (!run) throw new Error(`Evidence Review Run not found: ${id}`);
     const decisions = this.db.prepare('SELECT * FROM evidence_review_decisions WHERE review_run_id = ? ORDER BY reviewed_at, id').all(id).map((item) => ({ ...item, edited_claim: item.edited_claim ? JSON.parse(item.edited_claim) : null, source_evidence_refs: JSON.parse(item.source_evidence_refs) }));
     return { ...run, candidate_profile_snapshot: JSON.parse(run.candidate_profile_snapshot), job_profile_snapshot: JSON.parse(run.job_profile_snapshot), discovery_snapshot: JSON.parse(run.discovery_snapshot), review_decisions: decisions };
+  }
+  createCareerConversationObservation({ question, answer = null, workflowSource, skipped = false }) {
+    if (!question || !workflowSource) throw new Error('Career Conversation observations require a question and workflow source');
+    if (skipped && answer) throw new Error('A skipped Career Conversation observation cannot include an answer');
+    const existing = this.db.prepare('SELECT * FROM career_conversation_observations WHERE workflow_source = ?').get(workflowSource);
+    if (existing) return this.getCareerConversationObservation(existing.id);
+    const observation = { id: this.id(), question, answer: answer || null, observed_at: this.now(), workflow_source: workflowSource, skipped: skipped ? 1 : 0 };
+    this.db.prepare('INSERT INTO career_conversation_observations VALUES (?, ?, ?, ?, ?, ?)').run(observation.id, observation.question, observation.answer, observation.observed_at, observation.workflow_source, observation.skipped);
+    return this.getCareerConversationObservation(observation.id);
+  }
+  getCareerConversationObservation(id) {
+    const observation = this.db.prepare('SELECT * FROM career_conversation_observations WHERE id = ?').get(id);
+    if (!observation) throw new Error(`Career Conversation observation not found: ${id}`);
+    return { ...observation, skipped: Boolean(observation.skipped) };
   }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);

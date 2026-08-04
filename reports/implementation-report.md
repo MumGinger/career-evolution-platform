@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## Career Conversation MVP
+
+Added one optional post-resume question to the Evidence Review CLI. Its answer or explicit skip is recorded once per completed review workflow in a small observation table containing only the question, answer, timestamp, workflow source, and skipped state. The HTML report and fixture output display it. The path does not call Candidate Knowledge Integration or write Candidate Knowledge.
+
+Validation: `npm.cmd test` (full suite).
+
 ## Evidence Review MVP (Issue #39)
 
 Added the end-to-end local review slice: an interactive and fixture-driven CLI for `needs_confirmation` evidence, immutable review decisions, strict source-bounded edits, 003.6-only integration, and regenerated tailoring, artifact, validation, JSON, Markdown, and HTML outputs.
