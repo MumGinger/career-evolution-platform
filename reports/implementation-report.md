@@ -1,5 +1,9 @@
 # Implementation Report — Capability 004.3
 
+## Human Review MVP implementation report (2026-08-04)
+
+Implemented the mandatory final review step for Resume only. A Human Review Run requires explicit approve or edit decisions for Professional Summary, Skills, Experience, and Projects before export. It snapshots the AI draft, provenance, and presentation rationale, preserves edited final text alongside the draft, and uses database immutability triggers. Human Review never writes Candidate Knowledge or regenerates an artifact. Validation: `npm test`.
+
 ## Intelligent Resume v1
 
 Implemented the final Version 1.0 step before beta: an immutable Presentation Strategy Run connects a Job Requirement Profile and existing Resume Tailoring Plan with read-only Career Understanding and optional Reflection, Curiosity, and Decision Companion context. Its decisions only order already-included committed Candidate Knowledge facts; it cannot add facts, change selection state, create stronger language, or use thinking context as a resume claim.

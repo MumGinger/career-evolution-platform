@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Human Review MVP self-review (2026-08-04)
+
+No blocking findings after self-review. This aligns with facts-are-sacred and explain-understanding: users make the final presentation decision and evidence stays visible. No new ADR is needed because this extends existing immutable-run and Candidate Knowledge commit boundaries. No existing PRD update is required. The roadmap marks Human Review MVP as the final Version 1.0 release blocker; future renderers must call `exportResumeArtifact`.
+
 ## Intelligent Resume v1 self-review
 
 Human review remains pending. The Presentation Strategy is an immutable, narrow ordering decision—not a prose generator or a new career capability.
