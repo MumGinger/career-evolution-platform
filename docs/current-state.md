@@ -9,6 +9,8 @@ The resume pipeline now creates an immutable Presentation Strategy Run after Car
 
 ## Completed
 
+- Completed the Human Review MVP, the final Version 1.0 release blocker: Professional Summary, Skills, Experience, and Projects require an explicit approve or edit decision before export. Immutable review runs preserve the AI draft, evidence/provenance, rationale, final approved text, and timestamps. Edits do not write Candidate Knowledge or trigger regeneration.
+
 - Recorded the AI Career Companion Manifesto as durable product guidance for the platform's evolution from Resume Builder to Life-long Career Companion.
 
 - Implemented 002.7 Resume AST: async provider runs, nested-schema/provenance firewall, exact `structurally_grouped` layout state, ranked direct `resume_ast` retrieval, and confirmation proposals. Only validated explicit skills/tools may be auto-accepted; 003.6 remains the sole Candidate Knowledge writer. 002.6 remains optional/lazy.

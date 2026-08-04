@@ -76,8 +76,10 @@ try {
     case 'resume-tailoring-plan-show': print(store.getResumeTailoringPlanRun(required(input['resume-tailoring-plan-run-id'], 'resume-tailoring-plan-run-id'))); break;
     case 'resume-artifact-create': print(store.createResumeArtifactRun({ resumeTailoringPlanRunId: required(input['resume-tailoring-plan-run-id'], 'resume-tailoring-plan-run-id') })); break;
     case 'resume-artifact-show': print(store.getResumeArtifactRun(required(input['resume-artifact-run-id'], 'resume-artifact-run-id'))); break;
+    case 'human-review-show': print(store.getHumanReviewRun(required(input['human-review-run-id'], 'human-review-run-id'))); break;
+    case 'resume-export': print(store.exportResumeArtifact({ resumeArtifactRunId: required(input['resume-artifact-run-id'], 'resume-artifact-run-id'), humanReviewRunId: input['human-review-run-id'] })); break;
     case 'resume-artifact-validate': print(store.createResumeValidationRun({ resumeArtifactRunId: required(input['resume-artifact-run-id'], 'resume-artifact-run-id'), validationPolicyVersion: input['validation-policy-version'] })); break;
     case 'resume-validation-show': print(store.getResumeValidationRun(required(input['resume-validation-run-id'], 'resume-validation-run-id'))); break;
-    default: console.error('Commands include career-snapshot-show, career-snapshot-feedback, career-reflection-review, career-curiosity-show, and decision-companion-create.'); process.exitCode = 1;
+    default: console.error('Commands include human-review-show and resume-export. Run src/human-review-cli.js for the required review flow.'); process.exitCode = 1;
   }
 } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } finally { store.close(); }

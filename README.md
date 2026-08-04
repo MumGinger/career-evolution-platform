@@ -80,6 +80,16 @@ For a repeatable non-interactive run, add `--review-fixture C:\private\review-fi
 
 After a successful review produces the validated resume, the interactive CLI asks one optional Career Conversation question. Choose a direction or `S` to skip; either response is non-blocking. A fixture may include `"careerConversation": { "answer": "Data Analytics" }` or `"careerConversation": { "skipped": true }`. The HTML report shows the question, answer, and skipped state. This observation is separate from Candidate Knowledge and never creates a fact.
 
+## Required Human Review before resume export
+
+Human Review is the Version 1.0 release blocker: the AI prepares, and the human decides. Before exporting, the user must explicitly approve or edit Professional Summary, Skills, Experience, and Projects. The review output preserves the AI draft, provenance, rationale, final approved content, and timestamps in an immutable JSON run; edits never write Candidate Knowledge or trigger regeneration.
+
+```powershell
+node src/human-review-cli.js --db C:\private\career.db --resume-artifact-run-id <artifact-run-id> --presentation-strategy-run-id <strategy-run-id> --output-dir C:\private\human-review-output
+```
+
+For repeatable testing, provide `--review-fixture <file> --non-interactive`; its `decisions` array must include every required section with `action` `approve` or `edit`. The CLI writes `human-review-run.json`, `final-resume.json`, `final-resume.md`, and `human-review-report.html`, and prints review completion in the terminal. `node src/cli.js resume-export --resume-artifact-run-id <artifact-run-id>` is blocked until a matching `--human-review-run-id` is supplied.
+
 ## Milestone 1 Demo — end-to-end resume tailoring
 
 The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
