@@ -35,11 +35,11 @@
 
 ## Current focus
 
-Review the deterministic truth firewall before introducing final-document renderers. Graph construction now adds bounded project/experience-to-responsibility-to-tool relationships while keeping resume evidence separate from committed coverage; real-input hardening also fixes canonical LinkedIn job identity persistence.
+Decision Companion is complete as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
 
 ## Next decision
 
-Decide the bounded final-document renderer and whether it must require a passing 004.3 Validation Run at release time.
+Choose the first Intelligent Execution artifact and its validation boundary.
 
 ## Open questions
 

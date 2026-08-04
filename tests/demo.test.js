@@ -47,7 +47,7 @@ test('career evolution demo joins every milestone stage into one bounded compani
     assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'completion']);
     assert.equal(loop.completion.one_new_possibility_explored.label, 'Business Intelligence Analyst');
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    for (const section of ['1. Resume Intelligence', '2. Career Conversation', '3. Career Understanding', '4. Shared Understanding', '5. Career Curiosity', '6. Your first loop is complete']) assert.match(report, new RegExp(section));
+    for (const section of ['1. Resume Intelligence', '2. Career Conversation', '3. Career Understanding', '4. Shared Understanding', '5. Career Curiosity', '6. Decision Companion', '7. Your first loop is complete']) assert.match(report, new RegExp(section));
     assert.match(report, /Based on what I know today/);
     assert.match(report, /Return after a future career experience/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
