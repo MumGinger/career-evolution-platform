@@ -13,6 +13,7 @@ const resumeAst = require('./resume-ast');
 const careerUnderstanding = require('./career-understanding');
 const careerReflection = require('./career-reflection');
 const careerCuriosity = require('./career-curiosity');
+const decisionCompanion = require('./decision-companion');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -81,8 +82,11 @@ class Store {
       CREATE TABLE IF NOT EXISTS career_understanding_snapshot_feedback (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), actor TEXT NOT NULL CHECK(actor IN ('user')), action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite')), note TEXT, timestamp TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS career_reflection_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), source_snapshot_reference TEXT NOT NULL, action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite', 'missing_something')), note TEXT, actor TEXT NOT NULL CHECK(actor IN ('user')), reflected_at TEXT NOT NULL, reflection_policy_version TEXT NOT NULL, submission_key TEXT NOT NULL UNIQUE) STRICT;
       CREATE TABLE IF NOT EXISTS career_curiosity_observations (id TEXT PRIMARY KEY, possibility_id TEXT NOT NULL, supporting_snapshot TEXT NOT NULL, user_response TEXT NOT NULL CHECK(user_response IN ('interesting', 'not_for_me', 'maybe_later')), timestamp TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS decision_companion_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), decision_definition TEXT NOT NULL, options TEXT NOT NULL, selected_criteria TEXT NOT NULL, comparison_entries TEXT NOT NULL, unknowns TEXT NOT NULL, reflection_question TEXT NOT NULL, user_response TEXT NOT NULL, created_at TEXT NOT NULL, completed_at TEXT, policy_version TEXT NOT NULL, provenance TEXT NOT NULL) STRICT;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_update BEFORE UPDATE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_delete BEFORE DELETE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_update BEFORE UPDATE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_delete BEFORE DELETE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
     `);
     this.seedSkill();
   }
@@ -453,6 +457,21 @@ class Store {
     const observation = this.db.prepare('SELECT * FROM career_curiosity_observations WHERE id = ?').get(id);
     if (!observation) throw new Error(`Career Curiosity observation not found: ${id}`);
     return { ...observation, supporting_snapshot: JSON.parse(observation.supporting_snapshot) };
+  }
+  createDecisionCompanionRun({ candidateProfileId, snapshotRunId, decision, response = { final_state: 'stopped', leaning_option_id: null, note: null } }) {
+    const snapshot = this.getCareerUnderstandingSnapshotRun(snapshotRunId);
+    if (snapshot.candidate_profile_id !== candidateProfileId) throw new Error('Decision Companion snapshot must belong to the candidate profile');
+    decisionCompanion.validate(decision);
+    if (!decisionCompanion.FINAL_STATES.includes(response.final_state)) throw new Error(`Final state must be one of: ${decisionCompanion.FINAL_STATES.join(', ')}`);
+    if (response.final_state === 'leaning' && !decision.options.some((option) => option.id === response.leaning_option_id)) throw new Error('A leaning response must identify one provided option');
+    const entries = decisionCompanion.comparison({ decision, snapshot }); const unknowns = entries.flatMap((entry) => entry.unknowns); const now = this.now();
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, career_understanding_snapshot_run_id: snapshot.id, decision_definition: JSON.stringify({ title: decision.title.trim(), type: decision.decisionType, context: decision.context || null }), options: JSON.stringify(decision.options), selected_criteria: JSON.stringify(decision.criteria), comparison_entries: JSON.stringify(entries), unknowns: JSON.stringify(unknowns), reflection_question: decisionCompanion.REFLECTION_QUESTION, user_response: JSON.stringify({ final_state: response.final_state, leaning_option_id: response.leaning_option_id || null, note: response.note || null }), created_at: now, completed_at: response.final_state === 'stopped' ? null : now, policy_version: decisionCompanion.POLICY_VERSION, provenance: JSON.stringify({ source_career_understanding_snapshot_run: { id: snapshot.id, understanding_policy_version: snapshot.understanding_policy_version }, user_input_fields: ['decision', 'options', 'criteria', 'response'] }) };
+    this.db.prepare('INSERT INTO decision_companion_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.career_understanding_snapshot_run_id, run.decision_definition, run.options, run.selected_criteria, run.comparison_entries, run.unknowns, run.reflection_question, run.user_response, run.created_at, run.completed_at, run.policy_version, run.provenance);
+    return this.getDecisionCompanionRun(run.id);
+  }
+  getDecisionCompanionRun(id) {
+    const run = this.db.prepare('SELECT * FROM decision_companion_runs WHERE id = ?').get(id); if (!run) throw new Error(`Decision Companion Run not found: ${id}`);
+    return { ...run, decision: JSON.parse(run.decision_definition), options: JSON.parse(run.options), criteria: JSON.parse(run.selected_criteria), comparison_entries: JSON.parse(run.comparison_entries), unknowns: JSON.parse(run.unknowns), response: JSON.parse(run.user_response), provenance: JSON.parse(run.provenance) };
   }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);
