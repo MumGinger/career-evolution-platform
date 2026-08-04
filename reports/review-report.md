@@ -1,5 +1,14 @@
 # Review Report — Capability 004.3
 
+## Decision Companion MVP review (Issue #51)
+
+Codex self-review: pending human review. This is one bounded, immutable comparison slice, not a generic decision framework. It uses only explicit option inputs and a referenced Career Understanding Snapshot; it visibly preserves unknowns and gives no recommendation.
+
+1. No Product Principle is violated: it guides rather than decides, explains why through provenance, preserves uncertainty, and leaves the user independent.
+2. No ADR is required: ADR-004 already governs immutable runs, while ADR-005/006 preserve the Candidate Knowledge write boundary.
+3. Yes, `docs/prd/decision-companion-mvp.md` records the MVP scope and exclusions.
+4. Yes, the roadmap marks Decision Companion as the final Thinking Layer MVP and Intelligent Execution as next.
+
 ## AI Career Companion Manifesto review (2026-08-04)
 
 Human review remains pending. The manifesto adds a durable product review gate without changing behavior. It is consistent with the existing product principles: it preserves user agency, uncertainty, explainability, and value-led interactions.

@@ -4,6 +4,14 @@ The platform explains every belief it presents about a user. Career Evolution Lo
 
 Evidence-driven career intelligence: acquire the highest-value missing information before making career decisions or generating career artifacts. The platform treats a resume as one source and snapshot—not the candidate—and improves recommendations from traceable evidence and outcomes.
 
+## Decision Companion MVP
+
+Decision Companion is the final Thinking Layer MVP. It helps a user organize one bounded career choice without choosing for them: 2–4 options, up to 3 criteria, explicit trade-offs/unknowns/provenance, one reflection question, and an immutable user-owned final state. Intelligent Execution is the next milestone.
+
+```powershell
+node src/cli.js decision-companion-create --db career-evolution.db --candidate-profile-id <profile-id> --snapshot-run-id <snapshot-id> --decision '{"title":"Which direction?","decisionType":"career_direction","options":[{"id":"a","label":"Option A"},{"id":"b","label":"Option B"}],"criteria":[{"type":"learning"}]}' --response '{"final_state":"undecided"}' --format text
+```
+
 ## Current capabilities
 
 - **Capability 001 — Application Evidence Loop:** record applications, generated artifacts, and outcome/preference evidence without automatic learning.
