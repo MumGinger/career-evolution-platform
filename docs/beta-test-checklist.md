@@ -11,3 +11,8 @@ Classify defects as extraction, validation, retrieval, or UX; ship one vertical 
 
 - [ ] Verify Current Career Snapshot labels each visible item with why, sources, and confidence.
 - [ ] Verify `Not quite` records feedback without editing Candidate Knowledge.
+
+# Shared Understanding check
+
+- [ ] Verify the snapshot is shown before the one reflective prompt and no follow-up question appears.
+- [ ] Verify each response is source-linked, immutable, and leaves Candidate Knowledge and Career Understanding unchanged.
