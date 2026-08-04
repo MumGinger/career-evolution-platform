@@ -21,6 +21,7 @@ For 002.7, “Complete” means the offline/mock path now validates nested AST l
 | Evidence Review MVP (Issue #39) | Complete | Review confirmation-required evidence, integrate only approved claims through 003.6, then refresh tailoring, artifact, and validation. |
 | Career Conversation MVP | Complete | Ask one optional post-resume question and store its answer or skip as a bounded observation, never as Candidate Knowledge. |
 | Career Reflection / Shared Understanding MVP (Issue #46) | Complete | Present the Current Career Snapshot, capture one optional-note response, and persist an immutable source-linked reflection without updating understanding or knowledge. |
+| Career Curiosity MVP | Complete | Introduce exactly one supported adjacent career possibility, record one bounded response, and expand perspective without recommending a job or writing Candidate Knowledge. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
 | 007 — Outcome Learning | Planned | Learn priorities and guidance from reviewed application and interview outcomes. |
