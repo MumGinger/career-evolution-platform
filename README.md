@@ -51,6 +51,8 @@ node src/evidence-review-cli.js --db C:\private\career.db --candidate-profile-id
 
 For a repeatable non-interactive run, add `--review-fixture C:\private\review-fixture.json --non-interactive`.
 
+After a successful review produces the validated resume, the interactive CLI asks one optional Career Conversation question. Choose a direction or `S` to skip; either response is non-blocking. A fixture may include `"careerConversation": { "answer": "Data Analytics" }` or `"careerConversation": { "skipped": true }`. The HTML report shows the question, answer, and skipped state. This observation is separate from Candidate Knowledge and never creates a fact.
+
 ## Milestone 1 Demo — end-to-end resume tailoring
 
 The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
