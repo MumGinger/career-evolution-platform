@@ -1,9 +1,11 @@
 # Current State
 
 **Phase:** Evidence Review, Career Conversation, and Career Understanding MVPs implemented for local CLI beta
-**Last updated:** 2026-08-03
+**Last updated:** 2026-08-04
 
 ## Completed
+
+- Recorded the AI Career Companion Manifesto as durable product guidance for the platform's evolution from Resume Builder to Life-long Career Companion.
 
 - Implemented 002.7 Resume AST: async provider runs, nested-schema/provenance firewall, exact `structurally_grouped` layout state, ranked direct `resume_ast` retrieval, and confirmation proposals. Only validated explicit skills/tools may be auto-accepted; 003.6 remains the sole Candidate Knowledge writer. 002.6 remains optional/lazy.
 
