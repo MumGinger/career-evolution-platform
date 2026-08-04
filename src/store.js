@@ -15,6 +15,7 @@ const careerReflection = require('./career-reflection');
 const careerCuriosity = require('./career-curiosity');
 const decisionCompanion = require('./decision-companion');
 const presentationStrategy = require('./presentation-strategy');
+const humanReview = require('./human-review');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -85,12 +86,18 @@ class Store {
       CREATE TABLE IF NOT EXISTS career_curiosity_observations (id TEXT PRIMARY KEY, possibility_id TEXT NOT NULL, supporting_snapshot TEXT NOT NULL, user_response TEXT NOT NULL CHECK(user_response IN ('interesting', 'not_for_me', 'maybe_later')), timestamp TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS decision_companion_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), decision_definition TEXT NOT NULL, options TEXT NOT NULL, selected_criteria TEXT NOT NULL, comparison_entries TEXT NOT NULL, unknowns TEXT NOT NULL, reflection_question TEXT NOT NULL, user_response TEXT NOT NULL, created_at TEXT NOT NULL, completed_at TEXT, policy_version TEXT NOT NULL, provenance TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS presentation_strategy_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), resume_tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), reflection_run_id TEXT REFERENCES career_reflection_runs(id), decision_companion_run_id TEXT REFERENCES decision_companion_runs(id), input_snapshot TEXT NOT NULL, policy_version TEXT NOT NULL, strategy TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS human_review_runs (id TEXT PRIMARY KEY, resume_artifact_run_id TEXT NOT NULL REFERENCES resume_artifact_runs(id), artifact_snapshot TEXT NOT NULL, presentation_strategy_snapshot TEXT, policy_version TEXT NOT NULL, review_actor TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS human_review_sections (id TEXT PRIMARY KEY, human_review_run_id TEXT NOT NULL REFERENCES human_review_runs(id), section TEXT NOT NULL CHECK(section IN ('Professional Summary', 'Skills', 'Experience', 'Projects')), action TEXT NOT NULL CHECK(action IN ('approve', 'edit')), ai_version TEXT NOT NULL, final_version TEXT NOT NULL, supporting_evidence TEXT NOT NULL, presentation_rationale TEXT NOT NULL, review_actor TEXT NOT NULL, reviewed_at TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(human_review_run_id, section)) STRICT;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_update BEFORE UPDATE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_delete BEFORE DELETE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_update BEFORE UPDATE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_delete BEFORE DELETE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS presentation_strategy_runs_immutable_update BEFORE UPDATE ON presentation_strategy_runs BEGIN SELECT RAISE(ABORT, 'Presentation Strategy runs are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS presentation_strategy_runs_immutable_delete BEFORE DELETE ON presentation_strategy_runs BEGIN SELECT RAISE(ABORT, 'Presentation Strategy runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS human_review_runs_immutable_update BEFORE UPDATE ON human_review_runs BEGIN SELECT RAISE(ABORT, 'Human Review runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS human_review_runs_immutable_delete BEFORE DELETE ON human_review_runs BEGIN SELECT RAISE(ABORT, 'Human Review runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS human_review_sections_immutable_update BEFORE UPDATE ON human_review_sections BEGIN SELECT RAISE(ABORT, 'Human Review section decisions are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS human_review_sections_immutable_delete BEFORE DELETE ON human_review_sections BEGIN SELECT RAISE(ABORT, 'Human Review section decisions are immutable'); END;
     `);
     this.seedSkill();
   }
@@ -532,6 +539,41 @@ class Store {
     const run = this.db.prepare('SELECT * FROM resume_artifact_runs WHERE id = ?').get(id); if (!run) throw new Error(`Resume Artifact Run not found: ${id}`);
     const artifacts = this.db.prepare('SELECT * FROM resume_artifacts WHERE resume_artifact_run_id = ? ORDER BY artifact_type, id').all(id).map((item) => ({ ...item, content: JSON.parse(item.content), metadata: JSON.parse(item.metadata) }));
     return { ...run, candidate_knowledge_snapshot: JSON.parse(run.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.parse(run.job_requirement_profile_reference), resume_artifacts: artifacts };
+  }
+  createHumanReviewRun({ resumeArtifactRunId, presentationStrategyRunId = null, decisions, reviewActor = 'user' }) {
+    if (!Array.isArray(decisions)) throw new Error('Human Review requires an explicit decision for every required section');
+    const artifactRun = this.getResumeArtifactRun(resumeArtifactRunId);
+    const strategyRun = presentationStrategyRunId ? this.getPresentationStrategyRun(presentationStrategyRunId) : null;
+    const drafts = humanReview.createDraft({ artifactRun, presentationStrategyRun: strategyRun });
+    const submitted = new Map(decisions.map((item) => [item.section, item]));
+    if (submitted.size !== humanReview.REQUIRED_SECTIONS.length || humanReview.REQUIRED_SECTIONS.some((section) => !submitted.has(section))) throw new Error(`Human Review requires explicit decisions for: ${humanReview.REQUIRED_SECTIONS.join(', ')}`);
+    for (const decision of decisions) if (!['approve', 'edit'].includes(decision.action)) throw new Error('Human Review action must be approve or edit');
+    const run = { id: this.id(), resume_artifact_run_id: artifactRun.id, artifact_snapshot: JSON.stringify(artifactRun), presentation_strategy_snapshot: strategyRun ? JSON.stringify(strategyRun) : null, policy_version: humanReview.POLICY_VERSION, review_actor: reviewActor, created_at: this.now() };
+    this.db.prepare('INSERT INTO human_review_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_artifact_run_id, run.artifact_snapshot, run.presentation_strategy_snapshot, run.policy_version, run.review_actor, run.created_at);
+    for (const draft of drafts) {
+      const decision = submitted.get(draft.section); const finalVersion = decision.action === 'edit' ? decision.finalVersion : draft.ai_version;
+      const editValidationError = decision.action === 'edit' ? humanReview.validateFinalVersion(finalVersion) : null;
+      if (editValidationError) throw new Error(`Invalid edited ${draft.section} section: ${editValidationError}`);
+      const row = { id: this.id(), human_review_run_id: run.id, section: draft.section, action: decision.action, ai_version: JSON.stringify(draft.ai_version), final_version: JSON.stringify(finalVersion), supporting_evidence: JSON.stringify(draft.supporting_evidence), presentation_rationale: JSON.stringify(draft.presentation_rationale), review_actor: reviewActor, reviewed_at: this.now(), created_at: this.now() };
+      this.db.prepare('INSERT INTO human_review_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(row.id, row.human_review_run_id, row.section, row.action, row.ai_version, row.final_version, row.supporting_evidence, row.presentation_rationale, row.review_actor, row.reviewed_at, row.created_at);
+    }
+    return this.getHumanReviewRun(run.id);
+  }
+  getHumanReviewRun(id) {
+    const run = this.db.prepare('SELECT * FROM human_review_runs WHERE id = ?').get(id); if (!run) throw new Error(`Human Review Run not found: ${id}`);
+    const sectionReviews = this.db.prepare('SELECT * FROM human_review_sections WHERE human_review_run_id = ? ORDER BY reviewed_at, id').all(id).map((row) => ({ ...row, ai_version: JSON.parse(row.ai_version), final_version: JSON.parse(row.final_version), supporting_evidence: JSON.parse(row.supporting_evidence), presentation_rationale: JSON.parse(row.presentation_rationale) }));
+    return { ...run, artifact_snapshot: JSON.parse(run.artifact_snapshot), presentation_strategy_snapshot: run.presentation_strategy_snapshot ? JSON.parse(run.presentation_strategy_snapshot) : null, section_reviews: sectionReviews, review_complete: humanReview.complete({ section_reviews: sectionReviews }) };
+  }
+  exportReviewedResume({ humanReviewRunId }) {
+    const run = this.getHumanReviewRun(humanReviewRunId);
+    if (!run.review_complete) throw new Error('Export blocked: every required resume section must be explicitly reviewed');
+    return { human_review_run_id: run.id, exported_at: this.now(), markdown: humanReview.markdown(run), sections: run.section_reviews.map((review) => ({ section: review.section, action: review.action, ai_version: review.ai_version, final_version: review.final_version, reviewed_at: review.reviewed_at })) };
+  }
+  exportResumeArtifact({ resumeArtifactRunId, humanReviewRunId }) {
+    if (!humanReviewRunId) throw new Error('Export blocked: a complete Human Review Run is required before export');
+    const run = this.getHumanReviewRun(humanReviewRunId);
+    if (run.resume_artifact_run_id !== resumeArtifactRunId) throw new Error('Human Review Run does not belong to this Resume Artifact Run');
+    return this.exportReviewedResume({ humanReviewRunId });
   }
   candidateFactIntegrity(factIds) {
     const statement = this.db.prepare(`SELECT candidate_knowledge_facts.id, candidate_knowledge_facts.integration_decision_id,
