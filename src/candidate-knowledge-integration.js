@@ -33,4 +33,4 @@ function classify({ proposal, sources, existingFacts }) {
   if (proposal.relation && proposal.relation !== 'new' && !proposal.priorFactId) return { state: 'deferred', rationale: 'A non-new revision requires an explicit prior Candidate Fact reference.' };
   return { state: 'accepted', relation: proposal.relation || 'new', rationale: 'Bounded, positively confirmed, traceable evidence satisfies the deterministic acceptance policy.' };
 }
-module.exports = { POLICY_VERSION, DECISIONS, RELATIONS, identity, classify };
+module.exports = { POLICY_VERSION, DECISIONS, RELATIONS, identity, bounded, classify };

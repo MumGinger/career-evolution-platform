@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Milestone 1 Demo — End-to-End Resume Tailoring Pipeline implemented
+**Phase:** Evidence Review MVP implemented for local CLI beta
 **Last updated:** 2026-08-03
 
 ## Completed
@@ -24,6 +24,7 @@
 - Implemented Capability 004.1: immutable, deterministic Resume Tailoring Plan Runs that select committed facts, record requirement coverage and bounded claim scopes, and analyze source-resume wording without editing it.
 - Implemented Capability 004.2: immutable Resume Artifact Runs and first-class structured Resume Artifacts rendered deterministically from one tailoring plan, with statement-level selection/fact provenance and metadata-only omissions and blocked claims.
 - Implemented Capability 004.3: immutable, independently re-runnable Resume Validation Runs with first-class findings and deterministic provenance, claim-scope, plan, coverage, duplication, and completeness checks.
+- Implemented Issue #39 Evidence Review MVP: immutable review runs, interactive and fixture decisions, strict source-bounded edits, 003.6-only integration, regenerated tailoring/artifact/validation, and user-review KPIs.
 
 ## Current focus
 
