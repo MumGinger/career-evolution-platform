@@ -1,0 +1,56 @@
+{
+  "id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+  "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+  "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+  "job_requirement_profile_version": 1,
+  "tailoring_policy_version": "resume-tailoring-policy/1.0.0",
+  "candidate_knowledge_snapshot": [],
+  "source_resume_snapshot": null,
+  "limitations": "No prose, rendering, acquisition, or Candidate Knowledge write is performed.",
+  "created_at": "2026-08-04T19:35:55.743Z",
+  "resume_content_selections": [],
+  "requirement_coverage": [
+    {
+      "id": "dd82e731-f1aa-4f99-aaef-8f29e2b95d9b",
+      "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+      "job_requirement_id": "060b3cc7-0ea5-4537-8c43-a4a35173fc39",
+      "coverage_status": "uncovered",
+      "supporting_candidate_fact_ids": [],
+      "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+      "limitations": "Unknown is preserved; no content is invented.",
+      "created_at": "2026-08-04T19:35:55.743Z"
+    },
+    {
+      "id": "e17967d4-bcfb-4276-b637-7896cc442130",
+      "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+      "job_requirement_id": "41a479b7-63f8-4d95-ba98-7a79cfa2cc28",
+      "coverage_status": "uncovered",
+      "supporting_candidate_fact_ids": [],
+      "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+      "limitations": "Unknown is preserved; no content is invented.",
+      "created_at": "2026-08-04T19:35:55.743Z"
+    },
+    {
+      "id": "a1bacfca-017b-4915-b9fd-45743638033a",
+      "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+      "job_requirement_id": "51dc8cd3-d525-40a5-8cb8-02d544e42377",
+      "coverage_status": "not_resume_relevant",
+      "supporting_candidate_fact_ids": [],
+      "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+      "limitations": "Unknown is preserved; no content is invented.",
+      "created_at": "2026-08-04T19:35:55.743Z"
+    },
+    {
+      "id": "2294a4e0-b0b4-4fdc-a0be-8c948dab607f",
+      "tailoring_plan_run_id": "c7d377da-fffa-4697-9c1c-7354163ce290",
+      "job_requirement_id": "d467a2b0-3f1e-4ec2-9d0b-bb2a96a28c3f",
+      "coverage_status": "uncovered",
+      "supporting_candidate_fact_ids": [],
+      "coverage_rationale": "No committed Candidate Knowledge explicitly supports this material requirement; this is not a negative candidate claim.",
+      "limitations": "Unknown is preserved; no content is invented.",
+      "created_at": "2026-08-04T19:35:55.743Z"
+    }
+  ],
+  "section_plans": [],
+  "source_resume_analysis_flags": []
+}
