@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
-const { OUTPUT_FILES, runDemo, jobIdentity } = require('../src/demo');
+const { OUTPUT_FILES, confirmationProposals, runDemo, jobIdentity } = require('../src/demo');
 
 const root = path.join(__dirname, '..');
 function fixture(name) { return path.join(root, 'examples', name); }
@@ -27,6 +27,11 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.match(report, /Career Curiosity/);
     assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
+});
+
+test('integrated demo confirmation proposals retain provenance-rich review fields', () => {
+  const [proposal] = confirmationProposals({ need_results: [{ candidates: [{ resolution: { state: 'needs_confirmation' }, candidate: { normalized_claim: 'SQL dashboard experience', source_reference: 'resume-ast-block-1', supporting_text: 'Built a SQL dashboard.', provenance: { block_kind: 'project_bullet', section: 'Projects', extraction_state: 'explicit', exact_source_text: 'Built a SQL dashboard.', retrieval: { rank: 2, score: 0.82, rationale: 'Matched the required dashboard context.' } } } }] }] });
+  assert.deepEqual(proposal, { requirement: 'SQL dashboard experience', proposed_evidence_block: 'resume-ast-block-1', block_kind: 'project_bullet', section: 'Projects', extraction_state: 'explicit', rank: 2, score: 0.82, rationale: 'Matched the required dashboard context.', exact_source_text: 'Built a SQL dashboard.', source_text: 'Built a SQL dashboard.', proposed_normalized_claim: 'SQL dashboard experience', action: 'confirm | reject | edit' });
 });
 
 test('career evolution demo joins every milestone stage into one bounded companion journey', async () => {
