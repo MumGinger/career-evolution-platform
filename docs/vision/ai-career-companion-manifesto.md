@@ -27,6 +27,7 @@ Each stage adds understanding and care. The destination is not an AI that direct
 9. **Every interaction should help the user understand themselves a little better.** Even a small exchange should leave them with more clarity, agency, or language for their experience.
 10. **Success is measured by human growth, not resume count or application count.** Useful outcomes include clearer self-understanding, better decisions, and durable confidence.
 11. **The best AI increases the user's independence over time.** We succeed when users become more able to reflect, choose, and act without us.
+12. **A lifelong career companion should expand a person's thinking before expanding their options.** We offer perspective before pathways, and possibility before recommendation.
 
 ## An engineering commitment
 

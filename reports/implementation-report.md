@@ -70,3 +70,9 @@ Added immutable Snapshot Runs, immutable user feedback, a bounded deterministic 
 # Career Reflection / Shared Understanding MVP (Issue #46)
 
 Added a small snapshot-first reflection slice: three bounded actions, one optional short note, an immutable source-linked Career Reflection Run, and deterministic idempotency for duplicate submissions. The CLI reviews the latest snapshot, and the demo exports `career-reflection-run.json`, a Shared Understanding HTML section, and terminal state. No Candidate Knowledge, Career Understanding, preference, goal, or hypothesis write path was added. Validation: full automated suite and whitespace check.
+
+# Career Curiosity MVP
+
+Added a deterministic, snapshot-bound adjacent-path slice. It produces only one curated possibility when a direction and supporting strengths are present; otherwise it explicitly suppresses output for insufficient confidence. The CLI, JSON, and HTML demo output present the plain-language explanation and source items. The only new persistence is an immutable observation containing a possibility ID, supporting snapshot, user response, and timestamp. Candidate Knowledge and Career Understanding remain read-only.
+
+Validation: `npm.cmd test` — 119 passing.
