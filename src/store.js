@@ -12,6 +12,7 @@ const validation = require('./resume-validation');
 const resumeAst = require('./resume-ast');
 const careerUnderstanding = require('./career-understanding');
 const careerReflection = require('./career-reflection');
+const careerCuriosity = require('./career-curiosity');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -79,6 +80,9 @@ class Store {
       CREATE TABLE IF NOT EXISTS career_understanding_snapshot_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), source_snapshots TEXT NOT NULL, generated_at TEXT NOT NULL, understanding_policy_version TEXT NOT NULL, current_direction TEXT NOT NULL, understanding_items TEXT NOT NULL, unknowns TEXT NOT NULL, limitations TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS career_understanding_snapshot_feedback (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), actor TEXT NOT NULL CHECK(actor IN ('user')), action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite')), note TEXT, timestamp TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS career_reflection_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), source_snapshot_reference TEXT NOT NULL, action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite', 'missing_something')), note TEXT, actor TEXT NOT NULL CHECK(actor IN ('user')), reflected_at TEXT NOT NULL, reflection_policy_version TEXT NOT NULL, submission_key TEXT NOT NULL UNIQUE) STRICT;
+      CREATE TABLE IF NOT EXISTS career_curiosity_observations (id TEXT PRIMARY KEY, possibility_id TEXT NOT NULL, supporting_snapshot TEXT NOT NULL, user_response TEXT NOT NULL CHECK(user_response IN ('interesting', 'not_for_me', 'maybe_later')), timestamp TEXT NOT NULL) STRICT;
+      CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_update BEFORE UPDATE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_delete BEFORE DELETE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
     `);
     this.seedSkill();
   }
@@ -437,6 +441,18 @@ class Store {
     const run = this.db.prepare('SELECT * FROM career_reflection_runs WHERE id = ?').get(id);
     if (!run) throw new Error(`Career Reflection Run not found: ${id}`);
     return { ...run, source_snapshot_reference: JSON.parse(run.source_snapshot_reference), duplicate_submission: false };
+  }
+  recordCareerCuriosityObservation({ possibility, userResponse }) {
+    if (!possibility?.id || !possibility.supporting_snapshot) throw new Error('Career Curiosity observation requires a generated possibility');
+    if (!careerCuriosity.RESPONSES.includes(userResponse)) throw new Error('Career Curiosity response must be interesting, not_for_me, or maybe_later');
+    const observation = { id: this.id(), possibility_id: possibility.id, supporting_snapshot: JSON.stringify(possibility.supporting_snapshot), user_response: userResponse, timestamp: this.now() };
+    this.db.prepare('INSERT INTO career_curiosity_observations VALUES (?, ?, ?, ?, ?)').run(observation.id, observation.possibility_id, observation.supporting_snapshot, observation.user_response, observation.timestamp);
+    return this.getCareerCuriosityObservation(observation.id);
+  }
+  getCareerCuriosityObservation(id) {
+    const observation = this.db.prepare('SELECT * FROM career_curiosity_observations WHERE id = ?').get(id);
+    if (!observation) throw new Error(`Career Curiosity observation not found: ${id}`);
+    return { ...observation, supporting_snapshot: JSON.parse(observation.supporting_snapshot) };
   }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);

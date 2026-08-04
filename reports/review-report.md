@@ -74,3 +74,12 @@ Codex self-review: pending human review. This is a bounded, user-visible vertica
 2. No ADR is required: ADR-004 already governs immutable runs and ADR-005 preserves the single Candidate Knowledge write path.
 3. Yes, the concise Career Reflection / Shared Understanding MVP PRD documents the new behavior and scope boundary.
 4. Yes, the roadmap records Issue #46 as complete.
+
+# Career Curiosity MVP review
+
+Codex self-review: pending human review. The slice expands perspective before options by offering one explainable adjacent possibility, never a job recommendation or decision. It preserves uncertainty by suppressing output when the snapshot is not sufficient.
+
+1. No Product Principle is violated: the possibility is source-linked, non-ranking, and leaves agency with the user.
+2. No ADR is required: ADR-004 already governs immutable records and ADR-005 preserves the Candidate Knowledge write boundary.
+3. Yes, the Career Curiosity MVP PRD documents the bounded behavior and exclusions.
+4. Yes, the roadmap records the completed MVP.
