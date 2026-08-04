@@ -35,8 +35,9 @@ function renderStatement(selection, fact) {
     },
   };
 }
-function generate(plan) {
+function generate(plan, presentationStrategy = null) {
   const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
+  const order = new Map((presentationStrategy?.ordered_resume_content_selection_ids || []).map((id, index) => [id, index]));
   const visibleSelections = plan.resume_content_selections.filter((selection) => selection.selection_state === 'include');
   const sections = SECTIONS.map((name, position) => ({
     section: name,
@@ -44,7 +45,7 @@ function generate(plan) {
     placeholder: name === 'Professional Summary' ? 'Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.' : null,
     statements: visibleSelections
       .filter((selection) => selection.recommended_section === name)
-      .sort((left, right) => displayValue(facts.get(left.candidate_fact_id)).localeCompare(displayValue(facts.get(right.candidate_fact_id))))
+      .sort((left, right) => (order.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (order.get(right.id) ?? Number.MAX_SAFE_INTEGER) || displayValue(facts.get(left.candidate_fact_id)).localeCompare(displayValue(facts.get(right.candidate_fact_id))))
       .map((selection) => renderStatement(selection, facts.get(selection.candidate_fact_id)))
       .filter(Boolean),
   }));
@@ -63,6 +64,7 @@ function generate(plan) {
       omissions,
       blocked_claims: blockedClaims,
       requirement_coverage: plan.requirement_coverage.map((coverage) => ({ requirement_id: coverage.job_requirement_id, status: coverage.coverage_status, rationale: coverage.coverage_rationale })),
+      presentation_strategy: presentationStrategy ? { policy_version: presentationStrategy.policy_version, target_job: presentationStrategy.target_job, career_understanding_snapshot_run_id: presentationStrategy.shared_understanding.career_understanding_snapshot_run_id, limitations: presentationStrategy.limitations } : null,
       limitations: 'Visible content is deterministic and contains only values permitted by a Resume Content Selection. Omissions and blocked claims are metadata, not resume output.',
     },
     rendered_statement_count: rendered.length,

@@ -3,6 +3,10 @@
 **Phase:** Milestone 2 — Career Evolution Loop v1 complete for local CLI demo
 **Last updated:** 2026-08-04
 
+## Intelligent Resume v1 — final step before Version 1.0 beta
+
+The resume pipeline now creates an immutable Presentation Strategy Run after Career Understanding and before artifact generation. It snapshots the target job, Resume Tailoring Plan, Career Understanding, and available Reflection, Curiosity, or Decision Companion context. It may order only already-included committed facts; it cannot add facts, change selection state, strengthen wording, or turn thinking-layer context into a resume claim. The end-to-end demo exports strategy JSON and an HTML explanation beside the validated resume.
+
 ## Completed
 
 - Recorded the AI Career Companion Manifesto as durable product guidance for the platform's evolution from Resume Builder to Life-long Career Companion.

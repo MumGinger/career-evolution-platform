@@ -14,6 +14,7 @@ const careerUnderstanding = require('./career-understanding');
 const careerReflection = require('./career-reflection');
 const careerCuriosity = require('./career-curiosity');
 const decisionCompanion = require('./decision-companion');
+const presentationStrategy = require('./presentation-strategy');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -83,10 +84,13 @@ class Store {
       CREATE TABLE IF NOT EXISTS career_reflection_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), source_snapshot_reference TEXT NOT NULL, action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite', 'missing_something')), note TEXT, actor TEXT NOT NULL CHECK(actor IN ('user')), reflected_at TEXT NOT NULL, reflection_policy_version TEXT NOT NULL, submission_key TEXT NOT NULL UNIQUE) STRICT;
       CREATE TABLE IF NOT EXISTS career_curiosity_observations (id TEXT PRIMARY KEY, possibility_id TEXT NOT NULL, supporting_snapshot TEXT NOT NULL, user_response TEXT NOT NULL CHECK(user_response IN ('interesting', 'not_for_me', 'maybe_later')), timestamp TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS decision_companion_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), decision_definition TEXT NOT NULL, options TEXT NOT NULL, selected_criteria TEXT NOT NULL, comparison_entries TEXT NOT NULL, unknowns TEXT NOT NULL, reflection_question TEXT NOT NULL, user_response TEXT NOT NULL, created_at TEXT NOT NULL, completed_at TEXT, policy_version TEXT NOT NULL, provenance TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS presentation_strategy_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), job_requirement_profile_id TEXT NOT NULL REFERENCES job_requirement_profiles(id), resume_tailoring_plan_run_id TEXT NOT NULL REFERENCES resume_tailoring_plan_runs(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), reflection_run_id TEXT REFERENCES career_reflection_runs(id), decision_companion_run_id TEXT REFERENCES decision_companion_runs(id), input_snapshot TEXT NOT NULL, policy_version TEXT NOT NULL, strategy TEXT NOT NULL, limitations TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_update BEFORE UPDATE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS career_curiosity_observations_immutable_delete BEFORE DELETE ON career_curiosity_observations BEGIN SELECT RAISE(ABORT, 'Career Curiosity observations are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_update BEFORE UPDATE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS decision_companion_runs_immutable_delete BEFORE DELETE ON decision_companion_runs BEGIN SELECT RAISE(ABORT, 'Decision Companion runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS presentation_strategy_runs_immutable_update BEFORE UPDATE ON presentation_strategy_runs BEGIN SELECT RAISE(ABORT, 'Presentation Strategy runs are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS presentation_strategy_runs_immutable_delete BEFORE DELETE ON presentation_strategy_runs BEGIN SELECT RAISE(ABORT, 'Presentation Strategy runs are immutable'); END;
     `);
     this.seedSkill();
   }
@@ -473,6 +477,22 @@ class Store {
     const run = this.db.prepare('SELECT * FROM decision_companion_runs WHERE id = ?').get(id); if (!run) throw new Error(`Decision Companion Run not found: ${id}`);
     return { ...run, decision: JSON.parse(run.decision_definition), options: JSON.parse(run.options), criteria: JSON.parse(run.selected_criteria), comparison_entries: JSON.parse(run.comparison_entries), unknowns: JSON.parse(run.unknowns), response: JSON.parse(run.user_response), provenance: JSON.parse(run.provenance) };
   }
+  createPresentationStrategyRun({ candidateProfileId, jobRequirementProfileId, resumeTailoringPlanRunId, careerUnderstandingSnapshotRunId, reflectionRunId = null, curiosityResult = null, curiosityObservation = null, decisionCompanionRunId = null }) {
+    const job = this.getJobRequirementProfile(jobRequirementProfileId); const plan = this.getResumeTailoringPlanRun(resumeTailoringPlanRunId); const snapshot = this.getCareerUnderstandingSnapshotRun(careerUnderstandingSnapshotRunId);
+    if (plan.candidate_profile_id !== candidateProfileId || plan.job_requirement_profile_id !== job.id || snapshot.candidate_profile_id !== candidateProfileId) throw new Error('Presentation Strategy inputs must belong to the same candidate, job profile, and tailoring plan');
+    const reflectionRun = reflectionRunId ? this.getCareerReflectionRun(reflectionRunId) : null;
+    if (reflectionRun && reflectionRun.career_understanding_snapshot_run_id !== snapshot.id) throw new Error('Presentation Strategy reflection must reference its Career Understanding snapshot');
+    const decisionRun = decisionCompanionRunId ? this.getDecisionCompanionRun(decisionCompanionRunId) : null;
+    if (decisionRun && (decisionRun.candidate_profile_id !== candidateProfileId || decisionRun.career_understanding_snapshot_run_id !== snapshot.id)) throw new Error('Presentation Strategy decision context must reference its candidate and snapshot');
+    const strategy = presentationStrategy.create({ plan, job, snapshot, reflectionRun, curiosityResult, curiosityObservation, decisionRun });
+    const run = { id: this.id(), candidate_profile_id: candidateProfileId, job_requirement_profile_id: job.id, resume_tailoring_plan_run_id: plan.id, career_understanding_snapshot_run_id: snapshot.id, reflection_run_id: reflectionRun?.id || null, decision_companion_run_id: decisionRun?.id || null, input_snapshot: JSON.stringify({ plan, job, snapshot, reflectionRun, curiosityResult, curiosityObservation, decisionRun }), policy_version: presentationStrategy.POLICY_VERSION, strategy: JSON.stringify(strategy), limitations: strategy.limitations, created_at: this.now() };
+    this.db.prepare('INSERT INTO presentation_strategy_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.job_requirement_profile_id, run.resume_tailoring_plan_run_id, run.career_understanding_snapshot_run_id, run.reflection_run_id, run.decision_companion_run_id, run.input_snapshot, run.policy_version, run.strategy, run.limitations, run.created_at);
+    return this.getPresentationStrategyRun(run.id);
+  }
+  getPresentationStrategyRun(id) {
+    const run = this.db.prepare('SELECT * FROM presentation_strategy_runs WHERE id = ?').get(id); if (!run) throw new Error(`Presentation Strategy Run not found: ${id}`);
+    return { ...run, input_snapshot: JSON.parse(run.input_snapshot), strategy: JSON.parse(run.strategy) };
+  }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);
     const job = this.getJobRequirementProfile(jobRequirementProfileId);
@@ -495,12 +515,15 @@ class Store {
       section_plans: this.db.prepare('SELECT * FROM resume_section_plans WHERE tailoring_plan_run_id = ? ORDER BY recommended_order').all(id).map((row) => parse(row, ['candidate_fact_ids'])),
       source_resume_analysis_flags: this.db.prepare('SELECT * FROM source_resume_analysis_flags WHERE tailoring_plan_run_id = ? ORDER BY id').all(id) };
   }
-  createResumeArtifactRun({ resumeTailoringPlanRunId }) {
+  createResumeArtifactRun({ resumeTailoringPlanRunId, presentationStrategyRunId = null }) {
     const plan = this.getResumeTailoringPlanRun(resumeTailoringPlanRunId);
-    const generated = artifactGeneration.generate(plan);
+    const strategyRun = presentationStrategyRunId ? this.getPresentationStrategyRun(presentationStrategyRunId) : null;
+    if (strategyRun && strategyRun.resume_tailoring_plan_run_id !== plan.id) throw new Error('Presentation Strategy Run must reference the Resume Tailoring Plan Run');
+    const generated = artifactGeneration.generate(plan, strategyRun?.strategy || null);
     const run = { id: this.id(), resume_tailoring_plan_run_id: plan.id, candidate_knowledge_snapshot: JSON.stringify(plan.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.stringify({ id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version }), artifact_policy_version: artifactGeneration.POLICY_VERSION, limitations: generated.metadata.limitations, created_at: this.now() };
     this.db.prepare('INSERT INTO resume_artifact_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_tailoring_plan_run_id, run.candidate_knowledge_snapshot, run.job_requirement_profile_reference, run.artifact_policy_version, run.limitations, run.created_at);
     generated.metadata.traceability = { resume_artifact_run_id: run.id, resume_tailoring_plan_run_id: plan.id };
+    if (strategyRun) generated.metadata.traceability.presentation_strategy_run_id = strategyRun.id;
     const artifact = { id: this.id(), resume_artifact_run_id: run.id, artifact_type: 'structured_resume', format_version: generated.format, content: JSON.stringify({ format: generated.format, sections: generated.sections }), metadata: JSON.stringify(generated.metadata), created_at: run.created_at };
     this.db.prepare('INSERT INTO resume_artifacts VALUES (?, ?, ?, ?, ?, ?, ?)').run(artifact.id, artifact.resume_artifact_run_id, artifact.artifact_type, artifact.format_version, artifact.content, artifact.metadata, artifact.created_at);
     return this.getResumeArtifactRun(run.id);

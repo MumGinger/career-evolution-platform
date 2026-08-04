@@ -1,0 +1,249 @@
+{
+  "id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+  "candidate_profile_id": "0b651b62-4643-459e-8c9c-a512ec48c2d6",
+  "source_snapshots": {
+    "candidate_knowledge": [],
+    "resume_ast_evidence": [
+      {
+        "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+        "entity_type": "skill",
+        "value": {
+          "name": "SQL",
+          "text": "SQL"
+        },
+        "source": "resume_ast",
+        "confirmation_status": "confirmed",
+        "provenance": {
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+          "block_kind": "skill",
+          "section": "skills",
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "SQL",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+        "entity_type": "skill",
+        "value": {
+          "name": "Python",
+          "text": "Python"
+        },
+        "source": "resume_ast",
+        "confirmation_status": "confirmed",
+        "provenance": {
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+          "block_kind": "skill",
+          "section": "skills",
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Python",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+        "entity_type": "skill",
+        "value": {
+          "name": "Data visualization",
+          "text": "Data visualization"
+        },
+        "source": "resume_ast",
+        "confirmation_status": "confirmed",
+        "provenance": {
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+          "block_kind": "skill",
+          "section": "skills",
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Data visualization",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+        "entity_type": "skill",
+        "value": {
+          "name": "Communication",
+          "text": "Communication"
+        },
+        "source": "resume_ast",
+        "confirmation_status": "confirmed",
+        "provenance": {
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+          "block_kind": "skill",
+          "section": "skills",
+          "source_span_ids": [
+            "line-5"
+          ],
+          "exact_source_text": "Communication",
+          "source_line_start": 5,
+          "source_line_end": 5,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      },
+      {
+        "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:4",
+        "entity_type": "project",
+        "value": {
+          "name": "Sales reporting dashboard using SQL and Python",
+          "text": "Sales reporting dashboard using SQL and Python"
+        },
+        "source": "resume_ast",
+        "confirmation_status": "needs_confirmation",
+        "provenance": {
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_id": "58bac921-6fc9-41c4-ac0e-9ad8587b0b89",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a",
+          "block_kind": "project",
+          "section": "projects",
+          "source_span_ids": [
+            "line-8"
+          ],
+          "exact_source_text": "Sales reporting dashboard using SQL and Python",
+          "source_line_start": 8,
+          "source_line_end": 8,
+          "extraction_state": "explicit",
+          "confidence": "high",
+          "rationale": "Mock extraction copied exact source text."
+        }
+      }
+    ],
+    "career_conversations": [
+      {
+        "id": "8595df6d-a137-4b61-84b6-2135b9b51adf",
+        "question": "Which direction feels most interesting to you right now?",
+        "answer": "Data Analytics",
+        "observed_at": "2026-08-04T19:35:55.685Z",
+        "workflow_source": "evidence_review:da36f7a5-97bf-47f5-a746-02f71049716c",
+        "skipped": false
+      }
+    ],
+    "applications": []
+  },
+  "generated_at": "2026-08-04T19:35:55.701Z",
+  "understanding_policy_version": "career-understanding/1.0.0",
+  "current_direction": {
+    "state": "exploring",
+    "label": "Data Analytics"
+  },
+  "understanding_items": [
+    {
+      "label": "Data Analytics",
+      "category": "direction",
+      "state": "user_confirmed",
+      "confidence": "medium",
+      "supporting_source_references": [
+        {
+          "type": "career_conversation_observation",
+          "id": "8595df6d-a137-4b61-84b6-2135b9b51adf"
+        }
+      ],
+      "rationale": "You selected Data Analytics in the career conversation.",
+      "last_observed_at": "2026-08-04T19:35:55.685Z"
+    },
+    {
+      "label": "SQL",
+      "category": "strength",
+      "state": "supported_signal",
+      "confidence": "medium",
+      "supporting_source_references": [
+        {
+          "type": "resume_ast",
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+        }
+      ],
+      "rationale": "Your validated resume explicitly lists SQL.",
+      "last_observed_at": null
+    },
+    {
+      "label": "Python",
+      "category": "strength",
+      "state": "supported_signal",
+      "confidence": "medium",
+      "supporting_source_references": [
+        {
+          "type": "resume_ast",
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+        }
+      ],
+      "rationale": "Your validated resume explicitly lists Python.",
+      "last_observed_at": null
+    },
+    {
+      "label": "Data visualization",
+      "category": "strength",
+      "state": "supported_signal",
+      "confidence": "medium",
+      "supporting_source_references": [
+        {
+          "type": "resume_ast",
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+        }
+      ],
+      "rationale": "Your validated resume explicitly lists Data visualization.",
+      "last_observed_at": null
+    },
+    {
+      "label": "Communication",
+      "category": "strength",
+      "state": "supported_signal",
+      "confidence": "medium",
+      "supporting_source_references": [
+        {
+          "type": "resume_ast",
+          "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+          "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+          "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+        }
+      ],
+      "rationale": "Your validated resume explicitly lists Communication.",
+      "last_observed_at": null
+    }
+  ],
+  "unknowns": [
+    "Preferred industry",
+    "Long-term role goal",
+    "Preferred work style"
+  ],
+  "limitations": [
+    "This is a read-only summary of committed facts, validated resume evidence, confirmed conversation answers, and recorded applications.",
+    "Applications are neutral activity signals, not preferences.",
+    "Unknowns are intentionally not inferred."
+  ],
+  "neutral_activity_signals": [],
+  "feedback": [],
+  "feedback_state": "not_reviewed"
+}

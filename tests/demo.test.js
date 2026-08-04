@@ -21,10 +21,10 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.ok(result.integration.integration_decisions.every((decision) => decision.state !== 'accepted' || decision.source_evidence_refs.length));
     assert.equal(result.integration.applied_facts.length, 0);
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    assert.match(report, /1\. Resume Intelligence/);
-    assert.match(report, /2\. Career Conversation/);
-    assert.match(report, /3\. Career Understanding/);
-    assert.match(report, /Career Curiosity/);
+    assert.match(report, /Intelligent Resume v1/);
+    assert.match(report, /Career Understanding/);
+    assert.match(report, /Presentation Strategy/);
+    assert.match(report, /Generated Resume/);
     assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
@@ -44,12 +44,12 @@ test('career evolution demo joins every milestone stage into one bounded compani
     assert.equal(result.curiosity.status, 'available');
     assert.equal(result.curiosityObservation.user_response, 'interesting');
     const loop = JSON.parse(fs.readFileSync(path.join(output, 'career-evolution-loop-summary.json'), 'utf8'));
-    assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'completion']);
-    assert.equal(loop.completion.one_new_possibility_explored.label, 'Business Intelligence Analyst');
+    assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'presentation_strategy', 'truthful_resume']);
+    assert.equal(loop.presentation_strategy.shared_understanding.current_direction, 'Data Analytics');
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    for (const section of ['1. Resume Intelligence', '2. Career Conversation', '3. Career Understanding', '4. Shared Understanding', '5. Career Curiosity', '6. Decision Companion', '7. Your first loop is complete']) assert.match(report, new RegExp(section));
-    assert.match(report, /Based on what I know today/);
-    assert.match(report, /Return after a future career experience/);
+    for (const section of ['Career Understanding', 'Presentation Strategy', 'Generated Resume', 'Still Unknown']) assert.match(report, new RegExp(section));
+    assert.match(report, /career_direction/);
+    assert.match(report, /never converts context into candidate facts/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 

@@ -1,0 +1,159 @@
+{
+  "milestone": "Intelligent Resume v1",
+  "flow": [
+    "resume_intelligence",
+    "career_conversation",
+    "career_understanding",
+    "shared_understanding",
+    "career_curiosity",
+    "presentation_strategy",
+    "truthful_resume"
+  ],
+  "career_understanding": {
+    "snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+    "current_direction": {
+      "state": "exploring",
+      "label": "Data Analytics"
+    },
+    "understanding_items": [
+      {
+        "label": "Data Analytics",
+        "category": "direction",
+        "state": "user_confirmed",
+        "confidence": "medium",
+        "supporting_source_references": [
+          {
+            "type": "career_conversation_observation",
+            "id": "8595df6d-a137-4b61-84b6-2135b9b51adf"
+          }
+        ],
+        "rationale": "You selected Data Analytics in the career conversation.",
+        "last_observed_at": "2026-08-04T19:35:55.685Z"
+      },
+      {
+        "label": "SQL",
+        "category": "strength",
+        "state": "supported_signal",
+        "confidence": "medium",
+        "supporting_source_references": [
+          {
+            "type": "resume_ast",
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:0",
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+          }
+        ],
+        "rationale": "Your validated resume explicitly lists SQL.",
+        "last_observed_at": null
+      },
+      {
+        "label": "Python",
+        "category": "strength",
+        "state": "supported_signal",
+        "confidence": "medium",
+        "supporting_source_references": [
+          {
+            "type": "resume_ast",
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:1",
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+          }
+        ],
+        "rationale": "Your validated resume explicitly lists Python.",
+        "last_observed_at": null
+      },
+      {
+        "label": "Data visualization",
+        "category": "strength",
+        "state": "supported_signal",
+        "confidence": "medium",
+        "supporting_source_references": [
+          {
+            "type": "resume_ast",
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:2",
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+          }
+        ],
+        "rationale": "Your validated resume explicitly lists Data visualization.",
+        "last_observed_at": null
+      },
+      {
+        "label": "Communication",
+        "category": "strength",
+        "state": "supported_signal",
+        "confidence": "medium",
+        "supporting_source_references": [
+          {
+            "type": "resume_ast",
+            "id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54:3",
+            "resume_ast_run_id": "0e23a485-8eff-4f7e-a409-4a4f517d0b54",
+            "artifact_version_id": "116429bd-46e9-4590-a5b2-fa6f8e29c53a"
+          }
+        ],
+        "rationale": "Your validated resume explicitly lists Communication.",
+        "last_observed_at": null
+      }
+    ],
+    "unknowns": [
+      "Preferred industry",
+      "Long-term role goal",
+      "Preferred work style"
+    ]
+  },
+  "presentation_strategy": {
+    "policy_version": "intelligent-resume-presentation-strategy/1.0.0",
+    "target_job": {
+      "job_requirement_profile_id": "68223da5-6c31-455f-a263-a942950b2fbd",
+      "job_requirement_profile_version": 1,
+      "company": "Northstar Analytics",
+      "role_title": "Data Analyst"
+    },
+    "shared_understanding": {
+      "career_understanding_snapshot_run_id": "0908bf55-df70-4832-bf43-a03f08bba59b",
+      "current_direction": "Data Analytics",
+      "context": [
+        {
+          "type": "career_direction",
+          "state": "considered",
+          "value": "Data Analytics",
+          "source_reference": {
+            "type": "career_understanding_snapshot_run",
+            "id": "0908bf55-df70-4832-bf43-a03f08bba59b"
+          },
+          "rationale": "The user explicitly selected this direction. It frames the target-job context but is not converted into a skill, achievement, preference, or other candidate fact."
+        },
+        {
+          "type": "shared_understanding",
+          "state": "considered",
+          "value": "looks_right",
+          "source_reference": {
+            "type": "career_reflection_run",
+            "id": "55975cc1-2630-4158-a155-91c92bc988f0"
+          },
+          "rationale": "The response records whether the snapshot felt accurate; it validates neither individual facts nor new claims."
+        }
+      ],
+      "exclusions": [
+        {
+          "type": "career_curiosity",
+          "state": "not_used_for_resume_claims",
+          "source_reference": {
+            "type": "career_curiosity_observation",
+            "id": "b44e860e-db84-4f1c-99db-38054b1cb50e"
+          },
+          "rationale": "An adjacent possibility expands perspective; it is not evidence that the candidate has a skill, goal, or qualification."
+        }
+      ],
+      "unknowns": [
+        "Preferred industry",
+        "Long-term role goal",
+        "Preferred work style"
+      ]
+    },
+    "presentation_decisions": [],
+    "ordered_resume_content_selection_ids": [],
+    "limitations": "The strategy only orders already-included, committed candidate facts. It never turns Career Understanding, reflection, curiosity, or Decision Companion context into a resume claim, changes selection state, acquires evidence, or writes Candidate Knowledge."
+  },
+  "resume_validation": "passed"
+}
