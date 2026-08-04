@@ -29,3 +29,9 @@ test('fixture CLI completes without stdin and writes the complete user-facing ou
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'evidence-review-cli-')); const db = path.join(dir, 'test.db'); const store = new Store(db); const { profile, job } = setup(store); store.close(); const fixture = path.join(dir, 'fixture.json'); const output = path.join(dir, 'output'); fs.writeFileSync(fixture, JSON.stringify({ decisions: [{ requirementName: 'SQL', action: 'accepted' }] })); const io = { stdin: null, stdout: { write() {} } };
   try { await reviewCli(['--db', db, '--candidate-profile-id', profile.id, '--job-profile-id', job.id, '--review-fixture', fixture, '--non-interactive', '--output-dir', output], io); for (const name of ['evidence-review-run.json', 'review-decisions.json', 'candidate-knowledge-after-review.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'resume-after-review.md', 'evidence-review-report.html']) assert.ok(fs.existsSync(path.join(output, name))); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('HTML report escapes review and resume content', () => {
+  const output = require('../src/evidence-review-cli').html({ reviewRun: { review_decisions: [{ action: 'accepted', original_claim: '<script>alert(1)</script>', source_evidence_refs: [{ id: '<ref>' }] }] }, kpi: { needs_review_count: 1, auto_accepted_evidence_count: 0, committed_coverage_before: 0, committed_coverage_after: 100, candidate_knowledge_facts_before: 0, candidate_knowledge_facts_after: 1 }, validation: { status: 'passed', findings: [{ message: '</pre><script>alert(1)</script>' }] }, artifact: { markdown: '# Candidate\n</pre><script>alert(1)</script>' } });
+  assert.ok(output.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+  assert.ok(!output.includes('<script>'));
+});
