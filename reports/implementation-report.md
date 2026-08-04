@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## Career Review Version 1.0 integration (2026-08-04)
+
+Completed the final Version 1.0 integration step before Beta. The primary synthetic demo now creates the existing immutable Human Review Run through `createHumanReviewRun()` and releases the final resume only through `exportResumeArtifact()`. It shows the draft before Career Review, publishes review completion and approved export in HTML and terminal output, and keeps stable internal JSON artifact names and schemas.
+
+Career Review is only the user-facing name; no `career-review.js`, `final-export.js`, review schema, export gate, or Candidate Knowledge path was added. Focused tests cover the existing review path, export blocking/completion, user-facing terminology, and absence of duplicate modules.
+
 ## Human Review MVP implementation report (2026-08-04)
 
 Implemented the mandatory final review step for Resume only. A Human Review Run requires explicit approve or edit decisions for Professional Summary, Skills, Experience, and Projects before export. It snapshots the AI draft, provenance, and presentation rationale, preserves edited final text alongside the draft, and uses database immutability triggers. Human Review never writes Candidate Knowledge or regenerates an artifact. Validation: `npm test`.
