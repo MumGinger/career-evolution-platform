@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
-const { OUTPUT_FILES, runDemo, jobIdentity } = require('../src/demo');
+const { OUTPUT_FILES, confirmationProposals, runDemo, jobIdentity } = require('../src/demo');
 
 const root = path.join(__dirname, '..');
 function fixture(name) { return path.join(root, 'examples', name); }
@@ -21,11 +21,35 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.ok(result.integration.integration_decisions.every((decision) => decision.state !== 'accepted' || decision.source_evidence_refs.length));
     assert.equal(result.integration.applied_facts.length, 0);
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
-    assert.match(report, /Evidence-to-requirement matches/);
-    assert.match(report, /Resume AST/);
-    assert.match(report, /Optional semantic graph/);
+    assert.match(report, /1\. Resume Intelligence/);
+    assert.match(report, /2\. Career Conversation/);
+    assert.match(report, /3\. Career Understanding/);
     assert.match(report, /Career Curiosity/);
     assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
+  } finally { fs.rmSync(output, { recursive: true, force: true }); }
+});
+
+test('integrated demo confirmation proposals retain provenance-rich review fields', () => {
+  const [proposal] = confirmationProposals({ need_results: [{ candidates: [{ resolution: { state: 'needs_confirmation' }, candidate: { normalized_claim: 'SQL dashboard experience', source_reference: 'resume-ast-block-1', supporting_text: 'Built a SQL dashboard.', provenance: { block_kind: 'project_bullet', section: 'Projects', extraction_state: 'explicit', exact_source_text: 'Built a SQL dashboard.', retrieval: { rank: 2, score: 0.82, rationale: 'Matched the required dashboard context.' } } } }] }] });
+  assert.deepEqual(proposal, { requirement: 'SQL dashboard experience', proposed_evidence_block: 'resume-ast-block-1', block_kind: 'project_bullet', section: 'Projects', extraction_state: 'explicit', rank: 2, score: 0.82, rationale: 'Matched the required dashboard context.', exact_source_text: 'Built a SQL dashboard.', source_text: 'Built a SQL dashboard.', proposed_normalized_claim: 'SQL dashboard experience', action: 'confirm | reject | edit' });
+});
+
+test('career evolution demo joins every milestone stage into one bounded companion journey', async () => {
+  const output = tempOutput();
+  try {
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), capturePath: fixture('synthetic-capture.json'), outputDirectory: output, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
+    assert.equal(result.conversation.answer, 'Data Analytics');
+    assert.equal(result.snapshot.current_direction.label, 'Data Analytics');
+    assert.equal(result.reflection.action, 'looks_right');
+    assert.equal(result.curiosity.status, 'available');
+    assert.equal(result.curiosityObservation.user_response, 'interesting');
+    const loop = JSON.parse(fs.readFileSync(path.join(output, 'career-evolution-loop-summary.json'), 'utf8'));
+    assert.deepEqual(loop.flow, ['resume_intelligence', 'career_conversation', 'career_understanding', 'shared_understanding', 'career_curiosity', 'completion']);
+    assert.equal(loop.completion.one_new_possibility_explored.label, 'Business Intelligence Analyst');
+    const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
+    for (const section of ['1. Resume Intelligence', '2. Career Conversation', '3. Career Understanding', '4. Shared Understanding', '5. Career Curiosity', '6. Your first loop is complete']) assert.match(report, new RegExp(section));
+    assert.match(report, /Based on what I know today/);
+    assert.match(report, /Return after a future career experience/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 

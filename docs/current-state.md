@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Evidence Review, Career Conversation, and Career Understanding MVPs implemented for local CLI beta
+**Phase:** Milestone 2 — Career Evolution Loop v1 complete for local CLI demo
 **Last updated:** 2026-08-04
 
 ## Completed
@@ -31,6 +31,7 @@
 - Implemented Career Understanding MVP: immutable, read-only Current Career Snapshot Runs explain bounded direction, committed strengths, neutral application activity, unknowns, and feedback without modifying Candidate Knowledge.
 - Implemented Career Reflection / Shared Understanding MVP: a snapshot-first, one-response reflection with an optional short note. Immutable runs are source-linked, idempotently deduplicated, and never update Candidate Knowledge or Career Understanding.
 - Implemented Career Curiosity MVP: after reflection, introduce one supported adjacent career possibility, explain it through snapshot items, and record one immutable response without updating Candidate Knowledge or Career Understanding.
+- Completed Milestone 2 — Career Evolution Loop v1: the primary demo now connects Resume Intelligence, Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and a final return invitation. It exports one ordered HTML report and one integrated JSON summary while preserving all existing immutable-run and Candidate Knowledge boundaries.
 
 ## Current focus
 
