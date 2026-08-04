@@ -66,3 +66,7 @@ Validation: `npm.cmd test` — 83 passed, 0 failed.
 # Career Understanding MVP implementation
 
 Added immutable Snapshot Runs, immutable user feedback, a bounded deterministic policy, CLI commands, Evidence Review JSON/HTML integration, and synthetic policy tests. The slice reads Candidate Knowledge and evidence but never writes Candidate Knowledge.
+
+# Career Reflection / Shared Understanding MVP (Issue #46)
+
+Added a small snapshot-first reflection slice: three bounded actions, one optional short note, an immutable source-linked Career Reflection Run, and deterministic idempotency for duplicate submissions. The CLI reviews the latest snapshot, and the demo exports `career-reflection-run.json`, a Shared Understanding HTML section, and terminal state. No Candidate Knowledge, Career Understanding, preference, goal, or hypothesis write path was added. Validation: full automated suite and whitespace check.
