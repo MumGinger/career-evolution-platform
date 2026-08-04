@@ -1,6 +1,6 @@
 # Career Evolution Platform
 
-The platform explains every belief it presents about a user. Run `node src/cli.js career-snapshot-show --candidate-profile-id <id> --format text` to create and read an immutable Current Career Snapshot.
+The platform explains every belief it presents about a user. Run `node src/cli.js career-snapshot-show --candidate-profile-id <id> --format text` to create and read an immutable Current Career Snapshot. Then run `node src/cli.js career-reflection-review --candidate-profile-id <id> --format text` to review the latest snapshot, or add `--action looks_right|not_quite|missing_something [--note "..."]` to record one immutable reflection without changing Candidate Knowledge.
 
 Evidence-driven career intelligence: acquire the highest-value missing information before making career decisions or generating career artifacts. The platform treats a resume as one source and snapshot—not the candidate—and improves recommendations from traceable evidence and outcomes.
 

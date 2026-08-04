@@ -11,6 +11,7 @@ const artifactGeneration = require('./resume-artifact');
 const validation = require('./resume-validation');
 const resumeAst = require('./resume-ast');
 const careerUnderstanding = require('./career-understanding');
+const careerReflection = require('./career-reflection');
 
 const SKILL = {
   id: 'application-tailoring', version: '0.1.0',
@@ -77,6 +78,7 @@ class Store {
       CREATE TABLE IF NOT EXISTS career_conversation_observations (id TEXT PRIMARY KEY, question TEXT NOT NULL, answer TEXT, observed_at TEXT NOT NULL, workflow_source TEXT NOT NULL UNIQUE, skipped INTEGER NOT NULL CHECK(skipped IN (0, 1))) STRICT;
       CREATE TABLE IF NOT EXISTS career_understanding_snapshot_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), source_snapshots TEXT NOT NULL, generated_at TEXT NOT NULL, understanding_policy_version TEXT NOT NULL, current_direction TEXT NOT NULL, understanding_items TEXT NOT NULL, unknowns TEXT NOT NULL, limitations TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS career_understanding_snapshot_feedback (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), actor TEXT NOT NULL CHECK(actor IN ('user')), action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite')), note TEXT, timestamp TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS career_reflection_runs (id TEXT PRIMARY KEY, candidate_profile_id TEXT NOT NULL REFERENCES candidate_profiles(id), career_understanding_snapshot_run_id TEXT NOT NULL REFERENCES career_understanding_snapshot_runs(id), source_snapshot_reference TEXT NOT NULL, action TEXT NOT NULL CHECK(action IN ('looks_right', 'not_quite', 'missing_something')), note TEXT, actor TEXT NOT NULL CHECK(actor IN ('user')), reflected_at TEXT NOT NULL, reflection_policy_version TEXT NOT NULL, submission_key TEXT NOT NULL UNIQUE) STRICT;
     `);
     this.seedSkill();
   }
@@ -415,6 +417,26 @@ class Store {
     const feedback = this.db.prepare('SELECT * FROM career_understanding_snapshot_feedback WHERE snapshot_run_id = ? ORDER BY timestamp, id').all(id);
     const parsed = { ...run, source_snapshots: JSON.parse(run.source_snapshots), current_direction: JSON.parse(run.current_direction), understanding_items: JSON.parse(run.understanding_items), unknowns: JSON.parse(run.unknowns), limitations: JSON.parse(run.limitations), neutral_activity_signals: JSON.parse(run.source_snapshots).applications.map((application) => ({ type: 'application', id: application.id, role_title: application.role_title, company: application.company, application_date: application.application_date })), feedback };
     return { ...parsed, feedback_state: careerUnderstanding.feedbackState(feedback) };
+  }
+  getLatestCareerUnderstandingSnapshotRun(candidateProfileId) {
+    const row = this.db.prepare('SELECT id FROM career_understanding_snapshot_runs WHERE candidate_profile_id = ? ORDER BY generated_at DESC, id DESC LIMIT 1').get(candidateProfileId);
+    return row ? this.getCareerUnderstandingSnapshotRun(row.id) : null;
+  }
+  recordCareerReflectionRun({ snapshotRunId, action, note = null, actor = 'user' }) {
+    if (!careerReflection.ACTIONS.includes(action) || actor !== 'user') throw new Error('Reflection requires a user action of looks_right, not_quite, or missing_something');
+    const snapshotRun = this.getCareerUnderstandingSnapshotRun(snapshotRunId);
+    const normalizedNote = careerReflection.normalizeNote(note);
+    const submissionKey = careerReflection.submissionKey({ snapshotRunId, actor, action, note: normalizedNote });
+    const existing = this.db.prepare('SELECT id FROM career_reflection_runs WHERE submission_key = ?').get(submissionKey);
+    if (existing) return { ...this.getCareerReflectionRun(existing.id), duplicate_submission: true };
+    const run = { id: this.id(), candidate_profile_id: snapshotRun.candidate_profile_id, career_understanding_snapshot_run_id: snapshotRun.id, source_snapshot_reference: JSON.stringify({ id: snapshotRun.id, understanding_policy_version: snapshotRun.understanding_policy_version, generated_at: snapshotRun.generated_at }), action, note: normalizedNote, actor, reflected_at: this.now(), reflection_policy_version: careerReflection.POLICY_VERSION, submission_key: submissionKey };
+    this.db.prepare('INSERT INTO career_reflection_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(run.id, run.candidate_profile_id, run.career_understanding_snapshot_run_id, run.source_snapshot_reference, run.action, run.note, run.actor, run.reflected_at, run.reflection_policy_version, run.submission_key);
+    return this.getCareerReflectionRun(run.id);
+  }
+  getCareerReflectionRun(id) {
+    const run = this.db.prepare('SELECT * FROM career_reflection_runs WHERE id = ?').get(id);
+    if (!run) throw new Error(`Career Reflection Run not found: ${id}`);
+    return { ...run, source_snapshot_reference: JSON.parse(run.source_snapshot_reference), duplicate_submission: false };
   }
   createResumeTailoringPlanRun({ candidateProfileId, jobRequirementProfileId, sourceResumeArtifact = null }) {
     this.getProfile(candidateProfileId);
