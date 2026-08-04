@@ -5,6 +5,7 @@ const { importResume } = require('./resume');
 const { runResumeSemanticUnderstanding } = require('./resume-semantic');
 const { runResumeSemanticGraphConstruction } = require('./resume-semantic-graph');
 const understanding = require('./career-understanding');
+const reflection = require('./career-reflection');
 
 function options(args) { const result = {}; for (let i = 0; i < args.length; i += 1) if (args[i].startsWith('--')) result[args[i].slice(2)] = args[i + 1]; return result; }
 function required(value, name) { if (!value) throw new Error(`Missing --${name}`); return value; }
@@ -28,6 +29,13 @@ try {
     case 'profile-show': print(store.getCandidateKnowledge(required(input['profile-id'], 'profile-id'))); break;
     case 'career-snapshot-show': { const run = input['snapshot-run-id'] ? store.getCareerUnderstandingSnapshotRun(input['snapshot-run-id']) : store.createCareerUnderstandingSnapshotRun({ candidateProfileId: required(input['candidate-profile-id'], 'candidate-profile-id') }); if (input.format === 'text') console.log(understanding.readable(run)); else print(run); break; }
     case 'career-snapshot-feedback': print(store.recordCareerUnderstandingFeedback({ snapshotRunId: required(input['snapshot-run-id'], 'snapshot-run-id'), action: required(input.action, 'action'), note: input.note })); break;
+    case 'career-reflection-review': {
+      const snapshot = input['snapshot-run-id'] ? store.getCareerUnderstandingSnapshotRun(input['snapshot-run-id']) : (store.getLatestCareerUnderstandingSnapshotRun(required(input['candidate-profile-id'], 'candidate-profile-id')) || store.createCareerUnderstandingSnapshotRun({ candidateProfileId: input['candidate-profile-id'] }));
+      const run = input.action ? store.recordCareerReflectionRun({ snapshotRunId: snapshot.id, action: input.action, note: input.note }) : null;
+      const output = { snapshot_summary: reflection.summary(snapshot), prompt: reflection.PROMPT, allowed_actions: reflection.ACTIONS, snapshot_run: snapshot, reflection_run: run };
+      if (input.format === 'text') console.log(reflection.readable({ snapshotRun: snapshot, reflectionRun: run })); else print(output);
+      break;
+    }
     case 'application-create': print(store.createApplication({ profileId: required(input['profile-id'], 'profile-id'), company: required(input.company, 'company'), roleTitle: required(input['role-title'], 'role-title'), location: input.location, jobDescription: required(input['job-description'], 'job-description'), jobCategory: input['job-category'], applicationDate: input['application-date'] || new Date().toISOString().slice(0, 10) })); break;
     case 'application-generate': print(generateApplicationPackage(store, required(input['application-id'], 'application-id'))); break;
     case 'outcome-record': print(store.recordOutcome(required(input['application-id'], 'application-id'), required(input.outcome, 'outcome'), input.source)); break;
@@ -51,6 +59,6 @@ try {
     case 'resume-artifact-show': print(store.getResumeArtifactRun(required(input['resume-artifact-run-id'], 'resume-artifact-run-id'))); break;
     case 'resume-artifact-validate': print(store.createResumeValidationRun({ resumeArtifactRunId: required(input['resume-artifact-run-id'], 'resume-artifact-run-id'), validationPolicyVersion: input['validation-policy-version'] })); break;
     case 'resume-validation-show': print(store.getResumeValidationRun(required(input['resume-validation-run-id'], 'resume-validation-run-id'))); break;
-    default: console.error('Commands include career-snapshot-show and career-snapshot-feedback.'); process.exitCode = 1;
+    default: console.error('Commands include career-snapshot-show, career-snapshot-feedback, and career-reflection-review.'); process.exitCode = 1;
   }
 } catch (error) { console.error(`Error: ${error.message}`); process.exitCode = 1; } finally { store.close(); }

@@ -65,3 +65,12 @@ Human review remains pending. Governance gate assessment: no product principle i
 # Career Understanding MVP review
 
 Self-review: pending human review. The implementation preserves unknowns, treats applications as neutral, makes every item explainable, and does not introduce a generic hypothesis framework or Candidate Knowledge write path.
+
+# Career Reflection / Shared Understanding MVP review (Issue #46)
+
+Codex self-review: pending human review. This is a bounded, user-visible vertical slice. It presents `Based on what I know today`, asks exactly one reflective prompt, and stops after one optional-note response. It neither characterizes the user as fact nor gives advice.
+
+1. No Product Principle is violated: the source snapshot remains explainable, uncertainty stays visible, and the response is evidence rather than automatic truth.
+2. No ADR is required: ADR-004 already governs immutable runs and ADR-005 preserves the single Candidate Knowledge write path.
+3. Yes, the concise Career Reflection / Shared Understanding MVP PRD documents the new behavior and scope boundary.
+4. Yes, the roadmap records Issue #46 as complete.
