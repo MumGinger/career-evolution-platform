@@ -24,6 +24,8 @@ test('synthetic demo runs the complete immutable pipeline and writes every expec
     assert.match(report, /Evidence-to-requirement matches/);
     assert.match(report, /Resume AST/);
     assert.match(report, /Optional semantic graph/);
+    assert.match(report, /Career Curiosity/);
+    assert.ok(JSON.parse(fs.readFileSync(path.join(output, 'career-curiosity-run.json'), 'utf8')).career_curiosity);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
