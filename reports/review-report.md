@@ -1,5 +1,14 @@
 # Review Report — Capability 004.3
 
+## AI Career Companion Manifesto review (2026-08-04)
+
+Human review remains pending. The manifesto adds a durable product review gate without changing behavior. It is consistent with the existing product principles: it preserves user agency, uncertainty, explainability, and value-led interactions.
+
+1. No Product Principle is violated; the document makes their user-facing intent more explicit.
+2. No ADR update is required because this records product philosophy rather than an architectural decision.
+3. No PRD update is required because no capability behavior changes.
+4. No roadmap change is required because this is long-term governance, not a delivery milestone.
+
 ## Career Conversation MVP
 
 Human review remains pending. The implementation asks only after the validated resume is produced, limits the workflow to one persisted observation through a unique workflow source, supports answer and skip, and has no Candidate Knowledge write path. Automated tests cover answer persistence, skip, deduplication, HTML output, and the absence of Candidate Knowledge writes.
