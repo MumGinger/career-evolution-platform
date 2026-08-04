@@ -53,3 +53,6 @@ Human review remains pending. The graph now interprets only immutable 002.5 pers
 # Capability 002.6 review status
 
 Human review remains pending. Governance gate assessment: no product principle is violated because graph output remains working evidence; no ADR is needed because ADR-001 and ADR-005 already govern the resume boundary and sole Candidate Knowledge writer; a new 002.6 PRD is included; and the roadmap is updated to mark 002.6 complete.
+# Career Understanding MVP review
+
+Self-review: pending human review. The implementation preserves unknowns, treats applications as neutral, makes every item explainable, and does not introduce a generic hypothesis framework or Candidate Knowledge write path.

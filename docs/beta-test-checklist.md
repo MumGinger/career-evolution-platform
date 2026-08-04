@@ -7,3 +7,7 @@
 - For the Evidence Review MVP, complete a private CLI review using Accept, Skip, or Edit; verify that only reviewed, source-supported content reaches Candidate Knowledge and that the refreshed output validates.
 
 Classify defects as extraction, validation, retrieval, or UX; ship one vertical slice with exit criteria rather than parser micro-capabilities.
+# Career Snapshot check
+
+- [ ] Verify Current Career Snapshot labels each visible item with why, sources, and confidence.
+- [ ] Verify `Not quite` records feedback without editing Candidate Knowledge.

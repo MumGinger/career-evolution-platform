@@ -57,3 +57,6 @@ Validation: `npm.cmd test` — 85 passed, 0 failed.
 Implemented immutable Resume Semantic Graph Construction from the latest 002.5 run. The graph preserves artifact/version/span provenance on nodes and edges, adds bounded relationship types, and deliberately leaves Candidate Knowledge unchanged. Evidence Discovery now searches `resume_semantic_graph` separately without treating graph and flat semantic evidence from the same resume as independent corroboration. Demo output includes `resume-semantic-graph-run.json`, graph counts, readable relationship examples, and separate committed versus working-evidence language. Zurich identity parsing now uses one canonical object for three-line LinkedIn and `Role at Company` openings.
 
 Validation: `npm.cmd test` — 83 passed, 0 failed.
+# Career Understanding MVP implementation
+
+Added immutable Snapshot Runs, immutable user feedback, a bounded deterministic policy, CLI commands, Evidence Review JSON/HTML integration, and synthetic policy tests. The slice reads Candidate Knowledge and evidence but never writes Candidate Knowledge.

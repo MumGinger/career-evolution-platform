@@ -12,3 +12,4 @@ These principles are review gates, not aspirations. A proposed capability, schem
 8. **Learning must come from evidence and outcomes.** Feedback and outcomes are contextual evidence, not automatic truth; learning follows review and preserves limitations.
 9. **Search Before Ask.** Search existing, consented evidence before requesting new information from the user. Preserve what was searched, what was found, and why evidence was or was not sufficient.
 10. **Recover Before Request.** Recover and reuse existing evidence before requesting that the user restate it. Fragmented, unstructured, or not-yet-linked evidence is a recovery problem before it is a user-input problem.
+11. **Explain understanding.** The AI must always explain why it believes something about the user, including source evidence and uncertainty.

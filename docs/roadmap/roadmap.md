@@ -27,3 +27,6 @@ For 002.7, “Complete” means the offline/mock path now validates nested AST l
 Capabilities are delivered in order only when their evidence, privacy, review, and product boundaries are ready. A roadmap item is not authorization to implement it.
 
 Milestone 1 Demo — End-to-End Resume Tailoring Pipeline is complete. It integrates existing 002, 003, and 004 slices into one deterministic local demo with fixture-supported confirmation, exported outputs, and no new domain capability.
+# Career Understanding MVP
+
+Current scope includes a read-only, explainable Current Career Snapshot. Coaching and recommendations remain future work.
