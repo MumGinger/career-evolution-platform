@@ -1,6 +1,11 @@
 const POLICY_VERSION = 'career-understanding/1.0.0';
 
 const UNKNOWN = ['Preferred industry', 'Long-term role goal', 'Preferred work style'];
+const SUPPORTED_FACT_CATEGORIES = new Map([
+  ['skill', 'strength'],
+  ['tool', 'strength'],
+  ['domain_knowledge', 'domain']
+]);
 const LIMITATIONS = [
   'This is a read-only summary of committed facts, validated resume evidence, confirmed conversation answers, and recorded applications.',
   'Applications are neutral activity signals, not preferences.',
@@ -21,8 +26,8 @@ function snapshot({ facts, astEvidence, conversations, applications }) {
   }
   for (const fact of facts) {
     const label = name(fact.value); if (!label) continue;
-    const category = fact.entity_type === 'domain_knowledge' ? 'domain' : fact.entity_type === 'working_style' ? 'working_style' : 'strength';
-    if (!['strength', 'domain', 'working_style'].includes(category)) continue;
+    const category = SUPPORTED_FACT_CATEGORIES.get(fact.entity_type);
+    if (!category) continue;
     add(item({ label, category, state: 'explicit', confidence: fact.confidence_level === 'low' ? 'low' : 'high', sources: [{ type: 'candidate_knowledge_fact', id: fact.id, integration_decision_id: fact.integration_decision_id }], rationale: `Your committed Candidate Knowledge includes ${label}.`, lastObservedAt: fact.created_at }));
   }
   for (const evidence of astEvidence) {
@@ -44,4 +49,4 @@ function readable(snapshotRun) {
   lines.push('', 'Still unknown', ...snapshotRun.unknowns.map((entry) => `- ${entry}`), '', 'Why', ...snapshotRun.understanding_items.map((entry) => `- ${entry.rationale}`), '', `Feedback: ${snapshotRun.feedback_state}`);
   return lines.join('\n');
 }
-module.exports = { POLICY_VERSION, snapshot, feedbackState, readable };
+module.exports = { POLICY_VERSION, SUPPORTED_FACT_CATEGORIES, snapshot, feedbackState, readable };
