@@ -1,5 +1,11 @@
 # Review Report — Capability 004.3
 
+## Career Conversation MVP
+
+Human review remains pending. The implementation asks only after the validated resume is produced, limits the workflow to one persisted observation through a unique workflow source, supports answer and skip, and has no Candidate Knowledge write path. Automated tests cover answer persistence, skip, deduplication, HTML output, and the absence of Candidate Knowledge writes.
+
+Governance gates: no product-principle violation; no ADR is required because this is a bounded observation rather than a durable fact or decision run; no existing PRD changes; the roadmap records the completed MVP.
+
 ## Evidence Review MVP (Issue #39)
 
 The review queue never writes Candidate Knowledge directly: only accepted or strictly source-supported edited claims are proposed to 003.6. Automated coverage exercises accepted, skipped, edited, blocked, fixture, immutable-run, regenerated-artifact, validation, and KPI paths.
