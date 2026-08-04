@@ -1,0 +1,8 @@
+{
+  "decisions": [
+    { "requirementName": "SQL", "action": "accepted" },
+    { "requirementName": "Python", "action": "accepted" },
+    { "requirementName": "Data visualization", "action": "accepted" },
+    { "requirementName": "Communication", "action": "accepted" }
+  ]
+}
