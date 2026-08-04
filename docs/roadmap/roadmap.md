@@ -18,6 +18,7 @@ For 002.7, “Complete” means the offline/mock path now validates nested AST l
 | 004.1 — Resume Tailoring Planning | Complete | Create immutable, truth-preserving selection and coverage plans from committed Candidate Knowledge and job requirements. |
 | 004.2 — Resume Artifact Generation | Complete | Deterministically render structured, provenance-preserving intermediate resume artifacts from immutable tailoring plans. |
 | 004.3 — Truthfulness & Quality Validation | Complete | Deterministically validate immutable artifacts against plan, fact provenance, claim scopes, and traceability before output. |
+| Evidence Review MVP (Issue #39) | Complete | Review confirmation-required evidence, integrate only approved claims through 003.6, then refresh tailoring, artifact, and validation. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
 | 007 — Outcome Learning | Planned | Learn priorities and guidance from reviewed application and interview outcomes. |

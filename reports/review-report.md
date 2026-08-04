@@ -1,5 +1,9 @@
 # Review Report — Capability 004.3
 
+## Evidence Review MVP (Issue #39)
+
+The review queue never writes Candidate Knowledge directly: only accepted or strictly source-supported edited claims are proposed to 003.6. Automated coverage exercises accepted, skipped, edited, blocked, fixture, immutable-run, regenerated-artifact, validation, and KPI paths.
+
 ## Capability 002.7 Resume AST refactor (2026-08-03)
 
 Review pending. Governance gates: no product-principle violation (resume remains a source, unknown remains unknown); ADR-007 and PRD 002.7 record ranked direct retrieval and the confirmation firewall; roadmap marks AST preferred and graph optional; no private data, keys, or raw provider responses are committed. The regression suite covers invalid nested fields, structurally grouped wrapped bullets, six requirement retrieval shapes, and unchanged Candidate Knowledge. Full suite: 89 passing.

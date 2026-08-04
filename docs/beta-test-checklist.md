@@ -4,5 +4,6 @@
 - Check source identity, AST grouping, provenance findings, and expected top matches.
 - Verify Candidate Knowledge has no unaccepted writes.
 - Add a synthetic regression for the latest beta failure shape.
+- For the Evidence Review MVP, complete a private CLI review using Accept, Skip, or Edit; verify that only reviewed, source-supported content reaches Candidate Knowledge and that the refreshed output validates.
 
 Classify defects as extraction, validation, retrieval, or UX; ship one vertical slice with exit criteria rather than parser micro-capabilities.
