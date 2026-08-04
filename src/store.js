@@ -552,7 +552,8 @@ class Store {
     this.db.prepare('INSERT INTO human_review_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_artifact_run_id, run.artifact_snapshot, run.presentation_strategy_snapshot, run.policy_version, run.review_actor, run.created_at);
     for (const draft of drafts) {
       const decision = submitted.get(draft.section); const finalVersion = decision.action === 'edit' ? decision.finalVersion : draft.ai_version;
-      if (decision.action === 'edit' && (!finalVersion || typeof finalVersion !== 'object')) throw new Error(`An edit for ${draft.section} requires a finalVersion object`);
+      const editValidationError = decision.action === 'edit' ? humanReview.validateFinalVersion(finalVersion) : null;
+      if (editValidationError) throw new Error(`Invalid edited ${draft.section} section: ${editValidationError}`);
       const row = { id: this.id(), human_review_run_id: run.id, section: draft.section, action: decision.action, ai_version: JSON.stringify(draft.ai_version), final_version: JSON.stringify(finalVersion), supporting_evidence: JSON.stringify(draft.supporting_evidence), presentation_rationale: JSON.stringify(draft.presentation_rationale), review_actor: reviewActor, reviewed_at: this.now(), created_at: this.now() };
       this.db.prepare('INSERT INTO human_review_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(row.id, row.human_review_run_id, row.section, row.action, row.ai_version, row.final_version, row.supporting_evidence, row.presentation_rationale, row.review_actor, row.reviewed_at, row.created_at);
     }
