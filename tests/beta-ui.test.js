@@ -28,3 +28,11 @@ test('Career Review remains mandatory for local export', async () => withServer(
   const incomplete = await json(`${base}/api/sessions/${started.value.sessionId}/career-review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: [{ section: reviewed.value.careerReview[0].section, action: 'approve' }] }) }); assert.equal(incomplete.response.status, 400); assert.match(incomplete.value.error, /explicit decisions/);
   const blocked = await fetch(`${base}/api/sessions/${started.value.sessionId}/outputs/final-resume.json`); assert.equal(blocked.status, 409);
 }));
+
+test('failed startup cleans its temporary store and directory before registering a session', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-startup-failure-')); const app = createBetaUiServer({ port: 0, tempRoot: root }); const address = await app.listen();
+  try {
+    const failed = await json(`http://${address.address}:${address.port}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...input(), jobText: '' }) });
+    assert.equal(failed.response.status, 400); assert.match(failed.value.error, /Paste a job description/); assert.deepEqual(fs.readdirSync(root), []); assert.equal(app.sessions.size, 0);
+  } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
+});
