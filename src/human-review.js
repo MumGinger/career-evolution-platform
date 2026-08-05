@@ -38,15 +38,15 @@ function createDraft({ artifactRun, presentationStrategyRun = null }) {
   const artifact = artifactRun.resume_artifacts.find((item) => item.artifact_type === 'structured_resume');
   if (!artifact) throw new Error('Human Review requires a structured resume artifact');
   const byName = new Map(artifact.content.sections.map((section) => [section.section, section]));
-  return REQUIRED_SECTIONS.map((name) => sectionDraft(byName.get(name) || { section: name, statements: [] }, presentationStrategyRun?.strategy));
+  return REQUIRED_SECTIONS.map((name) => byName.get(name)).filter((section) => section?.statements?.length).map((section) => sectionDraft(section, presentationStrategyRun?.strategy));
 }
 
-function complete(run) { return REQUIRED_SECTIONS.every((section) => run.section_reviews.some((review) => review.section === section)); }
+function complete(run) { return run.section_reviews.length > 0 && run.section_reviews.every((review) => ['approve', 'edit'].includes(review.action)); }
 function finalSection(review) { return review.action === 'edit' ? review.final_version : review.ai_version; }
 function markdown(run) { return run.section_reviews.map((review) => {
   const version = finalSection(review);
   const lines = version.placeholder ? [version.placeholder] : version.statements.map((statement) => `- ${statement.text}`);
-  return `## ${review.section}\n\n${lines.join('\n') || '_No content approved for this section._'}`;
-}).join('\n\n'); }
+  return lines.length ? `## ${review.section}\n\n${lines.join('\n')}` : '';
+}).filter(Boolean).join('\n\n'); }
 
 module.exports = { POLICY_VERSION, REQUIRED_SECTIONS, createDraft, complete, finalSection, markdown, validateFinalVersion };
