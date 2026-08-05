@@ -104,3 +104,6 @@ Added a small snapshot-first reflection slice: three bounded actions, one option
 Added a deterministic, snapshot-bound adjacent-path slice. It produces only one curated possibility when a direction and supporting strengths are present; otherwise it explicitly suppresses output for insufficient confidence. The CLI, JSON, and HTML demo output present the plain-language explanation and source items. The only new persistence is an immutable observation containing a possibility ID, supporting snapshot, user response, and timestamp. Candidate Knowledge and Career Understanding remain read-only.
 
 Validation: `npm.cmd test` — 119 passing.
+# Implementation report — Issue #62
+
+Version 1 Beta blocker repair only: the AST provider schema now matches every canonical leaf/provenance requirement, and the new structured OpenAI-compatible Resume Draft path is constrained to committed selections and mapped job requirements. Deterministic validation rejects provider/parse failures and statements without valid fact or requirement provenance. No API key persistence or Candidate Knowledge write path was introduced.

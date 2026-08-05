@@ -1,4 +1,4 @@
-const POLICY_VERSION = 'resume-artifact-generation-policy/1.0.0';
+const POLICY_VERSION = 'resume-artifact-generation-policy/1.1.0';
 
 const SECTIONS = ['Professional Summary', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications'];
 
@@ -35,11 +35,21 @@ function renderStatement(selection, fact) {
     },
   };
 }
-function generate(plan, presentationStrategy = null) {
+function generatedStatements(draft, plan, facts) {
+  if (!draft || !Array.isArray(draft.sections)) return null;
+  const selections = new Map(plan.resume_content_selections.filter((item) => item.selection_state === 'include').map((item) => [item.candidate_fact_id, item]));
+  const sections = new Map(draft.sections.map((item) => [item.section, item.statements]));
+  return SECTIONS.map((name, position) => ({ section: name, position: position + 1, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
+    const factIds = [...new Set(item.candidate_fact_ids || [])]; const linked = factIds.map((id) => selections.get(id)).filter(Boolean);
+    const first = linked[0];
+    return { statement_id: `draft:${name}:${index + 1}`, template: first?.permitted_claim_scope?.[0] || 'unbounded_draft', text: item.text, resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
+  }) }));
+}
+function generate(plan, presentationStrategy = null, draftResult = null) {
   const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
   const order = new Map((presentationStrategy?.ordered_resume_content_selection_ids || []).map((id, index) => [id, index]));
   const visibleSelections = plan.resume_content_selections.filter((selection) => selection.selection_state === 'include');
-  const sections = SECTIONS.map((name, position) => ({
+  const deterministicSections = SECTIONS.map((name, position) => ({
     section: name,
     position: position + 1,
     placeholder: name === 'Professional Summary' ? 'Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.' : null,
@@ -49,6 +59,7 @@ function generate(plan, presentationStrategy = null) {
       .map((selection) => renderStatement(selection, facts.get(selection.candidate_fact_id)))
       .filter(Boolean),
   }));
+  const sections = generatedStatements(draftResult?.draft, plan, facts) || deterministicSections;
   const rendered = sections.flatMap((section) => section.statements);
   const omissions = plan.resume_content_selections
     .filter((selection) => selection.selection_state !== 'include')
@@ -65,6 +76,7 @@ function generate(plan, presentationStrategy = null) {
       blocked_claims: blockedClaims,
       requirement_coverage: plan.requirement_coverage.map((coverage) => ({ requirement_id: coverage.job_requirement_id, status: coverage.coverage_status, rationale: coverage.coverage_rationale })),
       presentation_strategy: presentationStrategy ? { policy_version: presentationStrategy.policy_version, target_job: presentationStrategy.target_job, career_understanding_snapshot_run_id: presentationStrategy.shared_understanding.career_understanding_snapshot_run_id, limitations: presentationStrategy.limitations } : null,
+      draft_provider: draftResult ? { provider: draftResult.provider, model: draftResult.model, version: draftResult.version, parse_error: draftResult.parseError || null } : { provider: 'deterministic-fallback', model: 'local', version: POLICY_VERSION },
       limitations: 'Visible content is deterministic and contains only values permitted by a Resume Content Selection. Omissions and blocked claims are metadata, not resume output.',
     },
     rendered_statement_count: rendered.length,
