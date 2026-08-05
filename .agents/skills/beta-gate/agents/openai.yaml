@@ -1,0 +1,7 @@
+interface:
+  display_name: "Beta Gate"
+  short_description: "Decide whether the real-user beta passes"
+  default_prompt: "Use $beta-gate to evaluate whether the Career Evolution Platform passes beta."
+
+policy:
+  allow_implicit_invocation: false
