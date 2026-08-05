@@ -3,6 +3,7 @@
     { "requirementName": "SQL", "action": "accepted" },
     { "requirementName": "Python", "action": "accepted" },
     { "requirementName": "Data visualization", "action": "accepted" },
-    { "requirementName": "Communication", "action": "accepted" }
+    { "requirementName": "Communication", "action": "accepted" },
+    { "requirementName": "Sales reporting dashboard using sql and python", "action": "skipped" }
   ]
 }

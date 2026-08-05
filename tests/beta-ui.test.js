@@ -12,6 +12,7 @@ async function withServer(run) {
 }
 async function json(url, options = {}) { const response = await fetch(url, options); return { response, value: await response.json() }; }
 function input() { return { resume: { name: 'synthetic-resume.txt', data: Buffer.from(fs.readFileSync(path.join(__dirname, '../examples/synthetic-resume.txt'))).toString('base64') }, jobText: fs.readFileSync(path.join(__dirname, '../examples/synthetic-job.txt'), 'utf8'), provider: 'mock', apiKey: 'not-a-real-key' }; }
+function realResumeFailureShapeInput() { const resume = `Ya-Ching Tang\nSkills\nPower BI, Python, SQL\nProjects\nCustomer Analytics Dashboard\n- Built Power BI data visualization dashboards and automation workflows using Python and SQL.\nExperience\nData Analyst\n- Delivered business insights and data analysis reporting for stakeholders.`; const jobText = `Company: Zurich\nRole Title: Data Analytics and AI Analyst\n\nRequired Qualifications:\nPower BI required.\nPython required.\nSQL required.\nData visualization required.\nDashboard development required.\nAutomation required.\nBusiness insights required.\nData analysis required.`; return { resume: { name: 'ya-ching-tang-resume.txt', data: Buffer.from(resume).toString('base64') }, jobText, provider: 'mock' }; }
 
 test('local Beta UI runs the existing review, integration, Career Review, and export flow without persisting an API key', async () => withServer(async ({ app, base }) => {
   const page = await fetch(`${base}/`); assert.equal(page.status, 200); assert.match(await page.text(), /Career Evolution/);
@@ -27,6 +28,17 @@ test('Career Review remains mandatory for local export', async () => withServer(
   const started = await json(`${base}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input()) }); const reviewed = await json(`${base}/api/sessions/${started.value.sessionId}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: started.value.candidates.map((candidate) => ({ key: candidate.key, action: 'accepted' })) }) });
   const incomplete = await json(`${base}/api/sessions/${started.value.sessionId}/career-review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: [{ section: reviewed.value.careerReview[0].section, action: 'approve' }] }) }); assert.equal(incomplete.response.status, 400); assert.match(incomplete.value.error, /explicit decisions/);
   const blocked = await fetch(`${base}/api/sessions/${started.value.sessionId}/outputs/final-resume.json`); assert.equal(blocked.status, 409);
+}));
+
+test('reviewed project and experience bullets survive 003.6 and populate all core draft sections', async () => withServer(async ({ app, base }) => {
+  const started = await json(`${base}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(realResumeFailureShapeInput()) });
+  assert.equal(started.response.status, 201); assert.ok(started.value.candidates.some((item) => item.section === 'projects'), JSON.stringify(started.value.candidates)); assert.ok(started.value.candidates.some((item) => item.section === 'experiences'), JSON.stringify(started.value.candidates));
+  const reviewed = await json(`${base}/api/sessions/${started.value.sessionId}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: started.value.candidates.map((candidate) => ({ key: candidate.key, action: 'accepted' })) }) });
+  assert.equal(reviewed.response.status, 200); assert.notEqual(reviewed.value.validation, 'failed', JSON.stringify(app.sessions.get(started.value.sessionId).validation.validation_findings));
+  const session = app.sessions.get(started.value.sessionId); const artifact = session.artifact.resume_artifacts[0]; assert.equal(artifact.metadata.draft_provider.provider, 'mock');
+  for (const heading of ['Professional Summary', 'Skills', 'Experience', 'Projects']) assert.match(reviewed.value.resumeMarkdown, new RegExp(`## ${heading}\\n\\n- `), JSON.stringify(session.integration.integration_decisions));
+  assert.match(reviewed.value.resumeMarkdown, /Customer Analytics Dashboard: Built Power BI data visualization dashboards and automation workflows using Python and SQL\./);
+  assert.match(reviewed.value.resumeMarkdown, /Delivered business insights and data analysis reporting for stakeholders\./);
 }));
 
 test('failed startup cleans its temporary store and directory before registering a session', async () => {

@@ -1,5 +1,11 @@
 # Review Report — Capability 004.3
 
+## Real-resume section-evidence repair self-review (2026-08-04)
+
+No blocking issue found in the focused repair. AST working evidence remains outside Candidate Knowledge until the user accepts it, and every durable write still goes through the existing 003.6 policy. Project and experience text remains bounded to exact AST spans; the draft provider receives only committed selections and mapped requirements; deterministic validation runs before the existing mandatory Career Review/export boundary.
+
+Governance gates: no Product Principle is violated; no ADR is required because this repairs an existing evidence bridge without changing its architecture; no PRD or roadmap update is required; human review remains pending. The regression covers the reported skills-only failure shape and verifies all four core sections are drafted after review.
+
 ## Local Beta UI self-review (Issue #60, 2026-08-04)
 
 Human review remains pending. No Product Principle is violated: the UI treats the resume as working evidence, retains the 003.6-only Candidate Knowledge write boundary, shows the generated draft before required Career Review, and does not invent facts. No ADR or PRD update is needed because this is a thin local adapter over existing capabilities, not a new domain capability or architecture. The roadmap is unchanged. Automated coverage verifies server start, synthetic submission, secret non-persistence, Evidence Review-to-003.6 integration, populated regenerated draft, blocked pre-review export, mandatory Career Review, and completed outputs.
