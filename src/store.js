@@ -180,12 +180,29 @@ class Store {
   getResumeAstEvidenceSnapshot(profileId, requirement = null) {
     return this.db.prepare("SELECT * FROM resume_ast_runs WHERE profile_id = ? AND validation_status = 'passed' ORDER BY created_at, id").all(profileId).flatMap((run) => {
       const ast = JSON.parse(run.normalized_ast); const rows = [];
-      const add = (leaf, entity_type, section) => { if (leaf) { const autoAccepted = leaf.provenance.extraction_state === 'explicit' && ['skill', 'tool'].includes(entity_type); rows.push({ id: `${run.id}:${rows.length}`, entity_type, value: { name: leaf.value, text: leaf.value }, source: 'resume_ast', confirmation_status: autoAccepted ? 'confirmed' : 'needs_confirmation', provenance: { resume_ast_run_id: run.id, artifact_id: run.artifact_id, artifact_version_id: run.artifact_version_id, block_kind: entity_type, section, ...leaf.provenance } }); } };
+      // AST block kinds describe source layout. The integration type below is a
+      // bounded Candidate Knowledge proposal only after Evidence Review accepts it.
+      const add = (leaf, blockKind, section, integration = {}) => { if (leaf) {
+        const sourceReference = `${run.id}:${leaf.provenance.source_span_ids.join(',')}`;
+        const integrationEntityType = integration.entityType || blockKind;
+        const value = integration.value || { name: leaf.value, text: leaf.value };
+        const autoAccepted = leaf.provenance.extraction_state === 'explicit' && ['skill', 'tool'].includes(blockKind);
+        rows.push({ id: `${run.id}:${rows.length}`, entity_type: blockKind, value, source: 'resume_ast', confirmation_status: autoAccepted ? 'confirmed' : 'needs_confirmation', provenance: { resume_ast_run_id: run.id, artifact_id: run.artifact_id, artifact_version_id: run.artifact_version_id, block_kind: blockKind, integration_entity_type: integrationEntityType, section, source_reference: sourceReference, ...leaf.provenance } });
+      } };
       (ast.skills || []).forEach((item) => add(item, 'skill', 'skills'));
-      (ast.projects || []).forEach((item) => { add(item.title, 'project', 'projects'); (item.technologies || []).forEach((value) => add(value, 'tool', 'projects')); (item.bullets || []).forEach((value) => add(value, 'bullet', 'projects')); });
-      (ast.experiences || []).forEach((item) => { add(item.organization, 'organization', 'experiences'); add(item.role, 'role', 'experiences'); (item.bullets || []).forEach((value) => add(value, 'bullet', 'experiences')); });
+      (ast.projects || []).forEach((item) => {
+        const projectReference = `${run.id}:${item.title.provenance.source_span_ids.join(',')}`;
+        add(item.title, 'project', 'projects', { entityType: 'project', value: { name: item.title.value, source_reference: projectReference } });
+        (item.technologies || []).forEach((value) => add(value, 'tool', 'projects', { entityType: 'skill' }));
+        (item.bullets || []).forEach((value) => add(value, 'bullet', 'projects', { entityType: 'project', value: { name: item.title.value, text: value.value, source_reference: `${run.id}:${value.provenance.source_span_ids.join(',')}` } }));
+      });
+      (ast.experiences || []).forEach((item) => {
+        add(item.organization, 'organization', 'experiences', { entityType: 'responsibility' });
+        add(item.role, 'role', 'experiences', { entityType: 'responsibility' });
+        (item.bullets || []).forEach((value) => add(value, 'bullet', 'experiences', { entityType: 'responsibility' }));
+      });
       if (!requirement) return rows;
-      const ranked = resumeAst.retrieve(requirement, ast); return ranked.map((match) => { const fact = rows.find((row) => row.value.name === match.block.text && row.entity_type === match.block.kind && row.provenance.section === match.block.section); return fact && { ...fact, provenance: { ...fact.provenance, retrieval: { retriever_version: resumeAst.RETRIEVER_VERSION, rank: match.rank, score: match.score, exactness: match.exact ? 'exact' : 'term_overlap', rationale: match.rationale, matched_terms: match.matched_terms } } }; }).filter(Boolean);
+      const ranked = resumeAst.retrieve(requirement, ast); return ranked.map((match) => { const fact = rows.find((row) => row.provenance.exact_source_text === match.block.text && row.provenance.block_kind === match.block.kind && row.provenance.section === match.block.section); return fact && { ...fact, provenance: { ...fact.provenance, retrieval: { retriever_version: resumeAst.RETRIEVER_VERSION, rank: match.rank, score: match.score, exactness: match.exact ? 'exact' : 'term_overlap', rationale: match.rationale, matched_terms: match.matched_terms } } }; }).filter(Boolean);
     });
   }
   getCandidateEvidenceSnapshot(profileId) {
@@ -266,7 +283,12 @@ class Store {
         const sourceFacts = sourceType === 'resume_ast' ? this.getResumeAstEvidenceSnapshot(informationNeedRun.candidate_profile_id, requirement) : (sourceType === 'resume_semantic' ? semanticSnapshot : sourceType === 'resume_semantic_graph' ? graphSnapshot : snapshot).filter((fact) => discovery.sourceFor(fact) === sourceType);
         const search = { id: this.id(), discovery_run_id: run.id, information_need_id: need.id, source_type: sourceType, source_reference: `${sourceType}:snapshot`, availability_status: sourceFacts.length ? 'available' : 'available_empty', search_order: index + 1, adapter_version: discovery.ADAPTER_VERSION, result_status: sufficient ? 'skipped_sufficient' : 'completed', rationale: sufficient ? 'Skipped because higher-priority source evidence already satisfied the bounded need.' : 'Searched only the immutable Information Need Run evidence snapshot using deterministic exact matching and explicit aliases.', limitations: 'No external connector, semantic inference, or Candidate Knowledge update is performed.', created_at: this.now() };
         if (!sufficient) {
-          const candidates = discovery.matches(requirement, sourceFacts).map((fact) => discovery.candidateFor(need, fact, sourceType));
+          // The AST snapshot was already narrowed by the versioned retriever.
+          // Re-applying exact Candidate Knowledge matching here discarded
+          // project/experience bullets whenever they expressed a requirement in
+          // context rather than as a standalone skill token.
+          const matchingSourceFacts = sourceType === 'resume_ast' ? sourceFacts : discovery.matches(requirement, sourceFacts);
+          const candidates = matchingSourceFacts.map((fact) => discovery.candidateFor(need, fact, sourceType));
           const resolutions = discovery.resolve(candidates);
           const resolved = candidates.map((candidate, candidateIndex) => ({ candidate, resolution: resolutions[candidateIndex] }));
           for (const item of resolved) {
@@ -366,7 +388,7 @@ class Store {
       WHERE evidence_candidates.id = ? AND evidence_candidates.discovery_run_id = ?`).get(candidateId, discoveryRunId);
     if (!item) throw new Error('Evidence Review decision must reference a candidate in its Evidence Discovery Run');
     const candidate = { ...item, supporting_value: JSON.parse(item.supporting_value), provenance: JSON.parse(item.provenance) };
-    let entityType = candidate.provenance.block_kind || 'skill';
+    let entityType = candidate.provenance.integration_entity_type || candidate.provenance.block_kind || 'skill';
     if (candidate.source_type === 'candidate_fact' || candidate.source_type === 'resume_import') {
       const source = this.db.prepare('SELECT entity_type FROM candidate_facts WHERE id = ?').get(candidate.source_reference);
       if (source) entityType = source.entity_type;

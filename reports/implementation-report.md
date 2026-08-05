@@ -1,5 +1,13 @@
 # Implementation Report — Capability 004.3
 
+## Real-resume section-evidence repair (2026-08-04)
+
+Fixed a Beta path that retained only standalone skills after Evidence Review. Resume AST retrieval was finding contextual project and experience bullets, but Evidence Discovery re-applied exact fact matching and discarded them; source block kinds such as `bullet`, `tool`, and `organization` also were not valid 003.6 proposal types. The repair retains immutable AST source-block/span provenance, uses the existing retrieval result directly, and maps accepted evidence to bounded existing Candidate Knowledge types: project titles/project bullets to `project`, experience bullets to `responsibility`, and project technologies to `skill`. Evidence Review remains the explicit confirmation step and 003.6 remains the sole Candidate Knowledge writer.
+
+The local Beta UI now calls `createResumeArtifactDraftRun()` and the existing Resume Draft provider after integration, rather than the deterministic-only artifact path. The structured draft continues through deterministic validation before Career Review, which remains the sole export gate. No new review, export, persistence, or Candidate Knowledge architecture was added.
+
+Changed: `src/store.js`, `src/evidence-discovery.js`, `src/beta-ui.js`, `src/resume-draft.js`, `src/resume-artifact.js`, and `tests/beta-ui.test.js`. Validation: focused AST, Evidence Review, Resume Draft, and Beta UI tests (18 passing); full `npm test` (147 passing); `git diff --check` passing.
+
 ## Local Beta UI (Issue #60, 2026-08-04)
 
 Added `src/beta-ui.js`, a zero-dependency local HTTP server with a plain browser page. It creates a private temporary session, invokes the existing Resume AST provider, Evidence Review decisions, 003.6 integration, tailoring, presentation strategy, artifact generation, validation, Human Review/Career Review, and export APIs directly. The browser exposes no UUIDs as primary labels and only makes output links available after existing Career Review export succeeds. The API key is request-memory only and is neither persisted nor returned.

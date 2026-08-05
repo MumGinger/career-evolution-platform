@@ -44,7 +44,7 @@ function candidateFor(need, fact, sourceType) {
     extraction_method: sourceType === 'resume_ast' ? 'validated_resume_ast_requirement_retrieval' : 'deterministic_exact_or_explicit_alias',
     confidence_level: confidence,
     parser_version: ADAPTER_VERSION,
-    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null, retrieval: ast?.retrieval || null, extraction_state: ast?.extraction_state || null, block_kind: ast?.block_kind || null, section: ast?.section || null, exact_source_text: ast?.exact_source_text || null },
+    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null, retrieval: ast?.retrieval || null, extraction_state: ast?.extraction_state || null, block_kind: ast?.block_kind || null, integration_entity_type: ast?.integration_entity_type || null, section: ast?.section || null, exact_source_text: ast?.exact_source_text || null },
     limitations: confirmed
       ? 'Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.'
       : 'Potentially relevant evidence is not explicitly confirmed and cannot become Candidate Knowledge through discovery.',
