@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { createBetaUiServer } = require('../src/beta-ui');
+const vm = require('node:vm');
+const { createBetaUiServer, BETA_PAGE } = require('../src/beta-ui');
 
 async function withServer(run) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
@@ -62,6 +63,26 @@ test('LLM-first client contract rejects incomplete, duplicate, unknown, and edit
 test('shipped LLM-first page exposes the complete visible state flow and memory-only provider controls', async () => withServer(async ({ base }) => {
   const page = await (await fetch(`${base}/`)).text(); for (const text of ['Provider connection (memory only)', 'Understanding and exclusions', 'Evidence Review', 'Draft and validation', 'Career Review', 'Approve and export', 'Export complete', 'busy(', 'role="alert"']) assert.match(page, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))); assert.match(page, /evidence_candidate_id/); assert.match(page, /outputs\/.*View\/download/); assert.doesNotMatch(page, /provider:'mock'/);
 }));
+
+test('shipped LLM-first client executes canonical payloads, errors, blocked drafts, review, and export', async () => {
+  const elements = new Map(['f', 'j', 'p', 'm', 'k', 'b', 'go', 'error', 'counts', 'exclusions', 'cards', 'state', 'input', 'understanding', 'evidence', 'make', 'r', 'validation', 'draft', 'reviews', 'career', 'approve', 'result', 'links', 'output'].map((id) => [id, { id, value: id === 'p' ? 'mock' : '', files: id === 'f' ? [{ name: 'resume.txt' }] : [], hidden: false, disabled: false, textContent: '', innerHTML: '' }]));
+  const requests = []; let next = [];
+  const response = (value, ok = true) => ({ ok, json: async () => value });
+  const document = { getElementById: (id) => elements.get(id), querySelector: (selector) => ({ value: selector.startsWith('[data-c=') ? 'accept' : 'approve' }) };
+  class FileReader { readAsDataURL() { this.result = 'data:text/plain;base64,YQ=='; this.onload(); } }
+  const fetch = async (url, options) => { requests.push({ url, body: JSON.parse(options.body) }); const item = next.shift(); return item instanceof Promise ? item : response(item.value, item.ok); };
+  const script = BETA_PAGE.match(/<script>([\s\S]*)<\/script>/)[1]; vm.runInNewContext(script, { document, FileReader, fetch, String, JSON, Promise, Error });
+  const candidate = { evidence_candidate_id: 'candidate-7', requirement: 'SQL', claim: 'Used SQL' };
+  const started = { sessionId: 'session-1', candidates: [candidate], validation: { counts: { extracted: 2, valid: 1, excluded: 1 }, exclusions: [{ source_text: 'Unmapped headline', message: 'Exact source text must map to the resume input.' }] } };
+  next = [{ ok: false, value: { error: 'Server rejected the input.' } }, { ok: true, value: started }];
+  await elements.get('go').onclick(); assert.equal(elements.get('error').textContent, 'Server rejected the input.');
+  await elements.get('go').onclick(); assert.match(elements.get('cards').innerHTML, /candidate-7/); assert.match(elements.get('exclusions').innerHTML, /Unmapped headline/); assert.match(elements.get('exclusions').innerHTML, /Exact source text/);
+  let release; const pending = new Promise((resolve) => { release = resolve; }); next = [pending]; const first = elements.get('make').onclick(); const duplicate = elements.get('make').onclick(); assert.equal(elements.get('make').disabled, true); await duplicate; assert.equal(requests.filter((item) => item.url.endsWith('/confirm')).length, 1);
+  release(response({ resumeMarkdown: '## Skills\n\n- SQL', validation: 'passed', blocked: false, careerReview: [{ section: 'Skills', ai_version: { statements: [{ text: 'SQL' }] } }] })); await first; assert.equal(elements.get('career').hidden, false);
+  next = [{ ok: true, value: { resumeMarkdown: '## Skills\n\n- SQL', outputs: ['final-resume.md', 'final-resume.json', 'career-review-report.html'] } }]; await elements.get('approve').onclick(); assert.equal(requests.at(-1).body.decisions[0].section, 'Skills'); assert.match(elements.get('links').innerHTML, /final-resume\.json/);
+  next = [{ ok: true, value: started }, { ok: true, value: { resumeMarkdown: '', validation: 'failed', blocked: true, message: 'Validation blocked.', careerReview: null } }]; await elements.get('go').onclick(); await elements.get('make').onclick(); assert.equal(elements.get('career').hidden, true); assert.match(elements.get('validation').textContent, /Validation blocked/);
+  const confirmation = requests.find((item) => item.url.endsWith('/confirm')); assert.deepEqual(confirmation.body.decisions, [{ evidence_candidate_id: 'candidate-7', action: 'accept' }]);
+});
 
 test('LLM-first export gate blocks Career Review when deterministic draft validation fails', async () => withServer(async ({ app, base }) => {
   const source = `Aira Candidate\nSkills\nPython, SQL\nExperience\nData Analyst\n- Built Python reporting workflows for stakeholders.`; const job = `Company: Acme\nRole Title: Analyst\n\nRequired Qualifications:\nPython required.\nSQL required.`;

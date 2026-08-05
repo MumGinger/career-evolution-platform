@@ -6,7 +6,7 @@ test('structured draft cites only committed facts and omits unsupported sections
   const facts = new Map([['fact-sql', { id: 'fact-sql', entity_type: 'skill', value: { name: 'SQL' } }]]);
   const selections = [{ id: 'selection-sql', candidate_fact_id: 'fact-sql', selection_state: 'include', recommended_section: 'Skills', mapped_requirement_ids: ['requirement-sql'], permitted_claim_scope: ['skill_name'], inherited_provenance_references: ['decision-sql'], candidate_fact_revision: 'fact-sql' }];
   const result = await new MockResumeDraftProvider().draft({ facts, selections, requirements: [] });
-  assert.ok(result.draft.sections.some((section) => section.section === 'Professional Summary'));
+  assert.ok(!result.draft.sections.some((section) => section.section === 'Professional Summary'));
   assert.deepEqual(result.draft.sections.find((section) => section.section === 'Skills').statements[0].candidate_fact_ids, ['fact-sql']);
   assert.ok(!result.draft.sections.some((section) => section.section === 'Projects'));
   assert.equal(RESUME_DRAFT_JSON_SCHEMA.properties.sections.items.properties.statements.items.required.includes('candidate_fact_ids'), true);
