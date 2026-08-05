@@ -10,6 +10,7 @@ const tailoring = require('./resume-tailoring');
 const artifactGeneration = require('./resume-artifact');
 const validation = require('./resume-validation');
 const resumeAst = require('./resume-ast');
+const resumeDraft = require('./resume-draft');
 const careerUnderstanding = require('./career-understanding');
 const careerReflection = require('./career-reflection');
 const careerCuriosity = require('./career-curiosity');
@@ -531,6 +532,23 @@ class Store {
     this.db.prepare('INSERT INTO resume_artifact_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_tailoring_plan_run_id, run.candidate_knowledge_snapshot, run.job_requirement_profile_reference, run.artifact_policy_version, run.limitations, run.created_at);
     generated.metadata.traceability = { resume_artifact_run_id: run.id, resume_tailoring_plan_run_id: plan.id };
     if (strategyRun) generated.metadata.traceability.presentation_strategy_run_id = strategyRun.id;
+    const artifact = { id: this.id(), resume_artifact_run_id: run.id, artifact_type: 'structured_resume', format_version: generated.format, content: JSON.stringify({ format: generated.format, sections: generated.sections }), metadata: JSON.stringify(generated.metadata), created_at: run.created_at };
+    this.db.prepare('INSERT INTO resume_artifacts VALUES (?, ?, ?, ?, ?, ?, ?)').run(artifact.id, artifact.resume_artifact_run_id, artifact.artifact_type, artifact.format_version, artifact.content, artifact.metadata, artifact.created_at);
+    return this.getResumeArtifactRun(run.id);
+  }
+  async createResumeArtifactDraftRun({ resumeTailoringPlanRunId, presentationStrategyRunId = null, provider }) {
+    const plan = this.getResumeTailoringPlanRun(resumeTailoringPlanRunId);
+    const strategyRun = presentationStrategyRunId ? this.getPresentationStrategyRun(presentationStrategyRunId) : null;
+    if (strategyRun && strategyRun.resume_tailoring_plan_run_id !== plan.id) throw new Error('Presentation Strategy Run must reference the Resume Tailoring Plan Run');
+    const facts = new Map(plan.candidate_knowledge_snapshot.map((item) => [item.id, item]));
+    const requirements = this.getJobRequirementProfile(plan.job_requirement_profile_id).requirements;
+    let draftResult;
+    try { draftResult = await provider.draft({ facts, selections: plan.resume_content_selections, requirements, presentationStrategy: strategyRun?.strategy || null }); }
+    catch (error) { draftResult = { provider: provider?.name || 'unknown', model: provider?.model || 'unknown', version: resumeDraft.DRAFT_SCHEMA_VERSION, rawResponse: '', draft: null, parseError: `Provider execution failed: ${error.message}` }; }
+    const generated = artifactGeneration.generate(plan, strategyRun?.strategy || null, draftResult);
+    const run = { id: this.id(), resume_tailoring_plan_run_id: plan.id, candidate_knowledge_snapshot: JSON.stringify(plan.candidate_knowledge_snapshot), job_requirement_profile_reference: JSON.stringify({ id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version }), artifact_policy_version: artifactGeneration.POLICY_VERSION, limitations: generated.metadata.limitations, created_at: this.now() };
+    this.db.prepare('INSERT INTO resume_artifact_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_tailoring_plan_run_id, run.candidate_knowledge_snapshot, run.job_requirement_profile_reference, run.artifact_policy_version, run.limitations, run.created_at);
+    generated.metadata.traceability = { resume_artifact_run_id: run.id, resume_tailoring_plan_run_id: plan.id }; if (strategyRun) generated.metadata.traceability.presentation_strategy_run_id = strategyRun.id;
     const artifact = { id: this.id(), resume_artifact_run_id: run.id, artifact_type: 'structured_resume', format_version: generated.format, content: JSON.stringify({ format: generated.format, sections: generated.sections }), metadata: JSON.stringify(generated.metadata), created_at: run.created_at };
     this.db.prepare('INSERT INTO resume_artifacts VALUES (?, ?, ?, ?, ?, ?, ?)').run(artifact.id, artifact.resume_artifact_run_id, artifact.artifact_type, artifact.format_version, artifact.content, artifact.metadata, artifact.created_at);
     return this.getResumeArtifactRun(run.id);

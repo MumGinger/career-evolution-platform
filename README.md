@@ -100,7 +100,7 @@ For repeatable testing, provide `--review-fixture <file> --non-interactive`; its
 
 The preferred Demo path is asynchronous. It emits `resume-ast-run.json`, `resume-ast-validation.json`, and `confirmation-proposals.json`; request semantic graph explainability explicitly with `--build-semantic-graph`. Terminal and HTML always state `mock/offline` or `openai-compatible/<model>`.
 
-For an OpenAI-compatible provider, configure `CEP_LLM_PROVIDER=openai-compatible`, `CEP_LLM_MODEL`, `CEP_LLM_API_KEY`, and optional `CEP_LLM_BASE_URL`. Never commit keys, private inputs, or raw provider responses.
+For an OpenAI-compatible provider, configure `CEP_LLM_PROVIDER=openai-compatible`, `CEP_LLM_MODEL`, `CEP_LLM_API_KEY`, and optional `CEP_LLM_BASE_URL`. The provider proposes the canonical Resume AST and then structured Resume Draft wording from committed Candidate Knowledge, the target requirement profile, and presentation-only context. Both outputs remain deterministicly provenance-validated; Evidence Review, 003.6 commits, Career Review, and export gates remain local and deterministic. API keys are in-memory only: never commit, persist, include them in reports, or log them with private inputs or raw responses.
 
 ```powershell
 node src/demo.js `

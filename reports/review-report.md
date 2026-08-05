@@ -113,3 +113,6 @@ Codex self-review: pending human review. The slice expands perspective before op
 2. No ADR is required: ADR-004 already governs immutable records and ADR-005 preserves the Candidate Knowledge write boundary.
 3. Yes, the Career Curiosity MVP PRD documents the bounded behavior and exclusions.
 4. Yes, the roadmap records the completed MVP.
+# Self-review report — Issue #62
+
+Human review remains pending. Product principles checked: Candidate Knowledge remains the sole fact source; unsupported evidence is omitted; every generated statement is provenance-validated. This is a Version 1 Beta repair, so no ADR, PRD, or roadmap change is proposed. Review focus: verify local UI wiring shows AST/draft statuses without exposing in-memory credentials.
