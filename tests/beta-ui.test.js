@@ -48,3 +48,10 @@ test('failed startup cleans its temporary store and directory before registering
     assert.equal(failed.response.status, 400); assert.match(failed.value.error, /Paste a job description/); assert.deepEqual(fs.readdirSync(root), []); assert.equal(app.sessions.size, 0);
   } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
 });
+
+test('LLM-first beta uses the existing durable review, Candidate Knowledge, draft, and export gates', async () => withServer(async ({ app, base }) => {
+  const source = `Aira Candidate\nSkills\nPython, SQL\nExperience\nData Analyst\n- Built Python reporting workflows for stakeholders.`; const job = `Company: Acme\nRole Title: Analyst\n\nRequired Qualifications:\nPython required.\nSQL required.`;
+  const started = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume: { name: 'resume.txt', data: Buffer.from(source).toString('base64') }, jobText: job, provider: 'mock' }) }); assert.equal(started.response.status, 201); const session = app.sessions.get(started.value.sessionId); assert.ok(session.semantic.id); assert.ok(session.discoveryId);
+  const confirmed = await json(`${base}/api/llm-first/sessions/${session.id}/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: session.blocks.map((item) => ({ id: item.id, action: 'accept' })) }) }); assert.equal(confirmed.response.status, 200); assert.ok(session.reviewRun.id); assert.ok(session.integration?.id); assert.ok(session.artifact.id); assert.equal(confirmed.value.validation !== 'failed', true);
+  const exported = await json(`${base}/api/llm-first/sessions/${session.id}/career-review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: confirmed.value.careerReview.map((section) => ({ section: section.section, action: 'approve' })) }) }); assert.equal(exported.response.status, 200); assert.equal(exported.value.exportAllowed, true);
+}));
