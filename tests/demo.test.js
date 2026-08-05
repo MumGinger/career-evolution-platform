@@ -57,7 +57,7 @@ test('career evolution demo joins every milestone stage into one bounded compani
     assert.equal(loop.presentation_strategy.shared_understanding.current_direction, 'Data Analytics');
     const report = fs.readFileSync(path.join(output, 'report.html'), 'utf8');
     for (const section of ['Career Understanding', 'Presentation Strategy', 'Resume Draft', 'Career Review', 'Approved Resume Export', 'Pipeline readiness']) assert.match(report, new RegExp(section));
-    assert.match(report, /Evidence reviewed: 4/);
+    assert.match(report, /Evidence reviewed: 18/);
     assert.match(report, /Facts committed: 4/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
@@ -67,7 +67,7 @@ test('without a capture fixture, unresolved acquisition is skipped and no unsupp
   try {
     const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output });
     assert.ok(result.integration.applied_facts.length > 0);
-    assert.equal(result.reviewRun.review_decisions.length, 4);
+    assert.equal(result.reviewRun.review_decisions.length, 18);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 

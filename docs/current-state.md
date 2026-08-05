@@ -1,5 +1,9 @@
 # Current State
 
+## Real-resume section-evidence repair (2026-08-04)
+
+The Resume AST-to-Evidence Review bridge now retains retrieved project and experience bullets as reviewable working evidence instead of reducing the path to standalone skill tokens. After explicit acceptance, the existing 003.6 integration path alone evaluates bounded project, responsibility, and skill proposals with their AST span provenance. The local Beta UI now calls the existing structured Resume Draft provider after integration. Candidate Knowledge and Career Review/export boundaries are unchanged.
+
 ## Version 1.0 Beta blocker repair in progress
 
 Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo now requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. Export is blocked when no committed facts populate a core section. No new capability or Candidate Knowledge write path was added.
