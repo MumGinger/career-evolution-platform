@@ -14,3 +14,8 @@ test('only accepted grouped evidence reaches drafting and responsibility evidenc
 test('unsupported draft claims are blocked', () => {
   const approved = beta.validateUnderstanding({ understanding: beta.mockUnderstand({ text }), text }).valid_blocks; const value = beta.draft({ approved, jobText: '' }); value.sections[0].statements[0].text = 'Improved reporting by 40%.'; assert.equal(beta.validateDraft({ draft: value, approved }).status, 'failed');
 });
+
+test('an evidence edit cannot introduce a claim absent from exact source text', () => {
+  const blocks = beta.validateUnderstanding({ understanding: beta.mockUnderstand({ text }), text }).valid_blocks;
+  assert.throws(() => beta.approvedBlocks(blocks, [{ id: blocks[0].id, action: 'edit', value: 'Led enterprise AI transformation' }]), /source-bound/);
+});
