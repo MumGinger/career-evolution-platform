@@ -6,6 +6,7 @@ function scalar(value) { return typeof value === 'string' || typeof value === 'n
 function displayValue(fact) {
   if (fact.display_value) return fact.display_value;
   const value = fact.value || fact.canonical_value || {};
+  if (fact.entity_type === 'project' && scalar(value.name) && scalar(value.text) && value.name !== value.text) return `${value.name}: ${value.text}`;
   for (const key of ['name', 'title', 'credential', 'degree', 'program']) if (scalar(value[key])) return scalar(value[key]);
   const pair = [value.organization, value.role].map(scalar).filter(Boolean);
   if (pair.length) return pair.join(' — ');
@@ -14,7 +15,8 @@ function displayValue(fact) {
 }
 function templateFor(selection, fact) {
   if (selection.recommended_section === 'Skills') return 'skill_name';
-  if (selection.recommended_section === 'Projects') return 'project_name';
+  if (selection.recommended_section === 'Projects') return fact.value?.text && fact.value.text !== fact.value.name ? 'bounded_project_responsibilities' : 'project_name';
+  if (selection.recommended_section === 'Experience' && fact.entity_type === 'responsibility') return 'bounded_responsibility';
   if (selection.recommended_section === 'Experience') return fact.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
   return 'accepted_fact_detail';
 }
@@ -41,8 +43,8 @@ function generatedStatements(draft, plan, facts) {
   const sections = new Map(draft.sections.map((item) => [item.section, item.statements]));
   return SECTIONS.map((name, position) => ({ section: name, position: position + 1, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
     const factIds = [...new Set(item.candidate_fact_ids || [])]; const linked = factIds.map((id) => selections.get(id)).filter(Boolean);
-    const first = linked[0];
-    return { statement_id: `draft:${name}:${index + 1}`, template: first?.permitted_claim_scope?.[0] || 'unbounded_draft', text: item.text, resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
+    const first = linked[0]; const fact = facts.get(first?.candidate_fact_id);
+    return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}), text: item.text, resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
   }) }));
 }
 function generate(plan, presentationStrategy = null, draftResult = null) {
