@@ -1,5 +1,8 @@
 # Lightweight beta-test checklist
 
+- [ ] Start `node src/beta-ui.js`; verify the local page shows provider/model, keeps the key blank after submission, and does not require command-by-command workflow entry.
+- [ ] In the UI, complete every Evidence Review candidate, confirm the regenerated draft contains only committed facts, then explicitly approve or edit all four Career Review sections before final-output links appear.
+
 - Keep real inputs, credentials, and raw provider responses outside version control.
 - Check source identity, AST grouping, provenance findings, and expected top matches.
 - Verify Candidate Knowledge has no unaccepted writes.

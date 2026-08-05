@@ -72,6 +72,10 @@ The interaction flags represent three existing, bounded user inputs: one optiona
 
 ## Evidence Review beta
 
+### Local Beta UI
+
+For a small local testing interface, run `node src/beta-ui.js` and open the displayed `http://127.0.0.1:3000` URL. Select a PDF or synthetic TXT resume, paste a job description, complete Evidence Review, then complete the required Career Review before downloading the final Markdown, JSON, and HTML. This is a private testing UI only: it uses a temporary local session, has no accounts or deployment, and never writes the API key to disk, outputs, fixtures, logs, or Git.
+
 Use the local review CLI to review `needs_confirmation` evidence with Accept, Skip, or Edit. Keep the database, resume, job description, and output directory private.
 
 ```powershell
