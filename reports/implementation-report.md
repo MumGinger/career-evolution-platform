@@ -1,5 +1,11 @@
 # Implementation Report — Capability 004.3
 
+## Local Beta UI (Issue #60, 2026-08-04)
+
+Added `src/beta-ui.js`, a zero-dependency local HTTP server with a plain browser page. It creates a private temporary session, invokes the existing Resume AST provider, Evidence Review decisions, 003.6 integration, tailoring, presentation strategy, artifact generation, validation, Human Review/Career Review, and export APIs directly. The browser exposes no UUIDs as primary labels and only makes output links available after existing Career Review export succeeds. The API key is request-memory only and is neither persisted nor returned.
+
+Changed: `src/beta-ui.js`, a small reusable Evidence Review integration handoff, UI regression tests, README, beta checklist, current state, and reports. Validation: focused UI tests and `npm test` (142 passing). No production frontend architecture, persistence redesign, or Candidate Knowledge policy change was introduced.
+
 ## Career Review Version 1.0 integration (2026-08-04)
 
 Completed the final Version 1.0 integration step before Beta. The primary synthetic demo now creates the existing immutable Human Review Run through `createHumanReviewRun()` and releases the final resume only through `exportResumeArtifact()`. It shows the draft before Career Review, publishes review completion and approved export in HTML and terminal output, and keeps stable internal JSON artifact names and schemas.
