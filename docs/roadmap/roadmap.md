@@ -44,3 +44,6 @@ Milestone 1 Demo — End-to-End Resume Tailoring Pipeline is complete. It integr
 # Career Understanding MVP
 
 Current scope includes a read-only, explainable Current Career Snapshot. Coaching and recommendations remain future work.
+# Beta architecture pivot
+
+Prioritize the LLM-first Resume Understanding and dual-mode Beta UI path. This is an efficiency-driven architecture pivot, not Version 2 feature expansion.

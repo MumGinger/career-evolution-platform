@@ -133,3 +133,6 @@ node src/demo.js `
 ```
 
 The output directory must be absent or empty, so each invocation is a new immutable run set; use a new path to run it again. The demo versions the source resume, runs 002.5 Resume Semantic Understanding before Information Needs and Evidence Discovery, and keeps parsed content plus semantic candidates as working evidence only. It contains `candidate-knowledge.json`, `resume-semantic-run.json`, `job-requirement-profile.json`, `information-needs.json`, `evidence-discovery.json`, `acquisition-plan.json`, `integration-run.json`, `tailoring-plan.json`, `resume-artifact.json`, `validation-report.json`, `resume.md`, and `report.html`. It accepts explicit job metadata headers when supplied and otherwise deterministically infers LinkedIn-style role/company opening lines. The demo uses no external connectors or LLMs and does not render DOCX/PDF.
+# LLM-first Beta note
+
+The local Beta UI now prefers bounded LLM resume understanding for real resumes. Run `node src/beta-ui.js` and open the local URL. The deterministic Resume AST path remains a legacy/diagnostic route for synthetic and offline tests; it is not the preferred real-resume flow.
