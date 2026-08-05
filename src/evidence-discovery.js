@@ -18,7 +18,19 @@ function structuredMatches(requirement, facts) {
 }
 
 function matches(requirement, facts) {
-  return [...matchingFacts(requirement, facts), ...structuredMatches(requirement, facts).filter((fact) => !matchingFacts(requirement, facts).some((match) => match.id === fact.id))];
+  const exact = matchingFacts(requirement, facts);
+  // Semantic runs retain whole source-bound bullets.  A responsibility such as
+  // "Built ... automation workflows" is evidence for Automation even though
+  // its entity name is the complete bullet, not the requirement label.
+  const terms = [requirement.normalized_name, ...(requirement.aliases || [])].map(normalize).filter(Boolean);
+  const contextual = facts.filter((fact) => {
+    if (!['resume_semantic', 'resume_semantic_graph'].includes(fact.source)) return false;
+    const type = fact.entity_type;
+    if (!['responsibility', 'achievement', 'project', 'experience'].includes(type)) return false;
+    const text = normalize(fact.provenance?.raw_text || fact.value?.text || fact.value?.name || '');
+    return terms.some((term) => text.includes(term));
+  });
+  return [...exact, ...contextual, ...structuredMatches(requirement, facts)].filter((fact, index, all) => all.findIndex((item) => item.id === fact.id) === index);
 }
 
 function claimFor(fact) {
@@ -40,11 +52,11 @@ function candidateFor(need, fact, sourceType) {
     source_reference: fact.id,
     normalized_claim: normalize(claimFor(fact)),
     supporting_value: fact.value,
-    supporting_text: fact.value?.text || fact.value?.name || claimFor(fact),
-    extraction_method: sourceType === 'resume_ast' ? 'validated_resume_ast_requirement_retrieval' : 'deterministic_exact_or_explicit_alias',
+    supporting_text: fact.provenance?.raw_text || fact.value?.text || fact.value?.name || claimFor(fact),
+    extraction_method: sourceType === 'resume_ast' ? 'validated_resume_ast_requirement_retrieval' : sourceType === 'resume_semantic' ? 'source_bound_semantic_contextual_retrieval' : 'deterministic_exact_or_explicit_alias',
     confidence_level: confidence,
     parser_version: ADAPTER_VERSION,
-    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null, retrieval: ast?.retrieval || null, extraction_state: ast?.extraction_state || null, block_kind: ast?.block_kind || null, integration_entity_type: ast?.integration_entity_type || null, section: ast?.section || null, exact_source_text: ast?.exact_source_text || null },
+    provenance: { source: fact.source, confirmation_status: fact.confirmation_status, resume_import_id: fact.resume_import_id || null, semantic: fact.provenance || null, retrieval: ast?.retrieval || null, extraction_state: ast?.extraction_state || null, block_kind: ast?.block_kind || null, integration_entity_type: ast?.integration_entity_type || null, section: ast?.section || fact.provenance?.section_name || null, exact_source_text: ast?.exact_source_text || fact.provenance?.raw_text || null, upstream_block_id: fact.provenance?.attributes?.upstream_block_id || null, parent_id: fact.provenance?.attributes?.parent_id || null, requirement_id: need.job_requirement_id, match_rationale: sourceType === 'resume_semantic' ? 'Requirement term or approved alias occurs in the retained exact source-bound contextual block.' : null },
     limitations: confirmed
       ? 'Explicit bounded match only; it does not establish proficiency, recency, depth, or outcomes.'
       : 'Potentially relevant evidence is not explicitly confirmed and cannot become Candidate Knowledge through discovery.',
