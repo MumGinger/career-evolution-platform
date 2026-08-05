@@ -1,0 +1,7 @@
+interface:
+  display_name: "Project Status"
+  short_description: "Report the verified delivery state"
+  default_prompt: "Use $project-status to report the verified state of this repository."
+
+policy:
+  allow_implicit_invocation: false
