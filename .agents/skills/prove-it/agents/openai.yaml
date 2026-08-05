@@ -1,0 +1,7 @@
+interface:
+  display_name: "Prove It"
+  short_description: "Verify acceptance criteria independently"
+  default_prompt: "Use $prove-it to verify the current implementation against its acceptance criteria."
+
+policy:
+  allow_implicit_invocation: false
