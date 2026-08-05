@@ -1,4 +1,5 @@
 {
+  "defaultAction": "skipped",
   "decisions": [
     { "requirementName": "SQL", "action": "accepted" },
     { "requirementName": "Python", "action": "accepted" },

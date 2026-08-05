@@ -1,5 +1,11 @@
 # Review Report — Capability 004.3
 
+## PR #68 final blocker repair self-review (2026-08-05)
+
+No blocking implementation issue found. The change preserves the existing Candidate Knowledge, 003.6, deterministic validation, and Human Review boundaries. The fallback fixture action creates one persisted decision per discovered candidate; it does not relax review completeness. Exclusion details make discarded resume evidence visible without promoting it to a fact. The executed client regression covers the null Career Review path that static HTML assertions could not detect.
+
+Governance gates: no Product Principle is violated; no ADR, PRD, or roadmap update is needed because this is a focused validation/UI repair. Human review remains pending. Validation: focused 19/19 and full 156/156 passing, syntax checks and whitespace checks passing.
+
 ## Real-resume section-evidence repair self-review (2026-08-04)
 
 No blocking issue found in the focused repair. AST working evidence remains outside Candidate Knowledge until the user accepts it, and every durable write still goes through the existing 003.6 policy. Project and experience text remains bounded to exact AST spans; the draft provider receives only committed selections and mapped requirements; deterministic validation runs before the existing mandatory Career Review/export boundary.

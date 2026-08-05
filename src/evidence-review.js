@@ -50,7 +50,8 @@ function reviewFixtureMap(fixture) {
   const decisions = Array.isArray(fixture) ? fixture : fixture?.decisions || [];
   const map = new Map();
   for (const item of decisions) if (item.evidenceCandidateId && !map.has(item.evidenceCandidateId)) map.set(item.evidenceCandidateId, item);
-  return { map, decisions };
+  const defaultAction = !Array.isArray(fixture) && ['accepted', 'skipped'].includes(fixture?.defaultAction) ? fixture.defaultAction : null;
+  return { map, decisions, defaultAction };
 }
 async function collectInteractive(queueItems, adapter) {
   const decisions = [];
@@ -77,7 +78,7 @@ async function run({ store, candidateProfileId, jobRequirementProfileId, fixture
   if (fixture) {
     const supplied = reviewFixtureMap(fixture);
     decisions = queueItems.flatMap((item) => item.candidates.map((candidate) => {
-      const suppliedDecision = supplied.map.get(candidate.candidate.id) || supplied.decisions.find((item) => String(item.requirementName || '').toLowerCase() === candidate.candidate.normalized_claim);
+      const suppliedDecision = supplied.map.get(candidate.candidate.id) || supplied.decisions.find((item) => String(item.requirementName || '').toLowerCase() === candidate.candidate.normalized_claim) || (supplied.defaultAction ? { action: supplied.defaultAction, rationale: 'Intentional fixture default for otherwise unmatched reviewable evidence.' } : null);
       if (!suppliedDecision && nonInteractive) throw new Error(`Unresolved review decision for ${candidate.candidate.id}`);
       return suppliedDecision ? decisionFrom(candidate, suppliedDecision) : null;
     }).filter(Boolean));

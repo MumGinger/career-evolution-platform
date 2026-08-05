@@ -2,6 +2,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
 const { OUTPUT_FILES, confirmationProposals, runDemo, summary, jobIdentity } = require('../src/demo');
+const { Store } = require('../src/store');
+const { parseResumeText } = require('../src/resume');
+const { providerFromConfig } = require('../src/resume-ast');
+const evidenceReview = require('../src/evidence-review');
+const { runResumeSemanticUnderstanding } = require('../src/resume-semantic');
+const { runResumeSemanticGraphConstruction } = require('../src/resume-semantic-graph');
 
 const root = path.join(__dirname, '..');
 function fixture(name) { return path.join(root, 'examples', name); }
@@ -79,14 +85,13 @@ test('requires a clean output directory so every invocation is a new run set', a
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
-test('optional graph flag preserves existing graph output while preferred path remains graph-free', async () => {
-  const output = tempOutput();
+test('semantic-graph demo fixture makes an intentional decision for every reviewable candidate', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'semantic-graph-demo-')); const store = new Store(path.join(directory, 'demo.db'));
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-complex-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, buildSemanticGraph: true });
-    const graphStates = [...result.graph.nodes, ...result.graph.edges].filter((item) => item.decision_state === 'derived_structurally');
-    assert.ok(result.graph.edges.length > 0); assert.ok(graphStates.length > 0);
-    assert.ok(result.discovery.information_need_run.available_working_evidence_summary.length > 0);
-  } finally { fs.rmSync(output, { recursive: true, force: true }); }
+    const sourcePath = fixture('synthetic-complex-resume.txt'); const text = fs.readFileSync(sourcePath, 'utf8'); const profile = store.createResumeProfile({ sourcePath, basic: parseResumeText(text).basic, facts: [] }); const source = store.createSourceResumeArtifactVersion({ profileId: profile.profile.id, sourcePath, parsedText: text }); const ast = await store.createResumeAstRun({ profileId: profile.profile.id, artifactId: source.artifact.id, provider: providerFromConfig() }); const semantic = runResumeSemanticUnderstanding(store, { profileId: profile.profile.id, artifactId: source.artifact.id }); const graph = runResumeSemanticGraphConstruction(store, { semanticRunId: semantic.id }); const job = store.createJobRequirementProfile({ ...jobIdentity(fs.readFileSync(fixture('synthetic-job.txt'), 'utf8')), jobDescription: fs.readFileSync(fixture('synthetic-job.txt'), 'utf8') }); const reviewed = await evidenceReview.run({ store, candidateProfileId: profile.profile.id, jobRequirementProfileId: job.id, fixture: JSON.parse(fs.readFileSync(evidenceReviewFixture(), 'utf8')), nonInteractive: true });
+    const graphStates = [...graph.nodes, ...graph.edges].filter((item) => item.decision_state === 'derived_structurally');
+    assert.equal(ast.validation_status, 'passed'); assert.ok(graph.edges.length > 0); assert.ok(graphStates.length > 0); assert.ok(reviewed.discovery.information_need_run.available_working_evidence_summary.length > 0); assert.equal(reviewed.reviewRun.review_decisions.length, reviewed.queue.flatMap((group) => group.candidates).length); assert.ok(reviewed.reviewRun.review_decisions.every((decision) => ['accepted', 'skipped'].includes(decision.action)));
+  } finally { store.close(); fs.rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('uses one canonical identity for three-line LinkedIn and Role at Company openings', () => {
