@@ -586,7 +586,8 @@ class Store {
     const strategyRun = presentationStrategyRunId ? this.getPresentationStrategyRun(presentationStrategyRunId) : null;
     const drafts = humanReview.createDraft({ artifactRun, presentationStrategyRun: strategyRun });
     const submitted = new Map(decisions.map((item) => [item.section, item]));
-    if (submitted.size !== humanReview.REQUIRED_SECTIONS.length || humanReview.REQUIRED_SECTIONS.some((section) => !submitted.has(section))) throw new Error(`Human Review requires explicit decisions for: ${humanReview.REQUIRED_SECTIONS.join(', ')}`);
+    const presented = drafts.map((draft) => draft.section);
+    if (!presented.length || submitted.size !== presented.length || presented.some((section) => !submitted.has(section)) || [...submitted.keys()].some((section) => !presented.includes(section))) throw new Error(`Human Review requires explicit decisions for every presented section: ${presented.join(', ')}`);
     for (const decision of decisions) if (!['approve', 'edit'].includes(decision.action)) throw new Error('Human Review action must be approve or edit');
     const run = { id: this.id(), resume_artifact_run_id: artifactRun.id, artifact_snapshot: JSON.stringify(artifactRun), presentation_strategy_snapshot: strategyRun ? JSON.stringify(strategyRun) : null, policy_version: humanReview.POLICY_VERSION, review_actor: reviewActor, created_at: this.now() };
     this.db.prepare('INSERT INTO human_review_runs VALUES (?, ?, ?, ?, ?, ?, ?)').run(run.id, run.resume_artifact_run_id, run.artifact_snapshot, run.presentation_strategy_snapshot, run.policy_version, run.review_actor, run.created_at);

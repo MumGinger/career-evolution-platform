@@ -4,7 +4,6 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer } = require('../src/beta-ui');
-const { REQUIRED_SECTIONS } = require('../src/human-review');
 
 async function withServer(run) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
@@ -19,7 +18,7 @@ test('local Beta UI runs the existing review, integration, Career Review, and ex
   const started = await json(`${base}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input()) }); assert.equal(started.response.status, 201); assert.equal(started.value.provider, 'mock'); assert.ok(started.value.candidates.length > 0);
   const session = app.sessions.get(started.value.sessionId); const secret = 'not-a-real-key'; const saved = fs.readdirSync(session.dir).map((name) => fs.readFileSync(path.join(session.dir, name)).toString('utf8')); assert.ok(saved.every((value) => !value.includes(secret)));
   const blocked = await fetch(`${base}/api/sessions/${started.value.sessionId}/outputs/final-resume.md`); assert.equal(blocked.status, 409);
-  const reviewed = await json(`${base}/api/sessions/${started.value.sessionId}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: started.value.candidates.map((candidate) => ({ key: candidate.key, action: 'accepted' })) }) }); assert.equal(reviewed.response.status, 200); assert.ok(reviewed.value.committedFacts > 0); assert.match(reviewed.value.resumeMarkdown, /SQL/); assert.equal(reviewed.value.careerReview.length, REQUIRED_SECTIONS.length);
+  const reviewed = await json(`${base}/api/sessions/${started.value.sessionId}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: started.value.candidates.map((candidate) => ({ key: candidate.key, action: 'accepted' })) }) }); assert.equal(reviewed.response.status, 200); assert.ok(reviewed.value.committedFacts > 0); assert.match(reviewed.value.resumeMarkdown, /SQL/); assert.ok(reviewed.value.careerReview.length > 0); assert.ok(reviewed.value.careerReview.every((section) => section.ai_version.statements.length > 0));
   const complete = await json(`${base}/api/sessions/${started.value.sessionId}/career-review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: reviewed.value.careerReview.map((section) => ({ section: section.section, action: 'approve' })) }) }); assert.equal(complete.response.status, 200); assert.equal(complete.value.exportAllowed, true); assert.ok(complete.value.outputs.includes('career-review-report.html'));
   const output = await fetch(`${base}/api/sessions/${started.value.sessionId}/outputs/final-resume.md`); assert.equal(output.status, 200); assert.match(await output.text(), /## Skills/);
 }));
