@@ -1,12 +1,12 @@
 # Product Roadmap
 
-Version 1.0 final integration is complete: **Career Review** is the product-facing name for the existing Human Review capability. The primary demo uses that immutable review run and its established export gate; Version 1.0 Beta is next.
+Version 1 engineering integration is complete, but Version 1 is **not Beta Accepted**. Beta #1 and Beta #2 both failed product acceptance. Issue #83 — **Produce a complete recognizable tailored resume** — is the active release blocker.
+
+Another real-user Beta and new Intelligent Execution work are deferred until the product independently demonstrates a complete applicant-facing resume that preserves essential source-resume structure while applying evidence-backed tailoring.
 
 | Capability | Status | Purpose |
 | --- | --- | --- |
-
-For 002.7, “Complete” means the offline/mock path now validates nested AST leaves, preserves `structurally_grouped` placement, retrieves ranked AST blocks directly, and keeps all but explicit skill/tool evidence behind confirmation; it does not modify Candidate Knowledge outside 003.6.
-| 002.7 — LLM-Assisted Resume AST | Complete (offline/mock) | Preferred blocking path with provenance validation and direct retrieval. |
+| 002.7 — LLM-Assisted Resume AST | Complete (offline/mock) | Legacy/diagnostic blocking path with provenance validation and direct retrieval. |
 | 002.5 — Resume Semantic Understanding | Complete | Create immutable, traceable resume semantic candidates before Information Acquisition. |
 | 002.6 — Resume Semantic Graph Construction | Complete | Build immutable, provenance-preserving graph candidates from 002.5 working evidence before Information Acquisition. |
 | 001 — Application Evidence Loop | Complete | Record applications, artifacts, and outcome/preference evidence without automatic learning. |
@@ -18,32 +18,41 @@ For 002.7, “Complete” means the offline/mock path now validates nested AST l
 | 003.5 — Acquisition Execution | Complete | Execute immutable plans through deterministic local actions and capture raw evidence without integration. |
 | 003.6 — Candidate Knowledge Integration | Complete | Deterministically commit only accepted bounded evidence into append-only Candidate Knowledge through its sole Capability 003 write path. |
 | 004.1 — Resume Tailoring Planning | Complete | Create immutable, truth-preserving selection and coverage plans from committed Candidate Knowledge and job requirements. |
-| 004.2 — Resume Artifact Generation | Complete | Deterministically render structured, provenance-preserving intermediate resume artifacts from immutable tailoring plans. |
-| 004.3 — Truthfulness & Quality Validation | Complete | Deterministically validate immutable artifacts against plan, fact provenance, claim scopes, and traceability before output. |
+| 004.2 — Resume Artifact Generation | Complete as an intermediate artifact boundary; product completeness remains blocked | Render structured, provenance-preserving resume artifacts from immutable tailoring plans. Issue #83 must define how complete source-resume composition survives around tailored claims. |
+| 004.3 — Truthfulness & Quality Validation | Complete for claim safety; whole-resume completeness requires Issue #83 | Validate immutable artifacts against plan, fact provenance, claim scopes, traceability, and the eventual complete-resume composition contract. |
 | Evidence Review MVP (Issue #39) | Complete | Review confirmation-required evidence, integrate only approved claims through 003.6, then refresh tailoring, artifact, and validation. |
 | Career Conversation MVP | Complete | Ask one optional post-resume question and store its answer or skip as a bounded observation, never as Candidate Knowledge. |
 | Career Reflection / Shared Understanding MVP (Issue #46) | Complete | Present the Current Career Snapshot, capture one optional-note response, and persist an immutable source-linked reflection without updating understanding or knowledge. |
 | Career Curiosity MVP | Complete | Introduce exactly one supported adjacent career possibility, record one bounded response, and expand perspective without recommending a job or writing Candidate Knowledge. |
 | Decision Companion MVP (Issue #51) | Complete | Final Thinking Layer slice: compare 2–4 user-provided options with provenance and uncertainty, then record the user's own state without recommendation. |
-| Intelligent Execution | Next | Generate career artifacts from shared understanding and a user-owned decision context. |
-| Milestone 2 — Career Evolution Loop v1 | Complete | Integrate Resume Intelligence, Career Conversation, Understanding, Reflection, Curiosity, completion, one HTML report, and one loop summary without changing truth boundaries. |
+| Milestone 2 — Career Evolution Loop v1 | Engineering complete | Integrate Resume Intelligence, Career Conversation, Understanding, Reflection, Curiosity, completion, one HTML report, and one loop summary without changing truth boundaries. |
+| Intelligent Resume v1 | Engineering complete; product acceptance failed | Use a provenance-preserving Presentation Strategy and mandatory Career Review. Beta evidence shows the artifact is still incomplete as a resume. |
+| Human Review / Career Review MVP | Complete | Require explicit review before export; preserve drafts, edits, evidence, rationale, and timestamps in immutable runs. |
+| Local dual-mode Beta UI | Complete for testing | Provide a Companion View and Developer View over the shipped local workflow; it is not production frontend architecture. |
+| Issue #83 — Complete Resume Composition | **Active product blocker** | Preserve identity/contact and essential source sections, combine them with evidence-backed tailored claims, and validate both claim safety and whole-document completeness. |
+| Version 1 Beta Accepted | **Blocked / NO** | Requires a complete, understandable, submission-evaluable resume and explicit real-user acceptance. |
+| Intelligent Execution expansion | Deferred | Do not add new artifacts until Version 1 produces a complete resume and passes Beta. |
 | 005 — Job Discovery | Planned | Discover and evaluate job opportunities. |
 | 006 — Application Automation | Planned | Support bounded, reviewable application workflows. |
 | 007 — Outcome Learning | Planned | Learn priorities and guidance from reviewed application and interview outcomes. |
 
-| Intelligent Resume v1 | Complete — final step before Version 1.0 beta | Integrate the Thinking Layer with a provenance-preserving Presentation Strategy that orders only evidence-backed resume content and explains every decision. |
-| Version 1.0 beta | Next | Test whether users say the generated resume feels like them and clearly fits the supplied job. No new capability is in scope before this test. |
+## Current product gate
 
-| Human Review MVP | Complete — final Version 1.0 release blocker | Require explicit review of Professional Summary, Skills, Experience, and Projects before resume export; preserve AI drafts, edits, evidence, rationale, and timestamps in immutable runs. |
+Issue #83 must answer one product question before implementation can be accepted:
 
-Version 1.0 beta is next: test whether users say the reviewed-and-approved resume feels like them and clearly fits the supplied job. No new capability is in scope before this test.
+> What is the smallest truth-preserving composition boundary that lets unchanged source-resume structure and essential content survive into the final artifact without silently treating all source text as newly committed Candidate Knowledge?
 
-Capabilities are delivered in order only when their evidence, privacy, review, and product boundaries are ready. A roadmap item is not authorization to implement it.
+Accepted boundaries remain unchanged:
 
-Milestone 1 Demo — End-to-End Resume Tailoring Pipeline is complete. It integrates existing 002, 003, and 004 slices into one deterministic local demo with fixture-supported confirmation, exported outputs, and no new domain capability.
-# Career Understanding MVP
+- Candidate Knowledge is the authority for newly generated or materially rewritten factual claims.
+- 003.6 is the sole accepted-only Candidate Knowledge writer.
+- LLM understanding and drafting are bounded proposals.
+- Deterministic validation remains authoritative.
+- Career Review is mandatory before export.
+- Engineering completion and export availability do not equal Beta acceptance.
 
-Current scope includes a read-only, explainable Current Career Snapshot. Coaching and recommendations remain future work.
-# Beta architecture pivot
+## Beta architecture direction
 
-Prioritize the LLM-first Resume Understanding and dual-mode Beta UI path. This is an efficiency-driven architecture pivot, not Version 2 feature expansion.
+The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST path remains legacy/diagnostic for offline and synthetic coverage. The local UI keeps Companion and Developer views separate so applicant-facing simplicity does not remove internal observability.
+
+Capabilities are delivered only when their evidence, privacy, review, and product boundaries are ready. A roadmap item is not authorization to implement it.
