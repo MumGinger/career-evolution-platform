@@ -1,88 +1,31 @@
-# Engineering Room Handoff
+# Engineering Handoff
 
-**Last checkpoint:** 2026-08-06 17:24 ET  
-**Room authority:** Repository evidence, current GitHub state, `ENGINEERING_LEAD.md`, and `AGENTS.md` override this handoff when they conflict.
+**Owner:** Engineering Room  
+**Checkpoint:** 2026-08-06
 
-## Purpose
+## Start
 
-This file carries only the active working state needed to replace a long Engineering Room. Durable implementation evidence belongs in issues, pull requests, commits, tests, checks, ADRs, specifications, and `docs/current-state.md`.
+Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, and current GitHub state.
 
-## Current engineering objective
+## Active work
 
-Resolve Issue #83 without weakening truth boundaries. The source-loss diagnosis is complete, but the complete-resume composition boundary is still an unresolved Product decision. Keep PR #87 as a draft prototype until Product records the accepted authority, provenance, validation, Career Review, and applicant-facing behavior for source-preserved content versus generated or materially rewritten claims.
+- Issue #83 — produce a complete recognizable tailored resume.
+- Draft PR #87 — source-resume shell with dual-lane Capability 004 composition.
+- PR #87 head: `683f0a15f29364d23a2c5404b88ac119e9626a1d`; synchronized to base `f16d577cabfd787331e50251db231c8b68597802`.
+- Accepted boundary: exact source passthrough never writes Candidate Knowledge; generated or materially rewritten claims still require Evidence Review → 003.6 → included selection.
 
-After that decision, align PR #87 to it, update the branch from the latest base, run full repository proof, and independently inspect a complete shipped applicant-facing artifact before another Beta is prepared.
+## Evidence and gaps
 
-## Active issue or pull request
+- Root-cause diagnosis: **PASS** — source structure survives understanding and is lost after Evidence Review when downstream stages render only included Candidate Knowledge selections.
+- Focused composition regression: **6/6 PASS**.
+- Independent six-section draft inspection: **PASS**.
+- Full `npm test`, shipped server regression, GitHub checks, complete diff review, and final export inspection: **UNKNOWN / pending**.
+- PR #87 is not merge-ready, Proven for the shipped complete-resume flow, or Beta Accepted.
 
-- Active issue: Issue #83 — **Beta blocker — Produce a complete recognizable tailored resume**; open.
-- Active pull request: Draft PR #87 — **Fix #83 complete resume composition boundary**.
-- Current branch or base:
-  - repository default/base: `chore/project-foundation`;
-  - verified base tip at checkpoint: `905af331200c6b8fa4334219e9473120755207d9` from merged Engineering checkpoint PR #90;
-  - PR branch: `agent/issue-83-complete-resume-composition`;
-  - latest PR head at checkpoint: `9e079b8d9fcc360309254d9744925a791c62a69e`;
-  - latest PR commit removes the duplicate branch-local workflow and relies on the repository's existing CI workflow;
-  - branch comparison: 12 commits ahead and 3 commits behind the current base; merge base `cc77fabff2624453f6b914de36c6534d91caefca`.
-- Delivery state: **Prototyped / partially Implemented only**. PR #87 is not Integrated, Proven, merge-ready, or Beta Accepted.
+## Protect
 
-## Verified evidence
+Preserve Candidate Knowledge, 003.6, exact source passthrough, provenance, source order/hierarchy, separate claim-safety and whole-resume validation, complete Career Review, privacy, and the engineering-proof/Beta-acceptance distinction.
 
-- Root-cause diagnosis: **PASS by repository inspection.** Validated source-resume blocks and hierarchy survive Resume Understanding. The complete document is lost after Evidence Review because tailoring, artifact generation, Career Review, and export render only included Candidate Knowledge selections. This diagnosis is recorded in PR #87 and Issue #83.
-- Focused validation: PR #87 reports **5 passing** complete-resume composition fixture tests. The checkpoint did not independently rerun them.
-- Synthetic artifact inspection: PR #87 records an inspected six-section draft from 11 source statements, with 10 preserved verbatim and 1 bounded project replacement. This is engineering prototype evidence, not real-user proof.
-- Full regression or CI: **UNKNOWN.** The latest PR head has no GitHub status checks and no workflow runs. The PR body still lists full repository regression and pull-request checks as pending.
-- Review state: PR #87 has one Engineering checkpoint review and no unresolved inline threads. The review explicitly blocks merge pending Product decision, branch update, full validation, complete diff review, shipped export proof, and post-rebase artifact inspection.
-- Representative user-visible proof:
-  - Beta #2 / Issue #82: **FAIL**. The shipped real-provider flow completed and exported three files, but the user received an incomplete one-project resume and would not submit or reuse it.
-  - PR #87: synthetic complete-draft proof only; no current real-resume or shipped-browser acceptance proof.
-- Remaining UNKNOWN claims:
-  - whether Product accepts the dual-lane `source_resume_passthrough` / `candidate_knowledge_generated` boundary implemented by PR #87;
-  - whether PR #87 remains correct after rebasing onto the latest base and Product checkpoint;
-  - complete PR diff correctness and architecture impact;
-  - full repository test suite, whitespace, and CI;
-  - the shipped LLM-first Projects-only regression and final Markdown export;
-  - exact Candidate Knowledge contents after the complete export path;
-  - post-rebase independent inspection of the final Markdown, JSON, and Career Review report;
-  - real-user usefulness and Beta acceptance.
+## Next action
 
-## Boundaries relevant to the active work
-
-- Candidate Knowledge remains the committed authority for every newly generated or materially rewritten factual claim.
-- 003.6 remains the sole accepted-only Candidate Knowledge writer.
-- Any source-preserved content must remain exact, source-linked, and unable to silently create or strengthen Candidate Knowledge.
-- Exact provenance, source order and hierarchy, uncertainty, and parent/child relationships must survive composition.
-- Deterministic validation must keep generated-claim safety distinct from whole-resume composition and completeness.
-- Career Review must review the complete applicant-facing resume before export.
-- No test, successful export, synthetic artifact, or engineering run may be described as Beta Accepted.
-- Private resumes, job descriptions, credentials, provider responses, and local paths must not enter the repository or normal customer diagnostics.
-
-## Blockers and decisions required
-
-- Engineering blockers:
-  - PR #87 is 3 commits behind the current base and remains draft;
-  - no current CI/status checks exist;
-  - full suite, shipped complete-export regression, complete diff review, and final artifact inspection remain pending.
-- Product or architecture decisions required:
-  - Product must accept or refine the complete-resume composition boundary before PR #87 can become merge-ready;
-  - the decision must define authority, provenance, validation, review burden, Career Review, and applicant-facing treatment for unchanged source content versus generated/materially rewritten claims.
-- User-only local, browser, credential, or private-input actions: none now. A private real-resume/browser run is deferred until the Product boundary is accepted and engineering proof passes.
-
-## Next engineering action
-
-Check Issue #83 and `docs/context/product-handoff.md` for a merged **Complete Resume Composition Decision**. Do not modify or merge PR #87 until that decision exists. Once recorded, rebase or merge the latest `chore/project-foundation` into PR #87 and perform a full acceptance-matrix review against the accepted boundary.
-
-## Checkpoint instructions for the existing room
-
-Before retiring the current Engineering Room:
-
-1. Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, and `docs/context/project-snapshot.md`.
-2. Inspect current issues, pull requests, recent merges, branch state, review threads, and checks.
-3. Update durable Layer 1 records first when implementation truth changed.
-4. Replace every `_not checkpointed_` field above with the current verified state; delete sections that are not relevant.
-5. Update `project-snapshot.md` only when the cross-room objective, verified delivery state, key boundary, blocker, or next project action changed.
-6. Commit the handoff through a reviewed pull request.
-
-## New Engineering Room startup
-
-> Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, and `docs/context/engineering-handoff.md`. Then inspect current GitHub issues, pull requests, recent merges, branch state, review threads, and checks before acting. Take ownership of the active engineering state. Repository evidence is authoritative over previous chat history.
+Run the full repository suite and shipped complete-export regression for PR #87, inspect the complete diff and final Markdown/JSON/HTML artifacts, record check state truthfully, and merge only if every engineering gate passes. Do not prepare another Beta before that proof.
