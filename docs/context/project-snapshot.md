@@ -1,72 +1,28 @@
 # Project Snapshot
 
-**Snapshot date:** 2026-08-06  
-**Repository:** `MumGinger/career-evolution-platform`  
+**As of:** 2026-08-06
+**Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
 
-## Product now
+## State
 
-The Career Evolution Platform is a local, evidence-driven Career Companion. Its current Version 1 Beta workflow uses a real resume and job description to produce source-backed working evidence, explicit Evidence Review, accepted-only Candidate Knowledge integration through 003.6, job-specific tailoring, a provenance-constrained resume draft, deterministic validation, mandatory Career Review, and final exports.
-
-The platform must explain what it believes, preserve uncertainty, and keep the user as the final authority. A resume, LLM output, conversation answer, reflection, curiosity response, or generated artifact must not silently become Candidate Knowledge.
-
-## Current delivery state
-
-### Version 1 end-to-end engineering flow
-
-- **Implemented:** PASS.
-- **Integrated:** PASS.
-- **Proven:** PASS for the representative real-provider engineering workflow recorded in PR #68.
-- **Beta Accepted:** PENDING through Issue #73.
-
-Recent merged repairs:
-
-- PR #75 added privacy-safe provider preflight, customer-readable recovery, and idempotent export retry; its recorded GitHub Actions run passed 175 tests.
-- PR #78 repaired GPT-5 preflight false failures after an empty bounded response; focused proof passed, while a full repository run was not created.
-- PR #80 repaired the Beta quality gate so omitted historical facts do not block a valid Projects-only draft; focused proof passed 3/3, while the full repository suite remains unverified for that PR.
-
-Do not infer Beta acceptance from these engineering results. The current decisive evidence is the user's fresh-process Beta #1 run.
+Version 1's evidence-to-export engineering flow is **Implemented**, **Integrated**, and **Proven** for its representative real-provider workflow. It is not **Beta Accepted**; Issue #73 requires a first-time-user Beta run.
 
 ## Active objective
 
-Complete Issue #73 as a first-time user using the real resume, Zurich Data Analytics & AI job description, shipped Beta UI, and real OpenAI-compatible provider.
+Complete Issue #73 with a real resume, the Zurich Data Analytics & AI job description, the shipped Beta UI, and a real OpenAI-compatible provider. The user completes the flow without engineering guidance, reviews the evidence, draft, Career Review, and exports, then records usability, trust, review burden, output quality, and application readiness.
 
-The immediate flow is:
+## Boundaries
 
-1. Restart from the latest `chore/project-foundation` state.
-2. Complete the full workflow without engineering guidance.
-3. Inspect Understanding, exclusions, Evidence Review, draft, Career Review, and all exports.
-4. Record usability, trust, review burden, output quality, and whether the resume is acceptable for a real application.
-5. Mark Issue #73 PASS, FAIL, or UNKNOWN from user evidence.
+- Candidate Knowledge is the committed-fact source; 003.6 is its sole accepted-only writer.
+- Proposals and generated artifacts are not Candidate Knowledge.
+- Preserve provenance, uncertainty, deterministic validation, mandatory Career Review, and human authority.
+- Do not commit or expose private inputs, credentials, provider responses, or local paths.
 
-## Next product decision after Beta
+## Next
 
-The Thinking Layer is complete through Decision Companion. After the Version 1 Beta outcome is recorded, choose the first Intelligent Execution artifact and define its validation and human-authority boundary before implementation.
+Record the Beta result as PASS, FAIL, or UNKNOWN. Then choose the first Intelligent Execution artifact and its validation and human-authority boundary.
 
-## Non-negotiable boundaries
+## Evidence
 
-- Candidate Knowledge is the only committed fact source.
-- 003.6 is the sole accepted-only Candidate Knowledge writer.
-- LLM understanding and drafting are bounded proposals, not truth.
-- Exact provenance and source support must survive every transformation.
-- Deterministic validation must block unsupported or misplaced output.
-- Career Review is mandatory before export.
-- Human edits do not automatically update Candidate Knowledge or trigger regeneration.
-- Passing tests or a real-provider engineering run does not equal Beta Accepted.
-- Private resumes, job descriptions, credentials, provider responses, and local paths must not be committed or exposed.
-
-## Authoritative references
-
-- Product entry: `README.md`
-- Project context entry: `PROJECT_CONTEXT.md`
-- Detailed delivery state: `docs/current-state.md`
-- Engineering ownership: `ENGINEERING_LEAD.md`
-- Repository-wide agent rules: `AGENTS.md`
-- Product intent: `docs/vision/` and `docs/principles/`
-- Architecture: `docs/architecture/system-overview.md`
-- Active beta acceptance: GitHub Issue #73
-- Latest relevant merged repairs: PRs #75, #78, and #80
-
-## Handoff instruction
-
-A new Engineering Lead must inspect GitHub before acting, because open issues, recent merges, branch state, and CI may be newer than this snapshot. Update this file after the Beta #1 result or any change to the active objective, verified delivery state, key boundary, or next action.
+Read [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`docs/current-state.md`](../current-state.md), and current GitHub state before acting. The repository and GitHub override this snapshot.
