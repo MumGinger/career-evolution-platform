@@ -95,4 +95,4 @@ Milestone 1 Demo is implemented as an integration-only local command. It version
 
 # LLM-first Beta path
 
-The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by Issues #82 and #83 evidence, not by the ability to technically complete the flow.
+The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #2 evidence recorded in Issue #82 and the active complete-resume blocker in Issue #83, not by the ability to technically complete the flow.
