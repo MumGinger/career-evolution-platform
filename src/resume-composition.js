@@ -161,13 +161,22 @@ function ensureExpandedReviewSchema(db) {
   }
 }
 
+function firstPhone(text) {
+  const matches = String(text || '').match(/(?:\+?\d[\d(). -]{7,}\d)/g) || [];
+  return matches.map((value) => value.trim()).find((value) => {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 10 && digits.length <= 15
+      && !/^\d{4}\s*[-–—]\s*\d{4}$/.test(value);
+  }) || null;
+}
+
 function deterministicIdentityBlocks(text, blocks) {
   const existing = (blocks || []).filter((item) => item?.type === 'identity').map((item) => normalize(item.exact_source_text));
   const candidates = [];
   const lines = String(text || '').replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
   const name = lines[0] && /^[A-Z][A-Za-z'-]+(?:\s+[A-Z][A-Za-z'-]+){1,3}$/.test(lines[0]) ? lines[0] : null;
   const email = String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || null;
-  const phone = String(text || '').match(/(?:\+?\d[\d(). -]{7,}\d)/)?.[0] || null;
+  const phone = firstPhone(text);
   for (const [field, value] of [['name', name], ['email', email], ['phone', phone]]) {
     if (!value || existing.some((sourceText) => sourceText.includes(normalize(value)))) continue;
     const start = String(text || '').indexOf(value);
@@ -231,6 +240,7 @@ module.exports = {
   composeSourceResume,
   latestSourceResumeSnapshot,
   ensureExpandedReviewSchema,
+  firstPhone,
   deterministicIdentityBlocks,
   installRuntimeBoundaries,
 };
