@@ -25,6 +25,8 @@ Deterministic validation now treats these as separate rule families:
 - source passthrough exactness;
 - whole-resume completeness.
 
+Validation does not trust composition metadata by itself. For every claimed source replacement it independently resolves the visible generated statement, its section, Candidate Knowledge fact IDs, and the bounded source values permitted by the statement template. A generated statement cannot replace unrelated source text or be reused to account for multiple source statements.
+
 Career Review receives every populated composed section, and export uses the complete reviewed artifact.
 
 ## Regression proof
@@ -41,7 +43,12 @@ The focused regression deliberately commits only a Projects fact through the Can
 
 It also verifies that unchanged sections remain `source_resume_passthrough`, have no selection references, and equal their exact source text; the tailored Projects statement remains `candidate_knowledge_generated` and retains Candidate Knowledge and requirement citations.
 
-A negative regression removes Education after composition and confirms deterministic validation fails with `whole_resume_completeness`.
+Focused result: **6 passing tests**.
+
+The negative regressions prove both failure classes:
+
+1. removing Education after composition fails with `whole_resume_completeness`;
+2. falsely claiming that a Project-generated statement replaced the source `Power BI` skill fails `source-statement-preserved-or-supported-replacement`, even when the generated statement has otherwise valid Candidate Knowledge provenance.
 
 ## Independent draft inspection
 
@@ -65,7 +72,7 @@ ya.ching@example.com
 ## Projects
 
 ### Customer Analytics Dashboard
-- Customer Analytics Dashboard: Built Power BI dashboards and automation workflows.
+- Built Power BI dashboards and automation workflows.
 
 ## Education
 
