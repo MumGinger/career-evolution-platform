@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
 const { Store } = require('../src/store');
+const artifactGeneration = require('../src/resume-artifact');
 
 function withStore(run) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'resume-artifact-')); const store = new Store(path.join(dir, 'test.db')); try { run(store); } finally { store.close(); fs.rmSync(dir, { recursive: true, force: true }); } }
 function prepared(store) {
@@ -48,3 +49,16 @@ test('runs retain plan snapshots and are immutable', () => withStore((store) => 
   const setup = prepared(store); const plan = store.createResumeTailoringPlanRun({ candidateProfileId: setup.profile.id, jobRequirementProfileId: setup.job.id }); const one = store.createResumeArtifactRun({ resumeTailoringPlanRunId: plan.id }); const two = store.createResumeArtifactRun({ resumeTailoringPlanRunId: plan.id });
   assert.notEqual(one.id, two.id); assert.deepEqual(one.candidate_knowledge_snapshot, plan.candidate_knowledge_snapshot); assert.deepEqual(one.job_requirement_profile_reference, { id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version }); assert.equal(store.getResumeArtifactRun(one.id).resume_artifacts[0].id, one.resume_artifacts[0].id);
 }));
+
+test('deterministically completes an included Projects selection omitted by the draft provider', () => {
+  const project = { id: 'fact-project', entity_type: 'project', value: { name: 'Source-bound Project', text: 'Source-bound project responsibility.', source_reference: 'span-project' } };
+  const responsibility = { id: 'fact-responsibility', entity_type: 'responsibility', value: { text: 'Source-bound experience responsibility.' } };
+  const selection = (id, fact, section, scope) => ({ id, candidate_fact_id: fact.id, candidate_fact_revision: fact.id, selection_state: 'include', recommended_section: section, mapped_job_requirement_ids: [], inherited_provenance_references: ['integration-decision'], permitted_claim_scope: scope, blocked_claim_scopes: [], relevance_rationale: 'Synthetic included selection.' });
+  const plan = { id: 'plan-1', job_requirement_profile_id: 'job-1', job_requirement_profile_version: 1, candidate_knowledge_snapshot: [project, responsibility], resume_content_selections: [selection('selection-project', project, 'Projects', ['project_name', 'bounded_project_responsibilities']), selection('selection-responsibility', responsibility, 'Experience', ['bounded_responsibility'])], requirement_coverage: [], section_plans: [{ section: 'Experience' }, { section: 'Projects' }] };
+  const providerResult = { provider: 'openai-compatible', model: 'synthetic-model', version: 'resume-draft/1.0.0', draft: { sections: [{ section: 'Experience', statements: [{ text: 'Source-bound experience responsibility.', candidate_fact_ids: ['fact-responsibility'], job_requirement_ids: [] }] }] } };
+  const generated = artifactGeneration.generate(plan, null, providerResult);
+  const projects = generated.sections.find((section) => section.section === 'Projects');
+  assert.equal(projects.statements.length, 1);
+  assert.deepEqual(projects.statements[0].resume_content_selection_ids, ['selection-project']);
+  assert.deepEqual(generated.metadata.draft_completion_fallbacks, [{ resume_content_selection_id: 'selection-project', candidate_fact_id: 'fact-project', recommended_section: 'Projects', reason: 'provider_omitted_included_selection' }]);
+});
