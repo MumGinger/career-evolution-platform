@@ -64,7 +64,11 @@ async function collectInteractive(queueItems, adapter) {
 function integrateReviewedEvidence({ store, candidateProfileId, discoveryRunId, reviewRun }) {
   const proposals = reviewRun.review_decisions.filter((item) => item.action === 'accepted' || item.action === 'edited').map((item) => {
     const source = store.getEvidenceReviewCandidate(discoveryRunId, item.evidence_candidate_id);
-    return { entityType: source.entity_type, value: item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
+    const supplied = item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value;
+    const value = source.entity_type === 'project' && supplied && typeof supplied === 'object'
+      ? { ...supplied, source_reference: supplied.source_reference || source.candidate.provenance?.evidence_span_id || source.candidate.source_reference }
+      : supplied;
+    return { entityType: source.entity_type, value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
   });
   return proposals.length ? store.createCandidateKnowledgeIntegrationRun({ candidateProfileId, evidenceDiscoveryRunId: discoveryRunId, proposals }) : null;
 }

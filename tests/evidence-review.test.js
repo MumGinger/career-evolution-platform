@@ -54,8 +54,14 @@ test('accepted contextual project evidence preserves the matching child bullet t
     parent_evidence_span_id: project.candidate.provenance.semantic.contextual_match.parent_evidence_span_id,
     parent_upstream_block_id: 'project-block',
   });
-  const reviewRun = store.createEvidenceReviewRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id, evidenceDiscoveryRunId: discovery.id, decisions: [review.decisionFrom(project, { action: 'accepted' })] });
+  // Real-provider project candidates can retain only a bounded project name;
+  // the integration boundary must add the immutable evidence reference.
+  store.db.prepare('UPDATE evidence_candidates SET supporting_value = ? WHERE id = ?').run(JSON.stringify({ name: 'Reporting Portal' }), project.candidate.id);
+  const projectWithoutSourceReference = { ...project, candidate: store.getEvidenceReviewCandidate(discovery.id, project.candidate.id).candidate };
+  const reviewRun = store.createEvidenceReviewRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id, evidenceDiscoveryRunId: discovery.id, decisions: [review.decisionFrom(projectWithoutSourceReference, { action: 'accepted' })] });
   const integrationRun = review.integrateReviewedEvidence({ store, candidateProfileId: knowledge.profile.id, discoveryRunId: discovery.id, reviewRun });
+  assert.equal(integrationRun.integration_decisions[0].state, 'accepted');
+  assert.equal(integrationRun.applied_facts[0].entity_type, 'project');
   const accepted = integrationRun.upstream_snapshot.need_results.flatMap((result) => result.candidates).find((item) => item.candidate.id === project.candidate.id);
   assert.equal(accepted.candidate.provenance.contextual_match.matched_upstream_block_id, 'bullet-block');
   assert.equal(accepted.candidate.provenance.contextual_match.parent_upstream_block_id, 'project-block');

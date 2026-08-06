@@ -613,6 +613,8 @@ class Store {
   exportResumeArtifact({ resumeArtifactRunId, humanReviewRunId }) {
     if (!humanReviewRunId) throw new Error('Export blocked: a complete Human Review Run is required before export');
     const artifactRun = this.getResumeArtifactRun(resumeArtifactRunId);
+    const validationRun = this.db.prepare('SELECT validation_status FROM resume_validation_runs WHERE resume_artifact_run_id = ? ORDER BY created_at DESC, id DESC LIMIT 1').get(resumeArtifactRunId);
+    if (!validationRun || validationRun.validation_status === 'failed') throw new Error('Export blocked: a completed passing Resume Validation Run is required before export');
     const artifact = artifactRun.resume_artifacts[0];
     const coreSections = ['Professional Summary', 'Skills', 'Experience', 'Projects'];
     const populatedCoreSections = artifact.content.sections.filter((section) => coreSections.includes(section.section) && section.statements.length > 0);
