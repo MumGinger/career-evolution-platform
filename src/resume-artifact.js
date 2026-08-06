@@ -32,10 +32,14 @@ function templateFor(selection, fact) {
   if (selection.recommended_section === 'Experience') return fact?.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
   return 'accepted_fact_detail';
 }
+function renderedValue(fact, template) {
+  const values = sourceValues(fact, template);
+  return values[0] || displayValue(fact);
+}
 function renderStatement(selection, fact) {
   const template = templateFor(selection, fact);
   if (!selection.permitted_claim_scope.includes(template)) return null;
-  const text = displayValue(fact);
+  const text = renderedValue(fact, template);
   if (!text) return null;
   return {
     statement_id: `statement:${selection.id}`,
@@ -88,7 +92,7 @@ function completedProviderSections(providerSections, plan, facts) {
   return { sections: sections.sort((left, right) => left.position - right.position), fallbacks, failures };
 }
 
-function matchableGenerated(statement, selections, facts) {
+function matchableGenerated(statement, facts) {
   const factIds = statement.provenance?.candidate_fact_ids || [];
   return factIds.flatMap((id) => sourceValues(facts.get(id), statement.template)).map(normal).filter(Boolean);
 }
@@ -101,7 +105,6 @@ function composeSections(generatedSections, plan, facts) {
   };
   const generatedBySection = new Map(generatedSections.map((section) => [section.section, section]));
   const sourceBySection = new Map(source.sections.map((section) => [section.section, section]));
-  const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
   const preserved = [];
   const superseded = [];
   const usedGenerated = new Set();
@@ -111,7 +114,7 @@ function composeSections(generatedSections, plan, facts) {
     const statements = [];
     for (const sourceStatement of sourceSection.statements || []) {
       const sourceKey = normal(sourceStatement.text);
-      const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, selections, facts).includes(sourceKey));
+      const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, facts).includes(sourceKey));
       if (replacements.length) {
         replacements.forEach((statement) => { statements.push(statement); usedGenerated.add(statement.statement_id); });
         superseded.push({ source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
