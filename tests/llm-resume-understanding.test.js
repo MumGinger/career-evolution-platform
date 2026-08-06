@@ -16,6 +16,16 @@ test('OpenAI-compatible understanding requests the strict supported-block schema
   } finally { global.fetch = originalFetch; }
 });
 
+test('OpenAI-compatible bounded connection check uses safe completion limits and maps failures', async () => {
+  const originalFetch = global.fetch; let url; let options;
+  try {
+    global.fetch = async (value, request) => { url = value; options = request; return { ok: true, json: async () => ({ choices: [{ message: { content: 'READY' } }] }) }; };
+    const provider = new beta.OpenAiCompatibleResumeUnderstandingProvider({ apiKey: 'synthetic-key', model: 'synthetic-model', baseUrl: 'https://provider.test/v1' }); await provider.checkConnection(); const body = JSON.parse(options.body);
+    assert.equal(url, 'https://provider.test/v1/chat/completions'); assert.ok(options.headers.Authorization); assert.equal(body.max_completion_tokens, 16); assert.equal('max_tokens' in body, false); assert.equal(body.messages[0].content, 'Reply exactly READY.'); assert.doesNotMatch(JSON.stringify(body), /Aira Candidate|Forecast Dashboard/);
+    for (const response of [async () => ({ ok: false, json: async () => ({}) }), async () => { throw new Error('network'); }, async () => ({ ok: true, json: async () => { throw new Error('bad json'); } }), async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '' } }] }) })]) { global.fetch = response; await assert.rejects(() => provider.checkConnection({ timeoutMs: 5 }), (error) => error.category === 'provider_api_failure'); }
+  } finally { global.fetch = originalFetch; }
+});
+
 test('deterministic alignment copies unique canonical PDF-style text and rejects ambiguous matches', () => {
   const canonical = 'Experience\n• Built  data-driven dashboards\n  for stakeholders — using Python.\n\n• Built data-driven dashboards for stakeholders — using Python.';
   const unique = { blocks: [{ id: 'work-1', type: 'responsibility', title: 'Built dashboards', label: 'Built dashboards', exact_source_text: '- Built data-driven dashboards for stakeholders - using Python.', source_location: null, parent_id: null, normalized_meaning: 'Built dashboards', confidence: 'medium', state: 'confirmed', provenance: { source: 'resume_input', exact_source_text: '- Built data-driven dashboards for stakeholders - using Python.' }, limitations: [] }] };
