@@ -2,41 +2,72 @@
 
 This directory is the repository-local Context OS v0. It keeps AI conversations small without turning summaries into a second source of truth.
 
-## Files
+## Context layers
 
-- `project-snapshot.md` — the compact, current handoff shared across roles.
-- Future role-specific handoffs may be added only when one shared snapshot is no longer sufficient.
+### Layer 1 — durable truth
 
-## What belongs in the snapshot
+Durable product, architecture, engineering, research, and Beta evidence belongs in the repository's normal records: PRDs, ADRs, roadmap documents, research reports, issues, pull requests, commits, tests, checks, artifacts, and `docs/current-state.md`.
 
-Include only information that materially changes how the next contributor should act:
+### Layer 2 — cross-room project snapshot
 
-- current product stage;
-- active user-visible objective;
-- verified delivery state;
-- unresolved blockers or unknowns;
-- non-negotiable truth and authority boundaries;
-- latest relevant issue, PR, test, or beta evidence;
-- next concrete action.
+- `project-snapshot.md` — the compact current state shared by every room.
 
-Do not copy full architecture, PR descriptions, issue histories, test logs, or chat transcripts into the snapshot. Link to their durable repository records instead.
+It contains only the product stage, cross-room objective, verified delivery state, major blockers or unknowns, non-negotiable boundaries, and next project action.
+
+### Layer 3 — room-specific working handoffs
+
+- `engineering-handoff.md` — active implementation state.
+- `product-handoff.md` — active product decision state.
+- `research-handoff.md` — active research state.
+- `beta-handoff.md` — active user-testing state.
+
+Each room updates only its own handoff. A room may also update `project-snapshot.md` when its result changes the cross-room project state.
+
+## What belongs in a handoff
+
+Include only information that materially changes how the next room should act:
+
+- the current bounded objective or question;
+- accepted or directly verified state;
+- unresolved blockers, options, conflicts, or unknowns;
+- role-specific evidence needed for the next action;
+- the next concrete action.
+
+Do not copy full architecture, PR descriptions, issue histories, test logs, research transcripts, or chat transcripts into a handoff. Link to their durable Layer 1 records instead.
 
 ## Update triggers
 
-Update `project-snapshot.md` when at least one of these changes:
+Update a room handoff when at least one of these changes:
+
+1. The room's active objective or question changes.
+2. The active issue, PR, Beta, research question, or product decision changes.
+3. New verified evidence changes the next action.
+4. A blocker, conflict, option, or unknown materially changes.
+5. A long-running conversation is being replaced.
+
+Update `project-snapshot.md` only when at least one of these cross-room states changes:
 
 1. A milestone or user-visible end-to-end flow becomes Proven or Beta Accepted.
-2. The active objective changes.
-3. A blocker changes the next action.
+2. The project-wide active objective changes.
+3. A blocker changes the next project action.
 4. A durable product or architecture decision is accepted.
 5. A truth boundary or authority rule changes.
-6. A long-running conversation is being replaced and its current state is not already represented.
 
-Do not update the snapshot after every commit. Ordinary implementation details belong in the issue, pull request, commit, tests, or `docs/current-state.md`.
+Do not update snapshots or handoffs after every commit. Ordinary details belong in Layer 1.
 
-## Required status language
+## Room ownership rules
 
-Use the repository delivery states exactly:
+- Engineering Room owns `engineering-handoff.md`.
+- Product Room owns `product-handoff.md`.
+- Research Room owns `research-handoff.md`.
+- Beta Room owns `beta-handoff.md`.
+- Any room may propose a `project-snapshot.md` update when its accepted result affects every room.
+- One checkpoint PR may update multiple handoffs only when a single accepted event genuinely changes multiple rooms.
+- A room must not rewrite another room's unresolved working state from assumptions.
+
+## Required truth language
+
+Engineering delivery uses the repository states exactly:
 
 - **Specified**
 - **Prototyped**
@@ -45,20 +76,33 @@ Use the repository delivery states exactly:
 - **Proven**
 - **Beta Accepted**
 
-Never convert passing tests into Beta Accepted. Never describe missing CI, private execution, or user acceptance as PASS. Record it as UNKNOWN or pending.
+Never convert passing tests into Beta Accepted. Never describe missing CI, private execution, user acceptance, unsupported research, or an undecided product option as PASS or accepted. Record it as FAIL, UNKNOWN, pending, hypothesis, advisory, or under consideration as appropriate.
 
-## Handoff procedure
+## Checkpoint procedure
 
-At the end of a long Engineering room:
+At the end of a long room:
 
-1. Inspect the merged PRs, open issues, current branch, and latest checks.
-2. Update Layer 1 records first when durable truth changed.
-3. Replace stale snapshot statements rather than appending a diary.
-4. Keep the snapshot readable in a few minutes.
-5. Open a documentation PR and review the resulting diff.
-6. Start the new room from `PROJECT_CONTEXT.md`.
+1. Inspect the current authoritative Layer 1 records for that role.
+2. Finish or truthfully stop the active unit of work.
+3. Update Layer 1 first when durable truth changed.
+4. Replace stale handoff state rather than appending a diary.
+5. Update `project-snapshot.md` only for a cross-room change.
+6. Open a documentation PR and inspect the complete diff.
+7. Merge the checkpoint when accurate.
+8. Start the new room from the reusable prompt at the end of its handoff file.
 
-The old conversation may contain useful reasoning, but it is not authoritative after the handoff.
+A checkpoint is complete only after the relevant PR is merged. The old conversation may contain useful reasoning, but it is not authoritative after the handoff.
+
+## Initial migration from existing rooms
+
+The role handoff files begin with `_not checkpointed_` placeholders. For each existing long-running room:
+
+1. Ask that room to inspect the current repository and its own relevant history.
+2. Have it update only its handoff plus any necessary Layer 1 and Layer 2 records.
+3. Review and merge the checkpoint PR.
+4. Open a new room using the stored startup prompt.
+
+The migrations do not need to happen simultaneously. Each room can checkpoint when its current unit of work is complete or the conversation becomes slow.
 
 ## Future extraction rule
 
