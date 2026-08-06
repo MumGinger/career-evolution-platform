@@ -44,7 +44,7 @@ function mockUnderstand({ text }) {
   }
   return { blocks: out };
 }
-class MockResumeUnderstandingProvider { constructor({ response } = {}) { this.name = 'mock'; this.model = 'bounded-fixture'; this.response = response; } async understand(input) { return { provider: this.name, model: this.model, understanding: this.response || mockUnderstand(input) }; } }
+class MockResumeUnderstandingProvider { constructor({ response } = {}) { this.name = 'mock'; this.model = 'bounded-fixture'; this.response = response; } async checkConnection() { return true; } async understand(input) { return { provider: this.name, model: this.model, understanding: this.response || mockUnderstand(input) }; } }
 class OpenAiCompatibleResumeUnderstandingProvider {
   constructor({ apiKey = process.env.CEP_LLM_API_KEY, baseUrl = process.env.CEP_LLM_BASE_URL, model = process.env.CEP_LLM_MODEL } = {}) { if (!apiKey || !model) throw new Error('LLM Resume Understanding requires an API key and model.'); this.apiKey = apiKey; this.baseUrl = baseUrl || 'https://api.openai.com/v1'; this.model = model; this.name = 'openai-compatible'; }
   async understand({ text }) {
@@ -56,6 +56,10 @@ class OpenAiCompatibleResumeUnderstandingProvider {
     const raw = envelope.choices?.[0]?.message?.content;
     if (typeof raw !== 'string' || !raw.trim()) return { provider: this.name, model: this.model, understanding: null, parseError: 'Provider returned no structured content.' };
     try { return { provider: this.name, model: this.model, understanding: JSON.parse(raw) }; } catch { return { provider: this.name, model: this.model, understanding: null, parseError: 'Provider returned invalid structured JSON.' }; }
+  }
+  async checkConnection({ timeoutMs = 8000 } = {}) {
+    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try { const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}/chat/completions`, { method: 'POST', signal: controller.signal, headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: this.model, max_tokens: 1, messages: [{ role: 'user', content: 'OK' }] }) }); if (!response.ok) throw new Error('connection rejected'); const envelope = await response.json(); if (typeof envelope?.choices?.[0]?.message?.content !== 'string') throw new Error('connection response invalid'); return true; } catch { throw new ResumeUnderstandingProviderError(); } finally { clearTimeout(timer); }
   }
 }
 function providerFromConfig(config = {}) { if ((config.provider || 'mock') === 'mock') return new MockResumeUnderstandingProvider(config); if (config.provider === 'openai-compatible') return new OpenAiCompatibleResumeUnderstandingProvider(config); throw new Error(`LLM Resume Understanding provider unavailable: ${config.provider}.`); }
