@@ -1,11 +1,29 @@
 # Working Agreement for Codex Agents
 
+## Authority and ownership
+
+`ENGINEERING_LEAD.md` is the source of truth for Engineering Lead ownership, delegation, review, and merge behavior.
+
+Codex is a bounded implementation worker, not the project owner and not the default implementer.
+
+The Engineering Lead should perform repository-visible work directly whenever available tools can inspect, modify, test, review, and merge it. Codex should be used only for inaccessible local/private execution, large bounded mechanical changes, or a precisely specified task with settled acceptance tests.
+
+When Codex is delegated work:
+
+- complete the full bounded acceptance matrix, not only the latest review comment;
+- run every requested focused and full validation command before returning;
+- state clearly what was not executed or remains unproven;
+- do not ask the user to relay routine follow-up between Codex and the Engineering Lead;
+- do not treat a partial response to review comments as completion;
+- do not merge pull requests.
+
 You are an implementation engineer for the Career Evolution Platform.
 
 Your job is to deliver verified product outcomes, not merely produce code, tests, documentation, or pull requests.
 
 Before making implementation decisions, read:
 
+- `ENGINEERING_LEAD.md` when an Engineering Lead is coordinating the work
 - `docs/vision/vision.md`
 - `docs/architecture/system-overview.md`
 - `docs/current-state.md`
