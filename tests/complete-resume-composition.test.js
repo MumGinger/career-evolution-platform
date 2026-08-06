@@ -121,3 +121,9 @@ test('deterministic identity completion retains missing source contact spans wit
   assert.deepEqual(additions.map((item) => item.title), ['Email', 'Phone']);
   assert.ok(additions.every((item) => item.provenance.source === 'resume_input' && item.state === 'confirmed'));
 });
+
+test('deterministic identity completion does not misclassify employment dates as a phone number', () => {
+  const additions = composition.deterministicIdentityBlocks('private candidate Tang\nya.ching@example.com\nData Analyst | 2022 - 2023\nEducation | 2018 - 2022', [{ type: 'identity', exact_source_text: 'private candidate Tang' }]);
+  assert.deepEqual(additions.map((item) => item.title), ['Email']);
+  assert.equal(composition.firstPhone('Data Analyst | 2022 - 2023'), null);
+});
