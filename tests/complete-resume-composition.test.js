@@ -78,6 +78,7 @@ test('Projects-only Candidate Knowledge tailoring produces a complete recognizab
 test('validation separates generated claim safety from whole-resume completeness', () => {
   const setup = plan();
   const generated = artifactGeneration.generate(setup);
+  assert.equal(generated.sections.find((section) => section.section === 'Projects').statements.find((statement) => statement.content_origin === 'candidate_knowledge_generated').text, 'Built Power BI dashboards and automation workflows.');
   const checked = validation.validate({ artifactRun: artifactRun(generated), plan: setup, integrity: new Map([['fact-project', { fact_exists: true, integration_exists: true, provenance_exists: true }]]) });
   assert.notEqual(validation.statusFor(checked.findings), 'failed', JSON.stringify(checked.findings));
 
@@ -86,6 +87,21 @@ test('validation separates generated claim safety from whole-resume completeness
   const brokenChecked = validation.validate({ artifactRun: artifactRun(broken), plan: setup, integrity: new Map([['fact-project', { fact_exists: true, integration_exists: true, provenance_exists: true }]]) });
   assert.equal(validation.statusFor(brokenChecked.findings), 'failed');
   assert.ok(brokenChecked.findings.some((finding) => finding.category === 'whole_resume_completeness'));
+});
+
+test('validation independently rejects unrelated Candidate Knowledge claimed as a source replacement', () => {
+  const setup = plan();
+  const generated = artifactGeneration.generate(setup);
+  const projectStatement = generated.sections.find((section) => section.section === 'Projects').statements.find((statement) => statement.content_origin === 'candidate_knowledge_generated');
+  const skillSection = generated.sections.find((section) => section.section === 'Skills');
+  const removed = skillSection.statements.find((statement) => statement.text === 'Power BI');
+  skillSection.statements = skillSection.statements.filter((statement) => statement.statement_id !== removed.statement_id);
+  generated.metadata.composition.preserved_source_statement_ids = generated.metadata.composition.preserved_source_statement_ids.filter((id) => id !== removed.statement_id);
+  generated.metadata.composition.superseded_source_statements.push({ source_statement_id: removed.statement_id, generated_statement_ids: [projectStatement.statement_id], reason: 'supported_tailored_replacement' });
+
+  const checked = validation.validate({ artifactRun: artifactRun(generated), plan: setup, integrity: new Map([['fact-project', { fact_exists: true, integration_exists: true, provenance_exists: true }]]) });
+  assert.equal(validation.statusFor(checked.findings), 'failed');
+  assert.ok(checked.findings.some((finding) => finding.rule === 'source-statement-preserved-or-supported-replacement' && finding.references.source_statement_id === removed.statement_id), JSON.stringify(checked.findings));
 });
 
 test('Career Review and export operate on the complete composed resume', () => {
