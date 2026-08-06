@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
 const { Store } = require('../src/store');
+const artifactGeneration = require('../src/resume-artifact');
+const resumeValidation = require('../src/resume-validation');
 
 function withStore(run) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'resume-validation-')); const store = new Store(path.join(dir, 'test.db')); try { run(store); } finally { store.close(); fs.rmSync(dir, { recursive: true, force: true }); } }
 function prepared(store) {
@@ -28,3 +30,18 @@ test('uncovered requirement appearing as supported claim fails', () => withStore
 test('duplicate visible claims generate warning', () => withStore((store) => { const setup = prepared(store); content(store, setup.artifactRun, (value) => { const duplicate = { ...value.sections[1].statements[0], statement_id: 'duplicate-statement' }; value.sections[1].statements.push(duplicate); }); const run = store.createResumeValidationRun({ resumeArtifactRunId: setup.artifactRun.id }); assert.equal(run.validation_status, 'passed_with_warnings'); assert.ok(run.validation_findings.some((item) => item.rule_code === 'duplicate-visible-claim')); }));
 test('section/order mismatch generates warning, not failure', () => withStore((store) => { const setup = prepared(store); content(store, setup.artifactRun, (value) => { const skills = value.sections.splice(1, 1)[0]; value.sections.push(skills); }); const run = store.createResumeValidationRun({ resumeArtifactRunId: setup.artifactRun.id }); assert.equal(run.validation_status, 'passed_with_warnings'); assert.ok(run.validation_findings.some((item) => item.rule_code === 'section-order')); }));
 test('re-running validation creates an independent immutable run', () => withStore((store) => { const setup = prepared(store); const one = store.createResumeValidationRun({ resumeArtifactRunId: setup.artifactRun.id }); const two = store.createResumeValidationRun({ resumeArtifactRunId: setup.artifactRun.id }); assert.notEqual(one.id, two.id); assert.deepEqual(one.artifact_snapshot, two.artifact_snapshot); assert.equal(store.getResumeValidationRun(one.id).id, one.id); }));
+
+test('provider-omitted mapped Project selection is completed with exact citation sets and passes validation', () => {
+  const project = { id: 'fact-project', entity_type: 'project', value: { name: 'Source-bound Project', text: 'Source-bound project responsibility.', source_reference: 'span-project' }, integration_decision_id: 'integration-project' };
+  const selection = { id: 'selection-project', candidate_fact_id: project.id, candidate_fact_revision: project.id, selection_state: 'include', recommended_section: 'Projects', mapped_requirement_ids: ['requirement-project'], inherited_provenance_references: ['integration-project'], permitted_claim_scope: ['project_name', 'bounded_project_responsibilities'], blocked_claim_scopes: ['proficiency', 'years_of_experience', 'ownership', 'leadership', 'impact'], relevance_rationale: 'Synthetic included Project selection.' };
+  const plan = { id: 'plan-project', job_requirement_profile_id: 'job-project', job_requirement_profile_version: 1, candidate_knowledge_snapshot: [project], resume_content_selections: [selection], requirement_coverage: [{ job_requirement_id: 'requirement-project', coverage_status: 'covered' }], section_plans: [{ section: 'Projects' }] };
+  const providerResult = { provider: 'openai-compatible', model: 'synthetic-model', version: 'resume-draft/1.0.0', draft: { sections: [] } };
+  const generated = artifactGeneration.generate(plan, null, providerResult);
+  const artifactRun = { id: 'artifact-run-project', resume_tailoring_plan_run_id: plan.id, resume_artifacts: [{ content: { sections: generated.sections }, metadata: { ...generated.metadata, traceability: { resume_artifact_run_id: 'artifact-run-project', resume_tailoring_plan_run_id: plan.id } } }] };
+  const result = resumeValidation.validate({ artifactRun, plan, integrity: new Map([[project.id, { fact_exists: true, integration_exists: true, provenance_exists: true }]]) });
+  const projects = generated.sections.find((section) => section.section === 'Projects');
+  assert.equal(projects.statements.length, 1);
+  assert.deepEqual(projects.statements[0].provenance.candidate_fact_ids, [project.id]);
+  assert.deepEqual(projects.statements[0].provenance.job_requirement_ids, ['requirement-project']);
+  assert.deepEqual(result.findings.filter((item) => ['error', 'critical'].includes(item.severity)), []);
+});
