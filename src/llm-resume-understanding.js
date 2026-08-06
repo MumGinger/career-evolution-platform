@@ -58,8 +58,31 @@ class OpenAiCompatibleResumeUnderstandingProvider {
     try { return { provider: this.name, model: this.model, understanding: JSON.parse(raw) }; } catch { return { provider: this.name, model: this.model, understanding: null, parseError: 'Provider returned invalid structured JSON.' }; }
   }
   async checkConnection({ timeoutMs = 8000 } = {}) {
-    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try { const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}/chat/completions`, { method: 'POST', signal: controller.signal, headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: this.model, max_completion_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly READY.' }] }) }); if (!response.ok) throw new Error('connection rejected'); const envelope = await response.json(); if (!envelope || typeof envelope !== 'object' || typeof envelope.choices?.[0]?.message?.content !== 'string' || !envelope.choices[0].message.content.trim()) throw new Error('connection response invalid'); return true; } catch { throw new ResumeUnderstandingProviderError(); } finally { clearTimeout(timer); }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const messages = [{ role: 'user', content: 'Reply exactly READY.' }];
+    const probe = async (body) => {
+      const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error('connection rejected');
+      const envelope = await response.json();
+      if (!envelope || typeof envelope !== 'object') throw new Error('connection response invalid');
+      const content = envelope.choices?.[0]?.message?.content;
+      return typeof content === 'string' && Boolean(content.trim());
+    };
+    try {
+      if (await probe({ model: this.model, max_completion_tokens: 16, messages })) return true;
+      if (await probe({ model: this.model, messages })) return true;
+      throw new Error('connection response invalid');
+    } catch {
+      throw new ResumeUnderstandingProviderError();
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }
 function providerFromConfig(config = {}) { if ((config.provider || 'mock') === 'mock') return new MockResumeUnderstandingProvider(config); if (config.provider === 'openai-compatible') return new OpenAiCompatibleResumeUnderstandingProvider(config); throw new Error(`LLM Resume Understanding provider unavailable: ${config.provider}.`); }
