@@ -5,44 +5,32 @@
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, Issue #93, and current shipped GitHub state. Act only as a neutral Beta Product Tester; do not discuss implementation.
+Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, the active product blocker issue, and current shipped GitHub state. Act only as a neutral Beta Product Tester; do not discuss implementation.
 
 ## Current state
 
 - Beta #1 / Issue #73: **FAIL**.
-- Beta #2 / Issue #82: **FAIL** after all visible stages and all three exports.
-- Issue #83 / PR #87: engineering complete and merged.
-- Beta #3 / Issue #93: **READY TO BEGIN**.
+- Beta #2 / Issue #82: **FAIL**.
+- Beta #3 / Issue #93: **FAIL**.
 - Beta Accepted: **NO**.
 
-Beta #2 produced a one-project resume fragment missing identity/contact and essential sections. The merged Issue #83 fix now preserves a complete source-resume shell while keeping generated claims behind Evidence Review, 003.6, provenance, and deterministic validation.
+Beta #3 confirmed that the complete-resume composition regression from Beta #2 is materially improved: the draft and Markdown export now contain recognizable applicant information and multiple source-resume sections. The run still failed product acceptance because applicant-facing review and export remain difficult or impractical to use.
 
-## Beta #3 inputs
+## Decisive evidence
 
-Use:
+- Landing/Input was effectively unchanged and still lacked clear guidance.
+- Evidence Review showed more detail, but broken bullet characters appeared and the meaning of Accept remained unclear.
+- Draft and validation contained substantially more resume content, but was hard to read, showed broken characters, and used an unexplained `passed_with_warnings` status.
+- Career Review remained dominated by raw JSON, long identifiers, and technical labels; the user approved without a meaningful review.
+- `final-resume.md` was more complete and recognizable, but the user expected a polished human-facing document such as a PDF.
+- `final-resume.json` was not useful to the applicant and was not inspected for equivalence because of raw JSON and escaped characters.
+- `career-review-report.html` contained more detail than Beta #2 but remained too technical to verify accurately.
+- The user explicitly rejected repeating final questions because the result was already clearly not acceptable.
 
-- the user's real resume;
-- the Zurich Data Analytics & AI job description;
-- a fresh localhost process and new session;
-- the shipped browser UI;
-- the real configured provider path used for Beta testing.
+## Remaining blocker
 
-Do not reuse Beta #1 or Beta #2 state.
-
-## Required behavior
-
-Guide one visible stage at a time and stop for feedback after each major stage. Do not discuss code, architecture, schemas, prompts, APIs, provider internals, or implementation solutions.
-
-Do not skip Landing/Input, Resume Understanding and exclusions, every Evidence Review candidate, Draft and validation, every populated Career Review section, `final-resume.md`, `final-resume.json`, `career-review-report.html`, final submission decision, time/value decision, or whether the user would use the product again.
-
-Inspect the complete applicant-facing resume directly. It must preserve source identity/contact, Skills, Experience, Projects, Education, Certifications, and other necessary sections when present, while adding only supported tailored content.
-
-## Acceptance
-
-Do not mark PASS because the workflow completes or files exist. Beta Accepted requires the user's explicit judgment that the resume is complete and recognizable, seriously submit-worthy for Zurich, meaningfully time-saving, reasonable to review, trustworthy without implementation inspection, and worth using again.
-
-Record PASS or FAIL in Issue #93. A failure opens a new product blocker unless the exact merged Issue #83 composition guarantee regressed.
+The approved complete resume is not yet presented through a practical applicant-facing review and final deliverable. Raw JSON, identifiers, broken characters, Markdown-only output, and unexplained validation language create excessive review burden and prevent real submission confidence.
 
 ## Next action
 
-Wait for the user to say `Begin Beta #3`, then follow Issue #93 exactly.
+Resolve the single active product blocker for a human-readable applicant review and polished submission-ready resume export before scheduling another Beta.
