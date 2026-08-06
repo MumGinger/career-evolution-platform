@@ -4,6 +4,7 @@ const http = require('node:http');
 const path = require('node:path');
 const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
+const cleanup = require('./applicant-cleanup');
 const { APPLICANT_PAGE } = require('./applicant-beta-page');
 
 const APPLICANT_OUTPUTS = [
@@ -33,7 +34,7 @@ function sessionIdFromPath(pathname) {
 function normalizeApplicantResponse(value) {
   if (!value || typeof value !== 'object') return value;
   if (typeof value.resumeMarkdown === 'string') {
-    value.resumeMarkdown = applicant.normalizeVisibleText(value.resumeMarkdown);
+    value.resumeMarkdown = cleanup.cleanMarkdown(value.resumeMarkdown);
   }
   if (Array.isArray(value.candidates)) {
     value.candidates = value.candidates.map((candidate) => ({
@@ -46,7 +47,7 @@ function normalizeApplicantResponse(value) {
   }
   if (Array.isArray(value.careerReview)) {
     value.careerReview = value.careerReview.map((review) => ({
-      ...review,
+      ...cleanup.cleanReview(review),
       applicant_origin: applicant.sectionOriginExplanation(review),
     }));
     value.resumeHtml = applicant.resumeHtml(value.careerReview, { standalone: false });
@@ -120,10 +121,15 @@ function createBetaUiServer(options = {}) {
             if ((proxied.statusCode || 500) < 300 && isCareerReview) {
               const current = sessionId ? coreApp.sessions.get(sessionId) : null;
               if (current?.run && current?.exported) {
+                const presentationRun = cleanup.cleanRun(current.run);
+                const presentationExport = {
+                  ...current.exported,
+                  markdown: cleanup.cleanMarkdown(current.exported.markdown),
+                };
                 current.exported = applicant.writeApplicantOutputs({
                   directory: current.dir,
-                  run: current.run,
-                  exported: current.exported,
+                  run: presentationRun,
+                  exported: presentationExport,
                 });
                 value.resumeMarkdown = current.exported.markdown;
                 value.applicantOutputs = APPLICANT_OUTPUTS;
