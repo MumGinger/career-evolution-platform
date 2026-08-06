@@ -15,8 +15,8 @@ function deterministicDraft({ selections, facts }) {
     const item = { text, candidate_fact_ids: [selection.candidate_fact_id], job_requirement_ids: selection.mapped_requirement_ids || [] };
     bySection.set(selection.recommended_section, [...(bySection.get(selection.recommended_section) || []), item]);
   }
-  const factsForSummary = [...bySection.values()].flat().slice(0, 2);
-  if (factsForSummary.length) bySection.set('Professional Summary', [{ text: factsForSummary.map((item) => item.text).join(' | '), candidate_fact_ids: factsForSummary.flatMap((item) => item.candidate_fact_ids), job_requirement_ids: [...new Set(factsForSummary.flatMap((item) => item.job_requirement_ids))] }]);
+  // A cross-section summary can inherit an incompatible template from its first
+  // cited fact.  Omit it until a dedicated summary claim scope exists.
   return { sections: [...bySection].map(([section, statements]) => ({ section, statements })) };
 }
 

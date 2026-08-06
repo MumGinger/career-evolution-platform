@@ -4,3 +4,7 @@
 node_modules/
 coverage/
 my-test/
+.env
+.env.*
+!.env.example
+.secrets/
