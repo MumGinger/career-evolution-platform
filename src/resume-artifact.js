@@ -32,7 +32,9 @@ function renderStatement(selection, fact) {
     resume_content_selection_ids: [selection.id],
     provenance: {
       candidate_fact_id: selection.candidate_fact_id,
+      candidate_fact_ids: [selection.candidate_fact_id],
       candidate_fact_revision: selection.candidate_fact_revision,
+      job_requirement_ids: selection.mapped_requirement_ids || [],
       inherited_provenance_references: selection.inherited_provenance_references,
     },
   };
