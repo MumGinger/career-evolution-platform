@@ -50,7 +50,8 @@ function reviewFixtureMap(fixture) {
   const decisions = Array.isArray(fixture) ? fixture : fixture?.decisions || [];
   const map = new Map();
   for (const item of decisions) if (item.evidenceCandidateId && !map.has(item.evidenceCandidateId)) map.set(item.evidenceCandidateId, item);
-  return { map, decisions };
+  const defaultAction = !Array.isArray(fixture) && ['accepted', 'skipped'].includes(fixture?.defaultAction) ? fixture.defaultAction : null;
+  return { map, decisions, defaultAction };
 }
 async function collectInteractive(queueItems, adapter) {
   const decisions = [];
@@ -63,7 +64,11 @@ async function collectInteractive(queueItems, adapter) {
 function integrateReviewedEvidence({ store, candidateProfileId, discoveryRunId, reviewRun }) {
   const proposals = reviewRun.review_decisions.filter((item) => item.action === 'accepted' || item.action === 'edited').map((item) => {
     const source = store.getEvidenceReviewCandidate(discoveryRunId, item.evidence_candidate_id);
-    return { entityType: source.entity_type, value: item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
+    const supplied = item.action === 'edited' ? item.edited_claim : source.candidate.supporting_value;
+    const value = source.entity_type === 'project' && supplied && typeof supplied === 'object'
+      ? { ...supplied, source_reference: supplied.source_reference || source.candidate.provenance?.evidence_span_id || source.candidate.source_reference }
+      : supplied;
+    return { entityType: source.entity_type, value, displayValue: item.action === 'edited' ? source.candidate.supporting_text : null, confirmationStatus: 'confirmed', confidenceLevel: source.candidate.confidence_level, sourceEvidenceRefs: item.source_evidence_refs, relatedReferences: [reviewRun.id] };
   });
   return proposals.length ? store.createCandidateKnowledgeIntegrationRun({ candidateProfileId, evidenceDiscoveryRunId: discoveryRunId, proposals }) : null;
 }
@@ -77,7 +82,7 @@ async function run({ store, candidateProfileId, jobRequirementProfileId, fixture
   if (fixture) {
     const supplied = reviewFixtureMap(fixture);
     decisions = queueItems.flatMap((item) => item.candidates.map((candidate) => {
-      const suppliedDecision = supplied.map.get(candidate.candidate.id) || supplied.decisions.find((item) => String(item.requirementName || '').toLowerCase() === candidate.candidate.normalized_claim);
+      const suppliedDecision = supplied.map.get(candidate.candidate.id) || supplied.decisions.find((item) => String(item.requirementName || '').toLowerCase() === candidate.candidate.normalized_claim) || (supplied.defaultAction ? { action: supplied.defaultAction, rationale: 'Intentional fixture default for otherwise unmatched reviewable evidence.' } : null);
       if (!suppliedDecision && nonInteractive) throw new Error(`Unresolved review decision for ${candidate.candidate.id}`);
       return suppliedDecision ? decisionFrom(candidate, suppliedDecision) : null;
     }).filter(Boolean));

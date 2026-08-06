@@ -1,5 +1,13 @@
 # Implementation Report — Capability 004.3
 
+## PR #68 final blocker repair (2026-08-05)
+
+Resolved only the remaining Beta repair blockers. Evidence-review fixtures now require every reviewable candidate to receive an explicit match or an intentional declared fallback action; completeness validation remains strict. The semantic-graph regression asserts this directly. The deterministic draft test now documents the intentional omission of Professional Summary until a dedicated truth-safe summary claim scope exists.
+
+The shipped LLM-first client is executed in a minimal DOM harness. It verifies canonical `evidence_candidate_id` payloads, rendered candidates, visible server errors, blocked `careerReview: null`, duplicate-click loading protection, Career Review approval, and all three output links. Understanding validation now returns and renders each excluded source text with its reason.
+
+Validation: focused tests 19/19 passing; full `npm.cmd test` 156/156 passing; `node --check` for all changed JavaScript files; `git diff --check` passing. private representative regression remains green: accepted project and responsibility evidence reaches 003.6 and renders non-empty Experience and Projects sections.
+
 ## Real-resume section-evidence repair (2026-08-04)
 
 Fixed a Beta path that retained only standalone skills after Evidence Review. Resume AST retrieval was finding contextual project and experience bullets, but Evidence Discovery re-applied exact fact matching and discarded them; source block kinds such as `bullet`, `tool`, and `organization` also were not valid 003.6 proposal types. The repair retains immutable AST source-block/span provenance, uses the existing retrieval result directly, and maps accepted evidence to bounded existing Candidate Knowledge types: project titles/project bullets to `project`, experience bullets to `responsibility`, and project technologies to `skill`. Evidence Review remains the explicit confirmation step and 003.6 remains the sole Candidate Knowledge writer.

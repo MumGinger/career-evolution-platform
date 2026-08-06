@@ -25,6 +25,47 @@ test('supported exact edit is integrated with provenance while unsupported edit 
 test('review run snapshots are immutable and the prompt adapter is independently testable', async () => withStore(async (store) => {
   const { profile, job } = setup(store); const needs = store.createInformationNeedRun({ candidateProfileId: profile.id, jobRequirementProfileId: job.id }); const discovery = store.createEvidenceDiscoveryRun({ informationNeedRunId: needs.id }); const item = review.queue(discovery)[0].candidates[0]; const source = store.getEvidenceReviewCandidate(discovery.id, item.candidate.id); const fake = { ask: async () => ({ action: 'accepted' }) }; const decisions = await review.collectInteractive([{ requirement: needs.information_needs[0], candidates: [{ ...item, entity_type: source.entity_type }] }], fake); const run = store.createEvidenceReviewRun({ candidateProfileId: profile.id, jobRequirementProfileId: job.id, evidenceDiscoveryRunId: discovery.id, decisions }); assert.equal(run.review_actor, 'user'); assert.equal(run.review_decisions.length, 1); assert.equal(store.getEvidenceReviewRun(run.id).discovery_snapshot.id, discovery.id);
 }));
+test('accepted contextual project evidence preserves the matching child bullet through 003.6', async () => withStore(async (store) => {
+  const sourceText = 'Projects\nReporting Portal\n- Built SQL automation for weekly reporting.';
+  const knowledge = store.createResumeProfile({ sourcePath: 'synthetic-contextual.txt', basic: { name: 'Synthetic Candidate' }, facts: [] });
+  const source = store.createSourceResumeArtifactVersion({ profileId: knowledge.profile.id, sourcePath: 'synthetic-contextual.txt', parsedText: sourceText });
+  store.createResumeSemanticRun({ profileId: knowledge.profile.id, artifactId: source.artifact.id, policyVersion: 'synthetic/1', parsed: {
+    spans: [
+      { key: 'project-span', section_name: 'Projects', line_start: 2, line_end: 2, raw_text: 'Reporting Portal' },
+      { key: 'bullet-span', section_name: 'Projects', bullet_index: 1, line_start: 3, line_end: 3, raw_text: 'Built SQL automation for weekly reporting.' },
+    ],
+    entities: [
+      { key: 'project', span_key: 'project-span', entity_type: 'project', name: 'Reporting Portal', decision_state: 'explicit', rationale: 'Synthetic parent.', attributes: { upstream_block_id: 'project-block' } },
+      { key: 'bullet', span_key: 'bullet-span', entity_type: 'responsibility', name: 'Built SQL automation for weekly reporting.', decision_state: 'explicit', rationale: 'Synthetic child.', attributes: { upstream_block_id: 'bullet-block', parent_id: 'project-block' } },
+    ], relations: [],
+  } });
+  const job = store.createJobRequirementProfile({ company: 'Acme', roleTitle: 'Analyst', jobDescription: 'Required Qualifications:\nSQL required.' });
+  const needs = store.createInformationNeedRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id });
+  const discovery = store.createEvidenceDiscoveryRun({ informationNeedRunId: needs.id });
+  const project = review.queue(discovery).flatMap((group) => group.candidates).map((item) => ({ ...item, entity_type: store.getEvidenceReviewCandidate(discovery.id, item.candidate.id).entity_type })).find((item) => item.entity_type === 'project');
+  assert.equal(project.candidate.extraction_method, 'source_bound_semantic_contextual_retrieval');
+  assert.equal(project.candidate.supporting_text, 'Built SQL automation for weekly reporting.');
+  assert.deepEqual(project.candidate.provenance.contextual_match, {
+    matched_evidence_id: project.candidate.source_reference,
+    matched_evidence_span_id: project.candidate.provenance.evidence_span_id,
+    matched_upstream_block_id: 'bullet-block', matched_parent_id: 'project-block',
+    matched_source_text: 'Built SQL automation for weekly reporting.', matched_line_start: 3, matched_line_end: 3,
+    parent_evidence_id: project.candidate.provenance.semantic.contextual_match.parent_evidence_id,
+    parent_evidence_span_id: project.candidate.provenance.semantic.contextual_match.parent_evidence_span_id,
+    parent_upstream_block_id: 'project-block',
+  });
+  // Real-provider project candidates can retain only a bounded project name;
+  // the integration boundary must add the immutable evidence reference.
+  store.db.prepare('UPDATE evidence_candidates SET supporting_value = ? WHERE id = ?').run(JSON.stringify({ name: 'Reporting Portal' }), project.candidate.id);
+  const projectWithoutSourceReference = { ...project, candidate: store.getEvidenceReviewCandidate(discovery.id, project.candidate.id).candidate };
+  const reviewRun = store.createEvidenceReviewRun({ candidateProfileId: knowledge.profile.id, jobRequirementProfileId: job.id, evidenceDiscoveryRunId: discovery.id, decisions: [review.decisionFrom(projectWithoutSourceReference, { action: 'accepted' })] });
+  const integrationRun = review.integrateReviewedEvidence({ store, candidateProfileId: knowledge.profile.id, discoveryRunId: discovery.id, reviewRun });
+  assert.equal(integrationRun.integration_decisions[0].state, 'accepted');
+  assert.equal(integrationRun.applied_facts[0].entity_type, 'project');
+  const accepted = integrationRun.upstream_snapshot.need_results.flatMap((result) => result.candidates).find((item) => item.candidate.id === project.candidate.id);
+  assert.equal(accepted.candidate.provenance.contextual_match.matched_upstream_block_id, 'bullet-block');
+  assert.equal(accepted.candidate.provenance.contextual_match.parent_upstream_block_id, 'project-block');
+}));
 test('fixture CLI completes without stdin and writes the complete user-facing output set', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'evidence-review-cli-')); const db = path.join(dir, 'test.db'); const store = new Store(db); const { profile, job } = setup(store); store.close(); const fixture = path.join(dir, 'fixture.json'); const output = path.join(dir, 'output'); fs.writeFileSync(fixture, JSON.stringify({ decisions: [{ requirementName: 'SQL', action: 'accepted' }] })); const io = { stdin: null, stdout: { write() {} } };
   try { await reviewCli(['--db', db, '--candidate-profile-id', profile.id, '--job-profile-id', job.id, '--review-fixture', fixture, '--non-interactive', '--output-dir', output], io); for (const name of ['evidence-review-run.json', 'review-decisions.json', 'candidate-knowledge-after-review.json', 'career-conversation.json', 'tailoring-plan.json', 'resume-artifact.json', 'validation-report.json', 'resume-after-review.md', 'evidence-review-report.html']) assert.ok(fs.existsSync(path.join(output, name))); } finally { fs.rmSync(dir, { recursive: true, force: true }); }

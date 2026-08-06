@@ -58,6 +58,17 @@ function validate({ artifactRun, plan, integrity }) {
     const key = normal(statement.text);
     if (key) duplicates.set(key, [...(duplicates.get(key) || []), statement.statement_id]);
   }
+  const renderedSelections = new Map();
+  for (const { section, statement } of visibleStatements(artifact)) for (const selectionId of statement.resume_content_selection_ids || []) renderedSelections.set(selectionId, [...(renderedSelections.get(selectionId) || []), section.section]);
+  for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'include')) {
+    const sections = renderedSelections.get(selection.id) || [];
+    if (!sections.length) {
+      findings.push(finding('plan_completeness', 'included-selection-rendered', 'critical', 'Every included Resume Content Selection must render in visible output.', { selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section }));
+      continue;
+    }
+    const allowed = (section) => section === selection.recommended_section || (section === 'Professional Summary' && selection.permitted_claim_scope.includes('cross_section_summary'));
+    if (!sections.every(allowed)) findings.push(finding('plan_completeness', 'included-selection-section', 'critical', 'An included Resume Content Selection rendered outside its permitted section.', { selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, actual_sections: sections }));
+  }
   for (const [text, ids] of duplicates) if (ids.length > 1) findings.push(finding('duplication_consistency', 'duplicate-visible-claim', 'warning', 'Duplicate visible claim detected.', { normalized_text: text, statement_ids: ids }));
   const actualOrder = (artifact.content.sections || []).filter((section) => section.statements?.length).map((section) => section.section);
   const plannedOrder = plan.section_plans.map((section) => section.section).filter((section) => actualOrder.includes(section));

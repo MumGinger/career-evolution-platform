@@ -1,5 +1,9 @@
 # Current State
 
+## PR #68 validation repair (2026-08-05)
+
+The local Beta UI now executes an evidence-to-export client flow covered by an executable minimal-DOM regression, rather than an HTML string check. Understanding validation visibly lists each excluded source block and its reason. The semantic-graph demo fixture gives every reviewable candidate an explicit fixture decision, and deterministic drafts intentionally omit Professional Summary until a dedicated summary claim scope exists. Full regression: `npm.cmd test` (156 passing).
+
 ## Real-resume section-evidence repair (2026-08-04)
 
 The Resume AST-to-Evidence Review bridge now retains retrieved project and experience bullets as reviewable working evidence instead of reducing the path to standalone skill tokens. After explicit acceptance, the existing 003.6 integration path alone evaluates bounded project, responsibility, and skill proposals with their AST span provenance. The local Beta UI now calls the existing structured Resume Draft provider after integration. Candidate Knowledge and Career Review/export boundaries are unchanged.
