@@ -104,6 +104,20 @@ test('LLM-first startup classifies malformed, empty, excluded, zero-reviewable, 
   });
 });
 
+test('LLM-first preflight reports setup required without creating a session or retaining connection input', async () => {
+  await withServer(async ({ app, base }) => {
+    const result = await json(`${base}/api/llm-first/preflight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'openai-compatible', model: 'safe-model' }) });
+    assert.equal(result.response.status, 200); assert.equal(result.value.state, 'setup_required'); assert.equal(app.sessions.size, 0); assert.doesNotMatch(JSON.stringify(result.value), /safe-secret|private resume|private job/);
+  });
+});
+
+test('LLM-first preflight performs a bounded connection check before reporting ready', async () => {
+  const readyProvider = { name: 'openai-compatible', model: 'safe-model', async checkConnection() { return true; } };
+  await withProvider(readyProvider, async ({ app, base }) => { const result = await json(`${base}/api/llm-first/preflight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'openai-compatible', model: 'safe-model', apiKey: 'synthetic-secret' }) }); assert.equal(result.value.state, 'ready'); assert.equal(app.sessions.size, 0); assert.doesNotMatch(JSON.stringify(result.value), /synthetic-secret/); });
+  const unavailableProvider = { name: 'openai-compatible', model: 'safe-model', async checkConnection() { const error = new Error('rejected'); error.category = 'provider_api_failure'; throw error; } };
+  await withProvider(unavailableProvider, async ({ app, base }) => { const result = await json(`${base}/api/llm-first/preflight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'openai-compatible', model: 'safe-model', apiKey: 'synthetic-secret' }) }); assert.equal(result.value.state, 'temporarily_unavailable'); assert.equal(app.sessions.size, 0); });
+});
+
 test('LLM-first client contract rejects incomplete, duplicate, unknown, and edit decisions', async () => withServer(async ({ base }) => {
   const started = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(realResumeFailureShapeInput()) }); const endpoint = `${base}/api/llm-first/sessions/${started.value.sessionId}/confirm`; const first = started.value.candidates[0];
   for (const decisions of [[], [{ evidence_candidate_id: first.evidence_candidate_id, action: 'accept' }, { evidence_candidate_id: first.evidence_candidate_id, action: 'accept' }], started.value.candidates.map((item) => ({ evidence_candidate_id: item.evidence_candidate_id, action: 'edit' })), started.value.candidates.map((item, index) => ({ evidence_candidate_id: index ? item.evidence_candidate_id : 'unknown', action: 'accept' }))]) { const response = await json(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions }) }); assert.equal(response.response.status, 400); assert.match(response.value.error, /Accept or Skip exactly once/); }
@@ -114,17 +128,17 @@ test('shipped LLM-first page exposes the complete visible state flow and memory-
 }));
 
 test('shipped LLM-first client executes canonical payloads, errors, blocked drafts, review, and export', async () => {
-  const elements = new Map(['f', 'j', 'p', 'm', 'k', 'b', 'go', 'error', 'diagnostics', 'counts', 'exclusions', 'cards', 'state', 'input', 'understanding', 'evidence', 'make', 'r', 'validation', 'draft', 'reviews', 'career', 'approve', 'result', 'links', 'output'].map((id) => [id, { id, value: id === 'p' ? 'mock' : '', files: id === 'f' ? [{ name: 'resume.txt' }] : [], hidden: false, disabled: false, textContent: '', innerHTML: '' }]));
+  const elements = new Map(['f', 'j', 'p', 'm', 'k', 'b', 'check', 'go', 'error', 'readiness', 'progress', 'diagnostics', 'counts', 'exclusions', 'cards', 'state', 'input', 'understanding', 'evidence', 'make', 'r', 'validation', 'draft', 'reviews', 'career', 'approve', 'result', 'links', 'output'].map((id) => [id, { id, value: id === 'p' ? 'mock' : '', files: id === 'f' ? [{ name: 'resume.txt' }] : [], hidden: false, disabled: false, textContent: '', innerHTML: '' }]));
   const requests = []; let next = [];
   const response = (value, ok = true) => ({ ok, json: async () => value });
   const document = { getElementById: (id) => elements.get(id), querySelector: (selector) => ({ value: selector.startsWith('[data-c=') ? 'accept' : 'approve' }) };
   class FileReader { readAsDataURL() { this.result = 'data:text/plain;base64,YQ=='; this.onload(); } }
-  const fetch = async (url, options) => { requests.push({ url, body: JSON.parse(options.body) }); const item = next.shift(); return item instanceof Promise ? item : response(item.value, item.ok); };
-  const script = BETA_PAGE.match(/<script>([\s\S]*)<\/script>/)[1]; vm.runInNewContext(script, { document, FileReader, fetch, String, JSON, Promise, Error });
+  const fetch = async (url, options) => { requests.push({ url, body: JSON.parse(options.body) }); if (url.endsWith('/preflight')) return response({ state: 'ready', diagnostics: { provider: 'openai-compatible', model: 'safe-model', counts: {} } }); const item = next.shift(); return item instanceof Promise ? item : response(item.value, item.ok); };
+  const script = BETA_PAGE.match(/<script>([\s\S]*)<\/script>/)[1]; vm.runInNewContext(script, { document, FileReader, fetch, String, JSON, Promise, Error, setTimeout: (fn) => { fn(); return 1; }, clearTimeout: () => {} });
   const candidate = { evidence_candidate_id: 'candidate-7', requirement: 'SQL', claim: 'Used SQL' };
   const started = { sessionId: 'session-1', provider: { provider: 'openai-compatible', model: 'safe-model' }, candidates: [candidate], validation: { counts: { extracted: 2, valid: 1, excluded: 1, reviewable: 1 }, validation_reason_categories: ['exact_source_text_not_found'], exclusions: [{ source_text: 'Unmapped headline', message: 'Exact source text must map to the resume input.' }] } };
   next = [{ ok: false, value: { error: 'Server rejected the input.', category: 'invalid_structured_response', diagnostics: { provider: 'openai-compatible', model: 'safe-model', counts: { extracted: 0, valid: 0, excluded: 0, reviewable: 0 }, validation_reason_categories: ['invalid_structured_response'] } } }, { ok: true, value: started }];
-  await elements.get('go').onclick(); assert.equal(elements.get('error').textContent, 'Server rejected the input.'); assert.match(elements.get('diagnostics').textContent, /invalid_structured_response.*openai-compatible.*safe-model.*Extracted: 0.*Validation reasons: invalid_structured_response/);
+  await elements.get('go').onclick(); assert.doesNotMatch(elements.get('error').textContent, /connection/i); assert.match(elements.get('diagnostics').textContent, /invalid_structured_response.*openai-compatible.*safe-model.*Extracted: 0.*Validation reasons: invalid_structured_response/);
   await elements.get('go').onclick(); assert.match(elements.get('cards').innerHTML, /candidate-7/); assert.match(elements.get('diagnostics').textContent, /success.*openai-compatible.*safe-model.*Extracted: 2.*Reviewable: 1.*exact_source_text_not_found/); assert.match(elements.get('exclusions').innerHTML, /Unmapped headline/); assert.match(elements.get('exclusions').innerHTML, /Exact source text/);
   let release; const pending = new Promise((resolve) => { release = resolve; }); next = [pending]; const first = elements.get('make').onclick(); const duplicate = elements.get('make').onclick(); assert.equal(elements.get('make').disabled, true); await duplicate; assert.equal(requests.filter((item) => item.url.endsWith('/confirm')).length, 1);
   release(response({ resumeMarkdown: '## Skills\n\n- SQL', validation: 'passed', blocked: false, careerReview: [{ section: 'Skills', ai_version: { statements: [{ text: 'SQL' }] } }] })); await first; assert.equal(elements.get('career').hidden, false); assert.match(elements.get('diagnostics').textContent, /Category: success.*openai-compatible.*safe-model.*Extracted: 2.*Reviewable: 1/);
