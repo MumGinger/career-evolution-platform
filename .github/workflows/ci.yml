@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - agent/test-hermeticity-before-beta-3
+      - chore/project-foundation
   workflow_dispatch:
 
 permissions:
