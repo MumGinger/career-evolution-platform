@@ -4,6 +4,22 @@ function finding(category, rule, severity, message, references = {}) {
   return { category, rule, severity, message, references };
 }
 function normal(value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function scalar(value) { return typeof value === 'string' || typeof value === 'number' ? String(value) : null; }
+function factDisplayValue(fact) {
+  if (fact?.display_value) return fact.display_value;
+  const value = fact?.value || fact?.canonical_value || {};
+  if (fact?.entity_type === 'project' && scalar(value.name) && scalar(value.text) && value.name !== value.text) return `${value.name}: ${value.text}`;
+  for (const key of ['name', 'title', 'credential', 'degree', 'program']) if (scalar(value[key])) return scalar(value[key]);
+  const pair = [value.organization, value.role].map(scalar).filter(Boolean);
+  if (pair.length) return pair.join(' — ');
+  return Object.values(value).map(scalar).filter(Boolean).join(' — ');
+}
+function candidateFactSourceValues(fact, template = null) {
+  const value = fact?.value || fact?.canonical_value || {};
+  if (template === 'bounded_project_responsibilities' || template === 'bounded_responsibility' || template === 'accepted_achievement_detail') return [value.text].filter((item) => scalar(item)).map(String);
+  if (template === 'project_name' || template === 'skill_name') return [value.name].filter((item) => scalar(item)).map(String);
+  return [...new Set([fact?.display_value, value.name, value.title, value.text, value.credential, value.degree, value.program, factDisplayValue(fact)].filter((item) => scalar(item)).map(String))];
+}
 function sameUniqueSet(left, right) { return Array.isArray(left) && Array.isArray(right) && new Set(left).size === left.length && new Set(right).size === right.length && left.length === right.length && left.every((item) => right.includes(item)); }
 function visibleStatements(artifact) {
   return (artifact.content.sections || []).flatMap((section) => (section.statements || []).map((statement) => ({ section, statement })));
@@ -18,24 +34,42 @@ function validateSourceComposition({ artifact, plan, findings }) {
     findings.push(finding('whole_resume_completeness', 'composition-metadata', 'critical', 'A source-resume snapshot requires complete-resume composition metadata with the same policy boundary.'));
     return;
   }
-  const visible = new Map(visibleStatements(artifact).map(({ statement }) => [statement.statement_id, statement]));
+  const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
+  const visible = new Map(visibleStatements(artifact).map(({ section, statement }) => [statement.statement_id, { section: section.section, statement }]));
   const superseded = new Map((metadata.superseded_source_statements || []).map((item) => [item.source_statement_id, item]));
+  const preserved = new Set(metadata.preserved_source_statement_ids || []);
+  const generatedReplacementUsage = new Set();
   const expected = snapshot.sections.flatMap((section) => (section.statements || []).map((statement) => ({ section: section.section, statement })));
   if (metadata.source_statement_count !== expected.length) findings.push(finding('whole_resume_completeness', 'source-statement-count', 'critical', 'Composition metadata must count every immutable source-resume statement.', { expected: expected.length, actual: metadata.source_statement_count }));
   for (const { section, statement } of expected) {
     const id = statement.source_statement_id || statement.statement_id;
-    const retained = visible.get(id);
-    if (retained) {
-      if (!sourceStatement(retained) || retained.text !== statement.text || retained.provenance?.exact_source_text !== statement.text) findings.push(finding('whole_resume_completeness', 'source-statement-verbatim', 'critical', 'A preserved source-resume statement must remain verbatim with exact source provenance.', { source_statement_id: id, section }));
+    const retainedEntry = visible.get(id);
+    if (retainedEntry) {
+      const retained = retainedEntry.statement;
+      if (!sourceStatement(retained) || retainedEntry.section !== section || retained.text !== statement.text || retained.provenance?.exact_source_text !== statement.text) findings.push(finding('whole_resume_completeness', 'source-statement-verbatim', 'critical', 'A preserved source-resume statement must remain verbatim in its source section with exact source provenance.', { source_statement_id: id, section, actual_section: retainedEntry.section }));
+      if (!preserved.has(id) || superseded.has(id)) findings.push(finding('whole_resume_completeness', 'source-statement-composition-accounting', 'critical', 'Composition metadata must classify a visible source statement as preserved and not superseded.', { source_statement_id: id, section }));
       continue;
     }
     const replacement = superseded.get(id);
-    const generated = (replacement?.generated_statement_ids || []).map((generatedId) => visible.get(generatedId)).filter(Boolean);
-    if (!replacement || !generated.length || generated.some(sourceStatement)) findings.push(finding('whole_resume_completeness', 'source-statement-preserved-or-supported-replacement', 'critical', 'Every source-resume statement must be preserved verbatim or explicitly superseded by a visible Candidate Knowledge generated statement.', { source_statement_id: id, section }));
+    const generatedIds = replacement?.generated_statement_ids || [];
+    const generatedEntries = generatedIds.map((generatedId) => visible.get(generatedId)).filter(Boolean);
+    let supported = Boolean(replacement)
+      && replacement.reason === 'supported_tailored_replacement'
+      && generatedIds.length > 0
+      && generatedEntries.length === generatedIds.length
+      && !preserved.has(id);
+    for (const entry of generatedEntries) {
+      const generated = entry.statement;
+      const factIds = generated.provenance?.candidate_fact_ids || [];
+      const sourceValues = factIds.flatMap((factId) => candidateFactSourceValues(facts.get(factId), generated.template)).map(normal).filter(Boolean);
+      if (sourceStatement(generated) || entry.section !== section || !sourceValues.includes(normal(statement.text)) || generatedReplacementUsage.has(generated.statement_id)) supported = false;
+      generatedReplacementUsage.add(generated.statement_id);
+    }
+    if (!supported) findings.push(finding('whole_resume_completeness', 'source-statement-preserved-or-supported-replacement', 'critical', 'Every source-resume statement must be preserved verbatim or independently proven to be replaced by matching Candidate Knowledge generated content in the same section.', { source_statement_id: id, section, generated_statement_ids: generatedIds }));
   }
-  for (const section of snapshot.sections.filter((item) => item.statements?.length)) {
-    const represented = (artifact.content.sections || []).find((item) => item.section === section.section);
-    if (!represented || !represented.statements?.length) findings.push(finding('whole_resume_completeness', 'source-section-preserved', 'critical', 'Every populated source-resume section must remain represented in the complete artifact.', { section: section.section }));
+  for (const sourceSection of snapshot.sections.filter((item) => item.statements?.length)) {
+    const represented = (artifact.content.sections || []).find((item) => item.section === sourceSection.section);
+    if (!represented || !represented.statements?.length) findings.push(finding('whole_resume_completeness', 'source-section-preserved', 'critical', 'Every populated source-resume section must remain represented in the complete artifact.', { section: sourceSection.section }));
   }
   const header = snapshot.sections.find((section) => section.section === 'Applicant Header');
   if (header?.statements?.length && !(artifact.content.sections || []).find((section) => section.section === 'Applicant Header')?.statements?.length) findings.push(finding('whole_resume_completeness', 'applicant-header-present', 'critical', 'Applicant identity and contact content from the source resume must be present.'));
