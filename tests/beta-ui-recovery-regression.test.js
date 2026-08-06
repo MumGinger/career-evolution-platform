@@ -276,4 +276,4 @@ test('shipped client shows ordered cancellable progress and provider recovery wi
   h.preflightQueue.push(new Error('transport detail'));
   await h.elements.get('check').onclick();
   assert.doesNotMatch(h.elements.get('error').textContent, /Career Review|resume files|transport detail/);
-}
+});
