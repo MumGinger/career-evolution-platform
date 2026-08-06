@@ -50,13 +50,13 @@ function matches(requirement, facts) {
     matched_line_start: fact.provenance?.line_start ?? null,
     matched_line_end: fact.provenance?.line_end ?? null,
   } } }));
-  // A matching project bullet is also explicit evidence for its named project.
-  // The relationship was emitted by the understanding run; this merely makes
-  // that already source-bound parent reviewable, never inventing a project.
+  // A matching child is also explicit evidence for its named project or
+  // experience parent. The relationship was emitted by the understanding run;
+  // this merely makes that already source-bound parent reviewable.
   const semanticByUpstreamId = new Map(facts.filter((fact) => ['resume_semantic', 'resume_semantic_graph'].includes(fact.source)).map((fact) => [fact.provenance?.attributes?.upstream_block_id, fact]));
   const contextualParents = contextual.map((child) => {
     const parent = semanticByUpstreamId.get(child.provenance?.attributes?.parent_id);
-    return parent?.entity_type === 'project'
+    return ['project', 'experience'].includes(parent?.entity_type)
       ? { ...parent, value: { ...parent.value, text: child.provenance?.contextual_match?.matched_source_text || child.provenance?.raw_text || child.value?.text || child.value?.name, source_reference: parent.provenance?.evidence_span_id || parent.provenance?.attributes?.upstream_block_id }, provenance: { ...parent.provenance, contextual_match: { ...child.provenance?.contextual_match, parent_evidence_id: parent.id, parent_evidence_span_id: parent.provenance?.evidence_span_id || null, parent_upstream_block_id: parent.provenance?.attributes?.upstream_block_id || null } } }
       : null;
   }).filter(Boolean);
