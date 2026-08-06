@@ -77,6 +77,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -88,6 +90,25 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Prove applicant regression is red on the pre-fix commit
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
+          mkdir -p ../pre-fix/tests/browser-e2e
+          cp tests/browser-e2e/applicant-flow.spec.js ../pre-fix/tests/browser-e2e/applicant-flow.spec.js
+          cp playwright.config.js ../pre-fix/playwright.config.js
+          ln -s "$GITHUB_WORKSPACE/node_modules" ../pre-fix/node_modules
+          set +e
+          (cd ../pre-fix && "$GITHUB_WORKSPACE/node_modules/.bin/playwright" test --config=playwright.config.js --workers=1)
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected the applicant-facing regression to fail on the pre-fix commit, but it passed."
+            exit 1
+          fi
+          echo "Pre-fix regression failed as expected; green proof follows on the pull-request head."
 
       - name: Run real browser end-to-end test
         run: npm run test:browser-e2e
