@@ -137,15 +137,29 @@ function validationExportSafe(run) {
   return ['passed', 'passed_with_warnings'].includes(run?.validation_status);
 }
 
-function qualityReady(artifact, review, facts) {
-  const populated = new Set(artifact.resume_artifacts
-    .find((item) => item.artifact_type === 'structured_resume')
-    ?.content.sections.filter((section) => section.statements.length)
+function qualityReady(artifactRun, review, tailoringPlan) {
+  const artifact = artifactRun.resume_artifacts
+    .find((item) => item.artifact_type === 'structured_resume');
+  const sections = artifact?.content?.sections || [];
+  const populated = new Set(sections
+    .filter((section) => Array.isArray(section.statements) && section.statements.length)
     .map((section) => section.section));
-  const types = new Set(facts.map((fact) => fact.entity_type));
+  const rendered = new Map();
+  for (const section of sections) {
+    for (const statement of section.statements || []) {
+      for (const selectionId of statement.resume_content_selection_ids || []) {
+        rendered.set(selectionId, [...(rendered.get(selectionId) || []), section.section]);
+      }
+    }
+  }
+  const requiredCoreSelections = (tailoringPlan?.resume_content_selections || [])
+    .filter((selection) => selection.selection_state === 'include'
+      && ['Experience', 'Projects'].includes(selection.recommended_section));
+  const allRequiredCoreSelectionsRendered = requiredCoreSelections.every((selection) =>
+    (rendered.get(selection.id) || []).includes(selection.recommended_section));
   return review.length > 0
-    && (types.has('responsibility') ? populated.has('Experience') : true)
-    && (types.has('project') ? populated.has('Projects') : true)
+    && requiredCoreSelections.length > 0
+    && allRequiredCoreSelectionsRendered
     && (populated.has('Experience') || populated.has('Projects'));
 }
 
@@ -554,12 +568,11 @@ function createBetaUiServer({
         });
         const validation = session.store.createResumeValidationRun({ resumeArtifactRunId: artifact.id });
         const review = humanReview.createDraft({ artifactRun: artifact, presentationStrategyRun: presentation });
-        const committedFacts = session.store.getCommittedCandidateKnowledge(session.profileId);
-        const exportSafe = validationExportSafe(validation) && qualityReady(artifact, review, committedFacts);
+        const exportSafe = validationExportSafe(validation) && qualityReady(artifact, review, tailoring);
         const message = !validationExportSafe(validation)
           ? 'Career Review and export are blocked until deterministic draft validation passes.'
           : !exportSafe
-            ? 'Career Review and export are blocked because required committed project/responsibility evidence did not render in its corresponding resume section.'
+            ? 'Career Review and export are blocked because required included evidence did not render in its planned Experience or Projects section.'
             : null;
         Object.assign(session, {
           reviewRun,
@@ -975,4 +988,4 @@ if (require.main === module) {
   app.listen().then((address) => console.log(`Career Evolution Beta UI: http://${address.address}:${address.port}`));
 }
 
-module.exports = { createBetaUiServer, BETA_PAGE };
+module.exports = { createBetaUiServer, BETA_PAGE, qualityReady };
