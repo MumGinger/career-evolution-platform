@@ -2,6 +2,10 @@ name: CI
 
 on:
   pull_request:
+  push:
+    branches:
+      - agent/test-hermeticity-before-beta-3
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,6 +29,12 @@ jobs:
       - name: Run full test suite
         run: npm test
 
-      - name: Check patch whitespace
+      - name: Check patch whitespace (pull request)
+        if: github.event_name == 'pull_request'
         shell: pwsh
         run: git diff --check "${{ github.event.pull_request.base.sha }}...HEAD"
+
+      - name: Check patch whitespace (branch push)
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: git diff --check HEAD^...HEAD
