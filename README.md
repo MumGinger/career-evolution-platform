@@ -88,13 +88,13 @@ After a successful review produces the validated resume, the interactive CLI ask
 
 ## Required Career Review before resume export
 
-Career Review is the product-facing name for the existing Human Review capability and the Version 1.0 release blocker: the AI prepares, and the human decides. Before exporting, the user must explicitly approve or edit Professional Summary, Skills, Experience, and Projects. The immutable Human Review Run preserves the AI draft, provenance, rationale, final approved content, and timestamps; edits never write Candidate Knowledge or trigger regeneration.
+Career Review is the product-facing name for the existing Human Review capability and the Version 1.0 release blocker: the AI prepares, and the human decides. Before exporting, every populated section presented in Career Review must receive exactly one explicit approve or edit decision. Omitted or unsupported sections are not presented as reviewable content. The immutable Human Review Run preserves the AI draft, provenance, rationale, final approved content, and timestamps; edits never write Candidate Knowledge or trigger regeneration.
 
 ```powershell
 node src/human-review-cli.js --db C:\private\career.db --resume-artifact-run-id <artifact-run-id> --presentation-strategy-run-id <strategy-run-id> --output-dir C:\private\human-review-output
 ```
 
-For repeatable testing, provide `--review-fixture <file> --non-interactive`; its `decisions` array must include every required section with `action` `approve` or `edit`. The CLI writes `human-review-run.json`, `final-resume.json`, `final-resume.md`, and `human-review-report.html`, and prints review completion in the terminal. `node src/cli.js resume-export --resume-artifact-run-id <artifact-run-id>` is blocked until a matching `--human-review-run-id` is supplied.
+For repeatable testing, provide `--review-fixture <file> --non-interactive`; its `decisions` array must include every populated section presented for review with `action` `approve` or `edit`. The CLI writes `human-review-run.json`, `final-resume.json`, `final-resume.md`, and `human-review-report.html`, and prints review completion in the terminal. `node src/cli.js resume-export --resume-artifact-run-id <artifact-run-id>` is blocked until a matching `--human-review-run-id` is supplied.
 
 ## Milestone 1 Demo — end-to-end resume tailoring
 
