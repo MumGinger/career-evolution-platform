@@ -17,7 +17,7 @@ The platform must explain what it believes, preserve uncertainty, and keep the u
 - The representative real-provider engineering workflow recorded in PR #68 remains **Implemented, Integrated, and Proven** for its specified evidence-to-export behavior.
 - Startup recovery, GPT-5 preflight, and placement-aware draft-gate repairs were merged through PRs #75, #78, and #80.
 - Issue #83 recovery is **diagnosed and prototyped, not Proven**. Draft PR #87 identifies the loss after Evidence Review and implements one candidate dual-lane composition boundary, but it is not merge-ready or accepted product behavior.
-- At the latest Engineering checkpoint, PR #87 had focused synthetic proof only, no GitHub checks or workflow runs, and a branch 11 commits ahead and 2 behind the current base.
+- At the latest Engineering checkpoint, PR #87 had focused synthetic proof only, no GitHub checks or workflow runs, and a branch 12 commits ahead and 3 behind the current base.
 
 ### Product acceptance
 
