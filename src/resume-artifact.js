@@ -1,23 +1,34 @@
-const POLICY_VERSION = 'resume-artifact-generation-policy/1.1.0';
+const composition = require('./resume-composition');
+composition.installRuntimeBoundaries();
 
-const SECTIONS = ['Professional Summary', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications'];
+const POLICY_VERSION = 'resume-artifact-generation-policy/1.2.0';
+const FORMAT_VERSION = 'resume-artifact-model/1.0.0';
+
+const SECTIONS = ['Applicant Header', 'Professional Summary', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications'];
 
 function scalar(value) { return typeof value === 'string' || typeof value === 'number' ? String(value) : null; }
+function normal(value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' '); }
 function displayValue(fact) {
-  if (fact.display_value) return fact.display_value;
-  const value = fact.value || fact.canonical_value || {};
-  if (fact.entity_type === 'project' && scalar(value.name) && scalar(value.text) && value.name !== value.text) return `${value.name}: ${value.text}`;
+  if (fact?.display_value) return fact.display_value;
+  const value = fact?.value || fact?.canonical_value || {};
+  if (fact?.entity_type === 'project' && scalar(value.name) && scalar(value.text) && value.name !== value.text) return `${value.name}: ${value.text}`;
   for (const key of ['name', 'title', 'credential', 'degree', 'program']) if (scalar(value[key])) return scalar(value[key]);
   const pair = [value.organization, value.role].map(scalar).filter(Boolean);
   if (pair.length) return pair.join(' — ');
   const strings = Object.values(value).map(scalar).filter(Boolean);
   return strings.join(' — ');
 }
+function sourceValues(fact, template = null) {
+  const value = fact?.value || fact?.canonical_value || {};
+  if (template === 'bounded_project_responsibilities' || template === 'bounded_responsibility' || template === 'accepted_achievement_detail') return [value.text].filter((item) => scalar(item)).map(String);
+  if (template === 'project_name' || template === 'skill_name') return [value.name].filter((item) => scalar(item)).map(String);
+  return [...new Set([fact?.display_value, value.name, value.title, value.text, value.credential, value.degree, value.program, displayValue(fact)].filter((item) => scalar(item)).map(String))];
+}
 function templateFor(selection, fact) {
   if (selection.recommended_section === 'Skills') return 'skill_name';
-  if (selection.recommended_section === 'Projects') return fact.value?.text && fact.value.text !== fact.value.name ? 'bounded_project_responsibilities' : 'project_name';
-  if (selection.recommended_section === 'Experience' && fact.entity_type === 'responsibility') return 'bounded_responsibility';
-  if (selection.recommended_section === 'Experience') return fact.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
+  if (selection.recommended_section === 'Projects') return fact?.value?.text && fact.value.text !== fact.value.name ? 'bounded_project_responsibilities' : 'project_name';
+  if (selection.recommended_section === 'Experience' && fact?.entity_type === 'responsibility') return 'bounded_responsibility';
+  if (selection.recommended_section === 'Experience') return fact?.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
   return 'accepted_fact_detail';
 }
 function renderStatement(selection, fact) {
@@ -29,6 +40,8 @@ function renderStatement(selection, fact) {
     statement_id: `statement:${selection.id}`,
     template,
     text,
+    display_style: 'bullet',
+    content_origin: 'candidate_knowledge_generated',
     resume_content_selection_ids: [selection.id],
     provenance: {
       candidate_fact_id: selection.candidate_fact_id,
@@ -43,10 +56,10 @@ function generatedStatements(draft, plan, facts) {
   if (!draft || !Array.isArray(draft.sections)) return null;
   const selections = new Map(plan.resume_content_selections.filter((item) => item.selection_state === 'include').map((item) => [item.candidate_fact_id, item]));
   const sections = new Map(draft.sections.map((item) => [item.section, item.statements]));
-  return SECTIONS.map((name, position) => ({ section: name, position: position + 1, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
+  return SECTIONS.filter((name) => name !== 'Applicant Header').map((name, position) => ({ section: name, position: position + 2, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
     const factIds = [...new Set(item.candidate_fact_ids || [])]; const linked = factIds.map((id) => selections.get(id)).filter(Boolean);
     const first = linked[0]; const fact = facts.get(first?.candidate_fact_id);
-    return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}), text: item.text, resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
+    return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}), text: item.text, display_style: 'bullet', content_origin: 'candidate_knowledge_generated', resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
   }) }));
 }
 function sameSet(left, right) { return left.length === right.length && new Set(left).size === left.length && left.every((item) => right.includes(item)); }
@@ -73,13 +86,67 @@ function completedProviderSections(providerSections, plan, facts) {
   }
   return { sections: sections.sort((left, right) => left.position - right.position), fallbacks, failures };
 }
+
+function matchableGenerated(statement, selections, facts) {
+  const factIds = statement.provenance?.candidate_fact_ids || [];
+  return factIds.flatMap((id) => sourceValues(facts.get(id), statement.template)).map(normal).filter(Boolean);
+}
+
+function composeSections(generatedSections, plan, facts) {
+  const source = plan.source_resume_snapshot;
+  if (!source?.sections?.length) return {
+    sections: generatedSections,
+    composition: { policy_version: composition.POLICY_VERSION, source_resume_snapshot: null, source_statement_count: 0, preserved_source_statement_ids: [], superseded_source_statements: [], generated_statement_count: generatedSections.flatMap((item) => item.statements).length },
+  };
+  const generatedBySection = new Map(generatedSections.map((section) => [section.section, section]));
+  const sourceBySection = new Map(source.sections.map((section) => [section.section, section]));
+  const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
+  const preserved = [];
+  const superseded = [];
+  const usedGenerated = new Set();
+  const sections = SECTIONS.map((name, index) => {
+    const generated = generatedBySection.get(name) || { section: name, position: index + 1, placeholder: null, statements: [] };
+    const sourceSection = sourceBySection.get(name) || { statements: [] };
+    const statements = [];
+    for (const sourceStatement of sourceSection.statements || []) {
+      const sourceKey = normal(sourceStatement.text);
+      const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, selections, facts).includes(sourceKey));
+      if (replacements.length) {
+        replacements.forEach((statement) => { statements.push(statement); usedGenerated.add(statement.statement_id); });
+        superseded.push({ source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
+      } else {
+        statements.push({ ...sourceStatement, statement_id: sourceStatement.statement_id || sourceStatement.source_statement_id, source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, resume_content_selection_ids: [] });
+        preserved.push(sourceStatement.source_statement_id || sourceStatement.statement_id);
+      }
+    }
+    for (const statement of generated.statements) if (!usedGenerated.has(statement.statement_id)) { statements.push(statement); usedGenerated.add(statement.statement_id); }
+    return { section: name, position: index + 1, placeholder: generated.placeholder || null, statements };
+  });
+  return {
+    sections,
+    composition: {
+      policy_version: composition.POLICY_VERSION,
+      source_resume_snapshot: {
+        format: source.format,
+        source_resume_artifact_id: source.source_resume_artifact_id,
+        source_resume_artifact_version_id: source.source_resume_artifact_version_id,
+        resume_semantic_run_id: source.resume_semantic_run_id,
+      },
+      source_statement_count: source.sections.flatMap((section) => section.statements || []).length,
+      preserved_source_statement_ids: preserved,
+      superseded_source_statements: superseded,
+      generated_statement_count: generatedSections.flatMap((section) => section.statements || []).length,
+    },
+  };
+}
+
 function generate(plan, presentationStrategy = null, draftResult = null) {
   const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
   const order = new Map((presentationStrategy?.ordered_resume_content_selection_ids || []).map((id, index) => [id, index]));
   const visibleSelections = plan.resume_content_selections.filter((selection) => selection.selection_state === 'include');
-  const deterministicSections = SECTIONS.map((name, position) => ({
+  const deterministicSections = SECTIONS.filter((name) => name !== 'Applicant Header').map((name, position) => ({
     section: name,
-    position: position + 1,
+    position: position + 2,
     placeholder: name === 'Professional Summary' ? 'Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.' : null,
     statements: visibleSelections
       .filter((selection) => selection.recommended_section === name)
@@ -89,7 +156,8 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
   }));
   const providerSections = generatedStatements(draftResult?.draft, plan, facts);
   const completion = providerSections ? completedProviderSections(providerSections, plan, facts) : { sections: deterministicSections, fallbacks: [], failures: [] };
-  const sections = completion.sections;
+  const composed = composeSections(completion.sections, plan, facts);
+  const sections = composed.sections;
   const rendered = sections.flatMap((section) => section.statements);
   const omissions = plan.resume_content_selections
     .filter((selection) => selection.selection_state !== 'include')
@@ -98,7 +166,7 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
     .filter((selection) => selection.blocked_claim_scopes.length)
     .map((selection) => ({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, blocked_claim_scopes: selection.blocked_claim_scopes }));
   return {
-    format: 'resume-artifact-model/1.0.0',
+    format: FORMAT_VERSION,
     sections,
     metadata: {
       job_requirement_profile_reference: { id: plan.job_requirement_profile_id, version: plan.job_requirement_profile_version },
@@ -109,10 +177,11 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       draft_provider: draftResult ? { provider: draftResult.provider, model: draftResult.model, version: draftResult.version, parse_error: draftResult.parseError || null } : { provider: 'deterministic-fallback', model: 'local', version: POLICY_VERSION },
       draft_completion_fallbacks: completion.fallbacks,
       draft_completion_failures: completion.failures,
-      limitations: 'Visible content is deterministic and contains only values permitted by a Resume Content Selection. Omissions and blocked claims are metadata, not resume output.',
+      composition: composed.composition,
+      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim with separate source provenance and never writes Candidate Knowledge.',
     },
     rendered_statement_count: rendered.length,
   };
 }
 
-module.exports = { POLICY_VERSION, SECTIONS, generate };
+module.exports = { POLICY_VERSION, FORMAT_VERSION, SECTIONS, generate, composeSections };
