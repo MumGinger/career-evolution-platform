@@ -5,22 +5,30 @@
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, and current GitHub state.
+Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, Issue #93, and current GitHub state.
 
-## Active work
+## Current state
 
-- Issue #83 — produce a complete recognizable tailored resume.
-- Draft PR #87 — source-resume shell with dual-lane Capability 004 composition.
-- PR #87 head: `683f0a15f29364d23a2c5404b88ac119e9626a1d`; synchronized to base `f16d577cabfd787331e50251db231c8b68597802`.
-- Accepted boundary: exact source passthrough never writes Candidate Knowledge; generated or materially rewritten claims still require Evidence Review → 003.6 → included selection.
+- Issue #83 is completed.
+- PR #87 is merged to primary at `cf6ea94f1641095e08ca15766c90cfe7d1f76560`.
+- Beta #3 / Issue #93 is ready to begin from a fresh local process.
+- Beta Accepted remains **NO**.
 
-## Evidence and gaps
+## Merged boundary
 
-- Root-cause diagnosis: **PASS** — source structure survives understanding and is lost after Evidence Review when downstream stages render only included Candidate Knowledge selections.
-- Focused composition regression: **6/6 PASS**.
-- Independent six-section draft inspection: **PASS**.
-- Full `npm test`, shipped server regression, GitHub checks, complete diff review, and final export inspection: **UNKNOWN / pending**.
-- PR #87 is not merge-ready, Proven for the shipped complete-resume flow, or Beta Accepted.
+- Exact validated source content remains verbatim `source_resume_passthrough`, has zero Resume Content Selection references, and never writes Candidate Knowledge.
+- Generated or materially rewritten claims remain `candidate_knowledge_generated` and require Evidence Review → 003.6 → included selection, inherited provenance, and deterministic claim-scope validation.
+- A source statement may disappear only when independently validated as replaced by matching Candidate Knowledge generated content in the same section.
+- Career Review and export operate on every populated composed section.
+
+## Engineering evidence
+
+- Root-cause diagnosis: **PASS** — source structure survived understanding and was lost after Evidence Review when downstream stages rendered only included Candidate Knowledge selections.
+- Focused composition regression executed on Node.js 22: **7/7 PASS**.
+- Negative regressions cover missing Education, unrelated replacement evidence, and date-range phone false positives.
+- Independent six-section applicant-facing Markdown inspection: **PASS**.
+- Complete seven-file diff review and branch synchronization: **PASS**.
+- Remote GitHub workflow and commit status for the connector-created head: **UNKNOWN**; no run was instantiated. This remains explicitly recorded under the repository connector-hotfix exception.
 
 ## Protect
 
@@ -28,4 +36,4 @@ Preserve Candidate Knowledge, 003.6, exact source passthrough, provenance, sourc
 
 ## Next action
 
-Run the full repository suite and shipped complete-export regression for PR #87, inspect the complete diff and final Markdown/JSON/HTML artifacts, record check state truthfully, and merge only if every engineering gate passes. Do not prepare another Beta before that proof.
+Do not start new implementation work. Support Beta #3 only if the shipped workflow exposes a reproducible regression or a new product blocker. Do not mark Beta Accepted without the user's explicit submission, time-savings, review-burden, trust, and reuse judgment recorded in Issue #93.
