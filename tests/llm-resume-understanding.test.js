@@ -16,6 +16,22 @@ test('OpenAI-compatible understanding requests the strict supported-block schema
   } finally { global.fetch = originalFetch; }
 });
 
+test('deterministic alignment copies unique canonical PDF-style text and rejects ambiguous matches', () => {
+  const canonical = 'Experience\n• Built  data-driven dashboards\n  for stakeholders — using Python.\n\n• Built data-driven dashboards for stakeholders — using Python.';
+  const unique = { blocks: [{ id: 'work-1', type: 'responsibility', title: 'Built dashboards', label: 'Built dashboards', exact_source_text: '- Built data-driven dashboards for stakeholders - using Python.', source_location: null, parent_id: null, normalized_meaning: 'Built dashboards', confidence: 'medium', state: 'confirmed', provenance: { source: 'resume_input', exact_source_text: '- Built data-driven dashboards for stakeholders - using Python.' }, limitations: [] }] };
+  const aligned = beta.alignUnderstanding({ understanding: unique, text: canonical }); assert.equal(aligned.findings.length, 1); assert.equal(aligned.findings[0].category, 'source_alignment_ambiguous');
+  const one = beta.alignUnderstanding({ understanding: unique, text: canonical.replace('\n\n• Built data-driven dashboards for stakeholders — using Python.', '') }); assert.equal(one.findings.length, 0); assert.equal(one.understanding.blocks[0].exact_source_text, '• Built  data-driven dashboards\n  for stakeholders — using Python.'); assert.deepEqual(one.understanding.blocks[0].source_location, { start: 11, end: canonical.indexOf('\n\n') }); assert.equal(one.understanding.blocks[0].provenance.source_alignment.method, 'normalized_unique_match');
+});
+
+test('aligned parent and child retain canonical spans together while unsupported alignment leaves no valid evidence', () => {
+  const canonical = 'Data Analyst\n• Built SQL dashboards\n'; const blocks = [
+    { id: 'experience-1', type: 'experience', title: 'Data Analyst', label: 'Data Analyst', exact_source_text: 'Data Analyst', source_location: null, parent_id: null, normalized_meaning: 'Data Analyst', confidence: 'medium', state: 'confirmed', provenance: { source: 'resume_input', exact_source_text: 'Data Analyst' }, limitations: [] },
+    { id: 'responsibility-2', type: 'responsibility', title: 'Built SQL dashboards', label: 'Built SQL dashboards', exact_source_text: '- Built SQL dashboards', source_location: null, parent_id: 'experience-1', normalized_meaning: 'Built SQL dashboards', confidence: 'medium', state: 'confirmed', provenance: { source: 'resume_input', exact_source_text: '- Built SQL dashboards' }, limitations: [] },
+  ]; const aligned = beta.alignUnderstanding({ understanding: { blocks }, text: canonical }); const validated = beta.validateUnderstanding({ understanding: aligned.understanding, text: canonical, alignmentFindings: aligned.findings });
+  assert.equal(validated.valid_blocks.length, 2); assert.deepEqual(validated.valid_blocks[1].source_location, { start: canonical.indexOf('•'), end: canonical.indexOf('\n', canonical.indexOf('•')) }); assert.equal(validated.valid_blocks[1].parent_id, 'experience-1');
+  const unsupported = beta.alignUnderstanding({ understanding: { blocks: [{ ...blocks[0], id: 'unsupported', exact_source_text: 'Invented achievement' }] }, text: canonical }); const excluded = beta.validateUnderstanding({ understanding: unsupported.understanding, text: canonical, alignmentFindings: unsupported.findings }); assert.equal(excluded.valid_blocks.length, 0); assert.deepEqual(excluded.findings.map((finding) => finding.category), ['source_alignment_not_found']);
+});
+
 test('only accepted grouped evidence reaches drafting and responsibility evidence creates prose', () => {
   const blocks = beta.validateUnderstanding({ understanding: beta.mockUnderstand({ text }), text }).valid_blocks; const approved = beta.approvedBlocks(blocks, blocks.map((item) => ({ id: item.id, action: item.type === 'skill' ? 'remove' : 'accept' }))); const result = beta.draft({ approved, jobText: 'Python required.' }); const summary = result.sections.find((item) => item.section === 'Professional Summary').statements[0]; assert.match(summary.text, /Candidate with experience/); assert.ok(summary.supporting_evidence_block_ids.every((item) => approved.some((block) => block.id === item))); assert.ok(result.sections.find((item) => item.section === 'Experience').statements.some((item) => /Built reporting/.test(item.text)));
 });

@@ -75,7 +75,7 @@ test('excludes a child whose invalid parent would otherwise bind undefined as re
   const provider = { name: 'openai-compatible', model: 'synthetic-schema-model', async understand() { return { provider: this.name, model: this.model, understanding: shaped }; } };
   await withProvider(provider, async ({ app, base }) => {
     const started = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...supplied, provider: 'openai-compatible', apiKey: 'synthetic-secret' }) });
-    assert.equal(started.response.status, 201); assert.ok(started.value.validation.validation_reason_categories.includes('exact_source_text_not_found')); assert.ok(started.value.validation.validation_reason_categories.includes('parent_not_retained')); assert.ok(started.value.candidates.length > 0); assert.equal(app.sessions.size, 1); assert.ok(child);
+    assert.equal(started.response.status, 201); assert.ok(started.value.validation.validation_reason_categories.includes('source_alignment_not_found')); assert.ok(started.value.validation.validation_reason_categories.includes('parent_not_retained')); assert.ok(started.value.candidates.length > 0); assert.equal(app.sessions.size, 1); assert.ok(child);
   });
 });
 
