@@ -1,5 +1,23 @@
 # Current State
 
+## Beta #3 product acceptance result (2026-08-06)
+
+Beta #3 completed the real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+
+The complete-resume composition blocker from Beta #2 is materially improved: the applicant-facing draft and Markdown export now contain recognizable identity/contact information and multiple source-resume sections rather than a one-project fragment. Issue #83's merged composition guarantee did not visibly regress.
+
+The user still would not treat the result as a practical submission-ready resume. Evidence Review did not make the consequence of Accept clear; broken characters appeared; `passed_with_warnings` was unexplained; Career Review and the HTML report remained dominated by raw JSON, identifiers, and technical labels; `final-resume.json` was not useful to the applicant; and `final-resume.md` was recognizable but not a polished human-facing final format. The user expected a PDF or equivalent submission-ready document and declined repeated final questions because the negative judgment was already clear.
+
+Durable acceptance records:
+
+- Issue #73 — Beta #1: FAIL and closed.
+- Issue #82 — Beta #2: FAIL and closed.
+- Issue #83 / PR #87 — complete-resume composition engineering work complete.
+- Issue #93 — Beta #3: FAIL and closed.
+- Issue #97 — active blocker: make complete resume review and export applicant-readable.
+
+This does not reverse the existing engineering result: the representative real-provider flow remains **Proven**. It establishes that complete composition, successful execution, deterministic validation, and available exports still do not equal product acceptance.
+
 ## Beta #2 product acceptance result (2026-08-06)
 
 Beta #2 completed the full real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
@@ -12,9 +30,7 @@ Durable acceptance records:
 
 - Issue #73 — Beta #1: FAIL and closed.
 - Issue #82 — Beta #2: FAIL and closed.
-- Issue #83 — active blocker: produce a complete, recognizable tailored resume.
-
-The next product action is to diagnose where source-resume structure and unchanged essential content are lost, define a truth-preserving complete-resume composition boundary without weakening Candidate Knowledge or 003.6, and independently verify a complete applicant-facing draft before another Beta.
+- Issue #83 — complete-resume composition blocker, now engineering-complete through PR #87.
 
 ## PR #68 validation repair (2026-08-05)
 
@@ -30,7 +46,7 @@ Career Review is the product-facing name for the existing immutable Human Review
 
 The local Beta UI is available through `node src/beta-ui.js`. It is a temporary, plain-HTML testing wrapper around the existing Resume AST, Evidence Review/003.6, tailoring, presentation, artifact, validation, Career Review, and export APIs; it is not production frontend architecture. API keys stay in request memory and never enter the local session database or generated outputs.
 
-**Phase:** Version 1 product-quality recovery after Beta #2 FAIL  
+**Phase:** Version 1 applicant-facing product-quality recovery after Beta #3 FAIL  
 **Last updated:** 2026-08-06
 
 ## Intelligent Resume v1
@@ -69,16 +85,17 @@ The resume pipeline creates an immutable Presentation Strategy Run after Career 
 - Implemented Career Curiosity MVP: after reflection, introduce one supported adjacent career possibility, explain it through snapshot items, and record one immutable response without updating Candidate Knowledge or Career Understanding.
 - Completed Milestone 2 — Career Evolution Loop v1: the primary demo now connects Resume Intelligence, Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and a final return invitation. It exports one ordered HTML report and one integrated JSON summary while preserving all existing immutable-run and Candidate Knowledge boundaries.
 - Completed Decision Companion as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
+- Completed Issue #83 / PR #87 complete-resume composition boundary: exact source-resume passthrough survives alongside evidence-backed generated content without writing passthrough into Candidate Knowledge.
 
 ## Current focus
 
-Issue #83: produce a complete, recognizable applicant-facing resume while preserving the existing Candidate Knowledge, provenance, deterministic validation, Career Review, and privacy boundaries.
+Issue #97: make the already-complete approved resume practical for a normal applicant to review and submit.
 
-Applicant-facing workflow clarity and Career Review readability are also verified Beta #2 blockers, but complete-resume output is the first gate. Another Beta must not be scheduled until a complete draft is independently inspected.
+The applicant-facing experience must not require raw JSON, identifiers, escaped line breaks, or technical validation labels as the primary review surface. Evidence Review must explain what Accept means, visible broken characters must be absent, Career Review must support informed approval, and a polished submission-ready resume export must be available.
 
 ## Next decision
 
-Define the smallest truth-preserving composition boundary between immutable source-resume content and evidence-backed tailored claims. Intelligent Execution work is deferred until Version 1 produces a complete, submission-evaluable resume.
+Define the smallest applicant-facing product boundary that turns the complete approved resume into a readable review and polished final deliverable while preserving complete composition, Candidate Knowledge, provenance, deterministic validation, privacy, and human authority. Intelligent Execution work remains deferred until Version 1 is submission-evaluable.
 
 ## Open questions
 
@@ -87,7 +104,7 @@ Define the smallest truth-preserving composition boundary between immutable sour
 - Which recovery actions should be available before a user request, and how should their privacy cost be compared?
 - What confirmation and conflict threshold must Candidate Knowledge Integration meet before it accepts a fact?
 - What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
-- How can unchanged source-resume structure be preserved without silently turning source text into newly committed Candidate Knowledge?
+- What is the smallest applicant-readable review and export experience that preserves truth boundaries without exposing implementation detail?
 
 ## Milestone 1 Demo update
 
@@ -95,4 +112,4 @@ Milestone 1 Demo is implemented as an integration-only local command. It version
 
 # LLM-first Beta path
 
-The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #2 evidence recorded in Issue #82 and the active complete-resume blocker in Issue #83, not by the ability to technically complete the flow.
+The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #3 evidence recorded in Issue #93 and the active applicant-facing review/export blocker in Issue #97, not by complete composition or the ability to technically complete the flow.
