@@ -1,6 +1,6 @@
 # Engineering Room Handoff
 
-**Last checkpoint:** 2026-08-06 17:15 ET  
+**Last checkpoint:** 2026-08-06 17:24 ET  
 **Room authority:** Repository evidence, current GitHub state, `ENGINEERING_LEAD.md`, and `AGENTS.md` override this handoff when they conflict.
 
 ## Purpose
@@ -19,10 +19,11 @@ After that decision, align PR #87 to it, update the branch from the latest base,
 - Active pull request: Draft PR #87 — **Fix #83 complete resume composition boundary**.
 - Current branch or base:
   - repository default/base: `chore/project-foundation`;
-  - verified base tip at checkpoint: `edf27717b0726e30accf4b49a659213e6480b37d` from merged Product checkpoint PR #89;
+  - verified base tip at checkpoint: `905af331200c6b8fa4334219e9473120755207d9` from merged Engineering checkpoint PR #90;
   - PR branch: `agent/issue-83-complete-resume-composition`;
-  - latest PR head at checkpoint: `f817cfce92a52b74fb7b5da88d401c5baf87ddff`;
-  - branch comparison: 11 commits ahead and 2 commits behind the current base; merge base `cc77fabff2624453f6b914de36c6534d91caefca`.
+  - latest PR head at checkpoint: `9e079b8d9fcc360309254d9744925a791c62a69e`;
+  - latest PR commit removes the duplicate branch-local workflow and relies on the repository's existing CI workflow;
+  - branch comparison: 12 commits ahead and 3 commits behind the current base; merge base `cc77fabff2624453f6b914de36c6534d91caefca`.
 - Delivery state: **Prototyped / partially Implemented only**. PR #87 is not Integrated, Proven, merge-ready, or Beta Accepted.
 
 ## Verified evidence
@@ -59,7 +60,7 @@ After that decision, align PR #87 to it, update the branch from the latest base,
 ## Blockers and decisions required
 
 - Engineering blockers:
-  - PR #87 is 2 commits behind the current base and remains draft;
+  - PR #87 is 3 commits behind the current base and remains draft;
   - no current CI/status checks exist;
   - full suite, shipped complete-export regression, complete diff review, and final artifact inspection remain pending.
 - Product or architecture decisions required:
