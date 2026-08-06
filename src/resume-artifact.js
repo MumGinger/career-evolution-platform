@@ -5,6 +5,7 @@ const POLICY_VERSION = 'resume-artifact-generation-policy/1.2.0';
 const FORMAT_VERSION = 'resume-artifact-model/1.0.0';
 
 const SECTIONS = ['Applicant Header', 'Professional Summary', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications'];
+const GENERATED_SECTIONS = SECTIONS.filter((name) => name !== 'Applicant Header');
 
 function scalar(value) { return typeof value === 'string' || typeof value === 'number' ? String(value) : null; }
 function normal(value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' '); }
@@ -56,7 +57,7 @@ function generatedStatements(draft, plan, facts) {
   if (!draft || !Array.isArray(draft.sections)) return null;
   const selections = new Map(plan.resume_content_selections.filter((item) => item.selection_state === 'include').map((item) => [item.candidate_fact_id, item]));
   const sections = new Map(draft.sections.map((item) => [item.section, item.statements]));
-  return SECTIONS.filter((name) => name !== 'Applicant Header').map((name, position) => ({ section: name, position: position + 2, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
+  return GENERATED_SECTIONS.map((name, position) => ({ section: name, position: position + 1, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
     const factIds = [...new Set(item.candidate_fact_ids || [])]; const linked = factIds.map((id) => selections.get(id)).filter(Boolean);
     const first = linked[0]; const fact = facts.get(first?.candidate_fact_id);
     return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}), text: item.text, display_style: 'bullet', content_origin: 'candidate_knowledge_generated', resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
@@ -81,7 +82,7 @@ function completedProviderSections(providerSections, plan, facts) {
     if (!statement) { failures.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'deterministic_completion_unrenderable' }); continue; }
     const section = sections.find((item) => item.section === selection.recommended_section);
     if (section) section.statements.push(statement);
-    else sections.push({ section: selection.recommended_section, position: SECTIONS.indexOf(selection.recommended_section) + 1, placeholder: null, statements: [statement] });
+    else sections.push({ section: selection.recommended_section, position: GENERATED_SECTIONS.indexOf(selection.recommended_section) + 1, placeholder: null, statements: [statement] });
     fallbacks.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'provider_omitted_included_selection' });
   }
   return { sections: sections.sort((left, right) => left.position - right.position), fallbacks, failures };
@@ -144,9 +145,9 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
   const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
   const order = new Map((presentationStrategy?.ordered_resume_content_selection_ids || []).map((id, index) => [id, index]));
   const visibleSelections = plan.resume_content_selections.filter((selection) => selection.selection_state === 'include');
-  const deterministicSections = SECTIONS.filter((name) => name !== 'Applicant Header').map((name, position) => ({
+  const deterministicSections = GENERATED_SECTIONS.map((name, position) => ({
     section: name,
-    position: position + 2,
+    position: position + 1,
     placeholder: name === 'Professional Summary' ? 'Summary is intentionally a placeholder; no summary claim is generated in Capability 004.2.' : null,
     statements: visibleSelections
       .filter((selection) => selection.recommended_section === name)
