@@ -71,11 +71,11 @@ function composeSourceResume({ profile = {}, semanticRun }) {
     },
   }));
 
-  const headerValues = new Set(statements.filter((item) => item.section === 'Applicant Header').map((item) => normalize(item.text)));
+  const headerValues = statements.filter((item) => item.section === 'Applicant Header').map((item) => normalize(item.text));
   const fallback = [
     ['name', profile.name],
     ['email', profile.email],
-  ].filter(([, value]) => String(value || '').trim()).filter(([, value]) => !headerValues.has(normalize(value))).map(([field, value], index) => ({
+  ].filter(([, value]) => String(value || '').trim()).filter(([, value]) => !headerValues.some((existing) => existing.includes(normalize(value)))).map(([field, value], index) => ({
     statement_id: `source-profile:${profile.id}:${field}`,
     source_statement_id: `source-profile:${profile.id}:${field}`,
     text: String(value).trim(),
@@ -162,14 +162,14 @@ function ensureExpandedReviewSchema(db) {
 }
 
 function deterministicIdentityBlocks(text, blocks) {
-  const existing = new Set((blocks || []).filter((item) => item?.type === 'identity').map((item) => normalize(item.exact_source_text)));
+  const existing = (blocks || []).filter((item) => item?.type === 'identity').map((item) => normalize(item.exact_source_text));
   const candidates = [];
   const lines = String(text || '').replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
   const name = lines[0] && /^[A-Z][A-Za-z'-]+(?:\s+[A-Z][A-Za-z'-]+){1,3}$/.test(lines[0]) ? lines[0] : null;
   const email = String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || null;
   const phone = String(text || '').match(/(?:\+?\d[\d(). -]{7,}\d)/)?.[0] || null;
   for (const [field, value] of [['name', name], ['email', email], ['phone', phone]]) {
-    if (!value || existing.has(normalize(value))) continue;
+    if (!value || existing.some((sourceText) => sourceText.includes(normalize(value)))) continue;
     const start = String(text || '').indexOf(value);
     if (start < 0) continue;
     candidates.push({
