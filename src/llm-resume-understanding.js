@@ -65,7 +65,10 @@ function validateUnderstanding({ understanding, text }) {
     if (number.test(candidate?.normalized_meaning || '') && !number.test(candidate?.exact_source_text || '')) issues.push(['unsupported_normalized_metric', 'Normalized meaning introduces an unsupported number or metric.']);
     if (issues.length) findings.push({ block_id: candidate?.id || null, severity: 'error', category: issues.map(([category]) => category).join(','), message: issues.map(([, message]) => message).join(' ') }); else { seen.add(candidate.id); valid.push(candidate); }
   }
-  return { valid_blocks: valid, findings, status: findings.length ? 'passed_with_excluded_blocks' : 'passed' };
+  const retainedIds = new Set(valid.map((candidate) => candidate.id)); const parentExcluded = valid.filter((candidate) => candidate.parent_id && !retainedIds.has(candidate.parent_id));
+  for (const candidate of parentExcluded) findings.push({ block_id: candidate.id, severity: 'error', category: 'parent_not_retained', message: 'Parent reference did not retain valid source-bound evidence.' });
+  const retained = valid.filter((candidate) => !parentExcluded.includes(candidate));
+  return { valid_blocks: retained, findings, status: findings.length ? 'passed_with_excluded_blocks' : 'passed' };
 }
 function grouped(blocks) {
   const byId = new Map(blocks.map((item) => [item.id, item])); const cards = [];

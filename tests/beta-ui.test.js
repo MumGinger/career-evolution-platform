@@ -5,14 +5,15 @@ const os = require('node:os');
 const path = require('node:path');
 const vm = require('node:vm');
 const { createBetaUiServer, BETA_PAGE } = require('../src/beta-ui');
+const { Store } = require('../src/store');
 const llmUnderstanding = require('../src/llm-resume-understanding');
 
 async function withServer(run) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
   try { await run({ app, base }); } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
 }
-async function withProvider(provider, run) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-provider-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root, resumeUnderstandingProviderFromConfig: () => provider }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
+async function withProvider(provider, run, options = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-provider-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root, resumeUnderstandingProviderFromConfig: () => provider, ...options }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
   try { await run({ app, base, root }); } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
 }
 async function json(url, options = {}) { const response = await fetch(url, options); return { response, value: await response.json() }; }
@@ -67,6 +68,24 @@ test('provider-shaped experience and project hierarchy reaches Evidence Review w
     assert.equal(started.response.status, 201); assert.deepEqual(started.value.provider, { provider: 'openai-compatible', model: 'synthetic-schema-model' }); assert.ok(started.value.candidates.some((item) => item.section === 'project')); assert.ok(started.value.candidates.some((item) => item.section === 'experience'));
     const persisted = fs.readdirSync(app.sessions.get(started.value.sessionId).dir).map((file) => fs.readFileSync(path.join(app.sessions.get(started.value.sessionId).dir, file), 'utf8')).join('\n'); assert.doesNotMatch(persisted, /synthetic-secret|private candidate Tang\nSkills\nPower BI, Python, SQL\nProjects\nCustomer Analytics Dashboard\n- Built Power BI data visualization dashboards and automation workflows using Python and SQL\.\nExperience\nData Analyst\n- Delivered business insights and data analysis reporting for stakeholders\.|Company: Zurich\nRole Title: Data Analytics and AI Analyst\n\nRequired Qualifications:\nPower BI required\.\nPython required\.\nSQL required\.\nData visualization required\.\nAutomation required\.\nBusiness insights required\.\nData analysis required\./);
   });
+});
+
+test('excludes a child whose invalid parent would otherwise bind undefined as resume_relation_candidates parameter 3', async () => {
+  const supplied = realResumeFailureShapeInput(); const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8'); const shaped = llmUnderstanding.mockUnderstand({ text }); const parent = shaped.blocks.find((item) => item.type === 'project'); parent.exact_source_text = 'not in synthetic source'; const child = shaped.blocks.find((item) => item.parent_id === parent.id);
+  const provider = { name: 'openai-compatible', model: 'synthetic-schema-model', async understand() { return { provider: this.name, model: this.model, understanding: shaped }; } };
+  await withProvider(provider, async ({ app, base }) => {
+    const started = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...supplied, provider: 'openai-compatible', apiKey: 'synthetic-secret' }) });
+    assert.equal(started.response.status, 201); assert.ok(started.value.validation.validation_reason_categories.includes('exact_source_text_not_found')); assert.ok(started.value.validation.validation_reason_categories.includes('parent_not_retained')); assert.ok(started.value.candidates.length > 0); assert.equal(app.sessions.size, 1); assert.ok(child);
+  });
+});
+
+test('unexpected LLM-first persistence failures are private-safe and leave no session or temporary database', async () => {
+  const supplied = realResumeFailureShapeInput(); const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8'); const provider = { name: 'openai-compatible', model: 'synthetic-schema-model', async understand() { return { provider: this.name, model: this.model, understanding: llmUnderstanding.mockUnderstand({ text }) }; } };
+  const storeFromPath = (databasePath) => { const store = new Store(databasePath); store.createResumeSemanticRun = () => { throw new Error('synthetic persistence internals'); }; return store; };
+  await withProvider(provider, async ({ app, base, root }) => {
+    const failed = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...supplied, provider: 'openai-compatible', apiKey: 'synthetic-secret' }) });
+    assert.equal(failed.response.status, 400); assert.equal(failed.value.category, 'session_persistence_failure'); assert.deepEqual(failed.value.diagnostics.provider, 'openai-compatible'); assert.deepEqual(failed.value.diagnostics.model, 'synthetic-schema-model'); assert.ok(failed.value.diagnostics.validation_reason_categories.includes('session_persistence_failure')); assert.doesNotMatch(JSON.stringify(failed.value), /synthetic-secret|synthetic persistence internals|private candidate Tang|Zurich/); assert.equal(app.sessions.size, 0); assert.deepEqual(fs.readdirSync(root), []);
+  }, { storeFromPath });
 });
 
 test('LLM-first startup classifies malformed, empty, excluded, zero-reviewable, and provider failures without private diagnostics', async () => {
