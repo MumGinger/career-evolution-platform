@@ -158,6 +158,11 @@ test('representative PDF survives extraction, review, composition, Career Review
     assert.equal(completed.response.status, 200, JSON.stringify(completed.value));
     assert.equal(completed.value.primaryOutput, 'final-resume.pdf');
     assert.deepEqual(new Set(completed.value.outputs), new Set([
+      'final-resume.md',
+      'final-resume.json',
+      'career-review-report.html',
+    ]));
+    assert.deepEqual(new Set(completed.value.applicantOutputs), new Set([
       'final-resume.pdf',
       'career-review-report.html',
       'final-resume.md',
