@@ -10,6 +10,7 @@ const { runResumeSemanticUnderstanding } = require('../src/resume-semantic');
 const { runResumeSemanticGraphConstruction } = require('../src/resume-semantic-graph');
 
 const root = path.join(__dirname, '..');
+const MOCK_PROVIDER_CONFIG = { provider: 'mock' };
 function fixture(name) { return path.join(root, 'examples', name); }
 function tempOutput() { return fs.mkdtempSync(path.join(os.tmpdir(), 'career-demo-output-')); }
 function careerReviewFixture() { return fixture('synthetic-career-review.json'); }
@@ -18,7 +19,7 @@ function evidenceReviewFixture() { return fixture('synthetic-evidence-review.jso
 test('synthetic demo runs the complete immutable pipeline and writes every expected output', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, providerConfig: MOCK_PROVIDER_CONFIG });
     assert.equal(result.validation.validation_status, 'passed');
     assert.deepEqual(fs.readdirSync(output).sort(), OUTPUT_FILES.slice().sort());
     assert.equal(result.semantic, null);
@@ -52,7 +53,7 @@ test('integrated demo confirmation proposals retain provenance-rich review field
 test('career evolution demo joins every milestone stage into one bounded companion journey', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, providerConfig: MOCK_PROVIDER_CONFIG, careerDirection: 'Data Analytics', reflectionAction: 'looks_right', reflectionNote: 'This is a useful starting point.', curiosityResponse: 'interesting' });
     assert.equal(result.conversation.answer, 'Data Analytics');
     assert.equal(result.snapshot.current_direction.label, 'Data Analytics');
     assert.equal(result.reflection.action, 'looks_right');
@@ -71,7 +72,7 @@ test('career evolution demo joins every milestone stage into one bounded compani
 test('without a capture fixture, unresolved acquisition is skipped and no unsupported evidence is integrated', async () => {
   const output = tempOutput();
   try {
-    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output });
+    const result = await runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), evidenceReviewFixturePath: evidenceReviewFixture(), careerReviewFixturePath: careerReviewFixture(), outputDirectory: output, providerConfig: MOCK_PROVIDER_CONFIG });
     assert.ok(result.integration.applied_facts.length > 0);
     assert.equal(result.reviewRun.review_decisions.length, 18);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
@@ -81,14 +82,14 @@ test('requires a clean output directory so every invocation is a new run set', a
   const output = tempOutput();
   try {
     fs.writeFileSync(path.join(output, 'existing.txt'), 'x');
-    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output }), /must be empty/);
+    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output, providerConfig: MOCK_PROVIDER_CONFIG }), /must be empty/);
   } finally { fs.rmSync(output, { recursive: true, force: true }); }
 });
 
 test('semantic-graph demo fixture makes an intentional decision for every reviewable candidate', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'semantic-graph-demo-')); const store = new Store(path.join(directory, 'demo.db'));
   try {
-    const sourcePath = fixture('synthetic-complex-resume.txt'); const text = fs.readFileSync(sourcePath, 'utf8'); const profile = store.createResumeProfile({ sourcePath, basic: parseResumeText(text).basic, facts: [] }); const source = store.createSourceResumeArtifactVersion({ profileId: profile.profile.id, sourcePath, parsedText: text }); const ast = await store.createResumeAstRun({ profileId: profile.profile.id, artifactId: source.artifact.id, provider: providerFromConfig() }); const semantic = runResumeSemanticUnderstanding(store, { profileId: profile.profile.id, artifactId: source.artifact.id }); const graph = runResumeSemanticGraphConstruction(store, { semanticRunId: semantic.id }); const job = store.createJobRequirementProfile({ ...jobIdentity(fs.readFileSync(fixture('synthetic-job.txt'), 'utf8')), jobDescription: fs.readFileSync(fixture('synthetic-job.txt'), 'utf8') }); const reviewed = await evidenceReview.run({ store, candidateProfileId: profile.profile.id, jobRequirementProfileId: job.id, fixture: JSON.parse(fs.readFileSync(evidenceReviewFixture(), 'utf8')), nonInteractive: true });
+    const sourcePath = fixture('synthetic-complex-resume.txt'); const text = fs.readFileSync(sourcePath, 'utf8'); const profile = store.createResumeProfile({ sourcePath, basic: parseResumeText(text).basic, facts: [] }); const source = store.createSourceResumeArtifactVersion({ profileId: profile.profile.id, sourcePath, parsedText: text }); const ast = await store.createResumeAstRun({ profileId: profile.profile.id, artifactId: source.artifact.id, provider: providerFromConfig(MOCK_PROVIDER_CONFIG) }); const semantic = runResumeSemanticUnderstanding(store, { profileId: profile.profile.id, artifactId: source.artifact.id }); const graph = runResumeSemanticGraphConstruction(store, { semanticRunId: semantic.id }); const job = store.createJobRequirementProfile({ ...jobIdentity(fs.readFileSync(fixture('synthetic-job.txt'), 'utf8')), jobDescription: fs.readFileSync(fixture('synthetic-job.txt'), 'utf8') }); const reviewed = await evidenceReview.run({ store, candidateProfileId: profile.profile.id, jobRequirementProfileId: job.id, fixture: JSON.parse(fs.readFileSync(evidenceReviewFixture(), 'utf8')), nonInteractive: true });
     const graphStates = [...graph.nodes, ...graph.edges].filter((item) => item.decision_state === 'derived_structurally');
     assert.equal(ast.validation_status, 'passed'); assert.ok(graph.edges.length > 0); assert.ok(graphStates.length > 0); assert.ok(reviewed.discovery.information_need_run.available_working_evidence_summary.length > 0); assert.equal(reviewed.reviewRun.review_decisions.length, reviewed.queue.flatMap((group) => group.candidates).length); assert.ok(reviewed.reviewRun.review_decisions.every((decision) => ['accepted', 'skipped'].includes(decision.action)));
   } finally { store.close(); fs.rmSync(directory, { recursive: true, force: true }); }
@@ -102,7 +103,7 @@ test('uses one canonical identity for three-line LinkedIn and Role at Company op
 test('primary demo requires an explicit Career Review fixture and does not add duplicate review or export modules', async () => {
   const output = tempOutput();
   try {
-    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output }), /Career Review requires/);
+    await assert.rejects(runDemo({ resumePath: fixture('synthetic-resume.txt'), jobInput: fixture('synthetic-job.txt'), outputDirectory: output, providerConfig: MOCK_PROVIDER_CONFIG }), /Career Review requires/);
     const sourceFiles = fs.readdirSync(path.join(root, 'src'));
     assert.ok(!sourceFiles.includes('career-review.js'));
     assert.ok(!sourceFiles.includes('final-export.js'));

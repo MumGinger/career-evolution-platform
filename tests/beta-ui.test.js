@@ -8,8 +8,8 @@ const { createBetaUiServer, BETA_PAGE } = require('../src/beta-ui');
 const { Store } = require('../src/store');
 const llmUnderstanding = require('../src/llm-resume-understanding');
 
-async function withServer(run) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
+async function withServer(run, options = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-ui-test-')); const app = createBetaUiServer({ port: 0, tempRoot: root, ...options }); const address = await app.listen(); const base = `http://${address.address}:${address.port}`;
   try { await run({ app, base }); } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
 }
 async function withProvider(provider, run, options = {}) {
@@ -19,6 +19,26 @@ async function withProvider(provider, run, options = {}) {
 async function json(url, options = {}) { const response = await fetch(url, options); return { response, value: await response.json() }; }
 function input() { return { resume: { name: 'synthetic-resume.txt', data: Buffer.from(fs.readFileSync(path.join(__dirname, '../examples/synthetic-resume.txt'))).toString('base64') }, jobText: fs.readFileSync(path.join(__dirname, '../examples/synthetic-job.txt'), 'utf8'), provider: 'mock', apiKey: 'not-a-real-key' }; }
 function realResumeFailureShapeInput() { const resume = `Ya-Ching Tang\nSkills\nPower BI, Python, SQL\nProjects\nCustomer Analytics Dashboard\n- Built Power BI data visualization dashboards and automation workflows using Python and SQL.\nExperience\nData Analyst\n- Delivered business insights and data analysis reporting for stakeholders.`; const jobText = `Company: Zurich\nRole Title: Data Analytics and AI Analyst\n\nRequired Qualifications:\nPower BI required.\nPython required.\nSQL required.\nData visualization required.\nAutomation required.\nBusiness insights required.\nData analysis required.`; return { resume: { name: 'ya-ching-tang-resume.txt', data: Buffer.from(resume).toString('base64') }, jobText, provider: 'mock' }; }
+function startupClassificationCases() {
+  const supplied = realResumeFailureShapeInput();
+  const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8');
+  const excludedText = 'Skills\nPython';
+  const excludedRequest = {
+    resume: { name: 'excluded-resume.txt', data: Buffer.from(excludedText).toString('base64') },
+    jobText: 'Company: Example\nRole Title: Analyst\n\nRequired Qualifications:\nPython required.',
+    provider: 'mock',
+  };
+  return [
+    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, parseError: 'raw private provider response' }; } }, supplied],
+    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: {} }; } }, supplied],
+    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: null } }; } }, supplied],
+    ['zero_extracted_blocks', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: [] } }; } }, supplied],
+    ['all_blocks_excluded', { name: 'openai-compatible', model: 'schema-model', async understand() { const source = llmUnderstanding.mockUnderstand({ text: excludedText }).blocks[0]; return { provider: this.name, model: this.model, understanding: { blocks: [{ ...source, id: 'excluded-only', exact_source_text: 'invented private text', source_location: null, provenance: { source: 'resume_input', exact_source_text: 'invented private text' } }] } }; } }, excludedRequest],
+    ['zero_reviewable_candidates', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: llmUnderstanding.mockUnderstand({ text }) }; } }, { ...supplied, jobText: 'Company: Example\nRole Title: Analyst\n\nRequired Qualifications:\nExcel required.' }],
+    ['provider_api_failure', { name: 'openai-compatible', model: 'schema-model', async understand() { const error = new Error('provider secret'); error.category = 'provider_api_failure'; throw error; } }, supplied],
+  ];
+}
+
 
 test('local Beta UI runs the existing review, integration, Career Review, and export flow without persisting an API key', async () => withServer(async ({ app, base }) => {
   const page = await fetch(`${base}/`); assert.equal(page.status, 200); assert.match(await page.text(), /Career Evolution/);
@@ -88,27 +108,18 @@ test('unexpected LLM-first persistence failures are private-safe and leave no se
   }, { storeFromPath });
 });
 
-test('LLM-first startup classifies malformed, empty, excluded, zero-reviewable, and provider failures without private diagnostics', async () => {
-  const supplied = realResumeFailureShapeInput(); const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8'); const valid = llmUnderstanding.mockUnderstand({ text }); const cases = [
-    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, parseError: 'raw private provider response' }; } }, supplied],
-    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: {} }; } }, supplied],
-    ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: null } }; } }, supplied],
-    ['zero_extracted_blocks', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: [] } }; } }, supplied],
-    ['all_blocks_excluded', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: [{ ...valid.blocks[0], exact_source_text: 'invented private text' }] } }; } }, supplied],
-    ['zero_reviewable_candidates', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: valid }; } }, { ...supplied, jobText: 'Company: Example\nRole Title: Analyst\n\nRequired Qualifications:\nExcel required.' }],
-    ['provider_api_failure', { name: 'openai-compatible', model: 'schema-model', async understand() { const error = new Error('provider secret'); error.category = 'provider_api_failure'; throw error; } }, supplied],
-  ];
-  for (const [category, provider, request] of cases) await withProvider(provider, async ({ app, base, root }) => {
+for (const [category, provider, request] of startupClassificationCases()) {
+  test(`LLM-first startup classifies ${category} without private diagnostics`, async () => withProvider(provider, async ({ app, base, root }) => {
     const failed = await json(`${base}/api/llm-first/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...request, provider: 'openai-compatible', apiKey: 'synthetic-secret' }) });
     assert.equal(failed.response.status, 400); assert.equal(failed.value.category, category); assert.deepEqual(failed.value.diagnostics.provider, 'openai-compatible'); assert.deepEqual(failed.value.diagnostics.model, 'schema-model'); assert.doesNotMatch(JSON.stringify(failed.value), /synthetic-secret|Ya-Ching Tang|Company: Zurich|provider secret|raw private provider response|invented private text/); assert.equal(app.sessions.size, 0); assert.deepEqual(fs.readdirSync(root), []);
-  });
-});
+  }));
+}
 
 test('LLM-first preflight reports setup required without creating a session or retaining connection input', async () => {
   await withServer(async ({ app, base }) => {
     const result = await json(`${base}/api/llm-first/preflight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'openai-compatible', model: 'safe-model' }) });
     assert.equal(result.response.status, 200); assert.equal(result.value.state, 'setup_required'); assert.equal(app.sessions.size, 0); assert.doesNotMatch(JSON.stringify(result.value), /safe-secret|private resume|private job/);
-  });
+  }, { resumeUnderstandingProviderFromConfig() { throw new Error('missing setup'); } });
 });
 
 test('LLM-first preflight performs a bounded connection check before reporting ready', async () => {
