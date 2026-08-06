@@ -7,8 +7,12 @@ const {
 test('GPT-5 preflight retries a valid empty bounded response without the brittle low token cap', async () => {
   const originalFetch = global.fetch;
   const requests = [];
+  const urls = [];
+  const authorizations = [];
   try {
-    global.fetch = async (_url, options) => {
+    global.fetch = async (url, options) => {
+      urls.push(url);
+      authorizations.push(options.headers.Authorization);
       requests.push(JSON.parse(options.body));
       return requests.length === 1
         ? { ok: true, json: async () => ({ choices: [{ message: { content: '' } }] }) }
@@ -24,11 +28,16 @@ test('GPT-5 preflight retries a valid empty bounded response without the brittle
     await provider.checkConnection();
 
     assert.equal(requests.length, 2);
+    assert.deepEqual(urls, [
+      'https://provider.test/v1/chat/completions',
+      'https://provider.test/v1/chat/completions',
+    ]);
+    assert.deepEqual(authorizations, ['Bearer synthetic-key', 'Bearer synthetic-key']);
     assert.equal(requests[0].max_completion_tokens, 16);
     assert.equal('max_completion_tokens' in requests[1], false);
     assert.deepEqual(requests[0].messages, [{ role: 'user', content: 'Reply exactly READY.' }]);
     assert.deepEqual(requests[1].messages, requests[0].messages);
-    assert.doesNotMatch(JSON.stringify(requests), /resume|Zurich|job description/i);
+    assert.doesNotMatch(JSON.stringify(requests), /resume|Zurich|job description|synthetic-key/i);
   } finally {
     global.fetch = originalFetch;
   }
