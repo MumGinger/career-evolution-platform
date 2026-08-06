@@ -22,12 +22,18 @@ function realResumeFailureShapeInput() { const resume = `Ya-Ching Tang\nSkills\n
 function startupClassificationCases() {
   const supplied = realResumeFailureShapeInput();
   const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8');
+  const excludedText = 'Skills\nPython';
+  const excludedRequest = {
+    resume: { name: 'excluded-resume.txt', data: Buffer.from(excludedText).toString('base64') },
+    jobText: 'Company: Example\nRole Title: Analyst\n\nRequired Qualifications:\nPython required.',
+    provider: 'mock',
+  };
   return [
     ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, parseError: 'raw private provider response' }; } }, supplied],
     ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: {} }; } }, supplied],
     ['invalid_structured_response', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: null } }; } }, supplied],
     ['zero_extracted_blocks', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: { blocks: [] } }; } }, supplied],
-    ['all_blocks_excluded', { name: 'openai-compatible', model: 'schema-model', async understand() { const source = llmUnderstanding.mockUnderstand({ text }).blocks[0]; return { provider: this.name, model: this.model, understanding: { blocks: [{ ...source, id: 'excluded-only', exact_source_text: 'invented private text', source_location: null, provenance: { source: 'resume_input', exact_source_text: 'invented private text' } }] } }; } }, supplied],
+    ['all_blocks_excluded', { name: 'openai-compatible', model: 'schema-model', async understand() { const source = llmUnderstanding.mockUnderstand({ text: excludedText }).blocks[0]; return { provider: this.name, model: this.model, understanding: { blocks: [{ ...source, id: 'excluded-only', exact_source_text: 'invented private text', source_location: null, provenance: { source: 'resume_input', exact_source_text: 'invented private text' } }] } }; } }, excludedRequest],
     ['zero_reviewable_candidates', { name: 'openai-compatible', model: 'schema-model', async understand() { return { provider: this.name, model: this.model, understanding: llmUnderstanding.mockUnderstand({ text }) }; } }, { ...supplied, jobText: 'Company: Example\nRole Title: Analyst\n\nRequired Qualifications:\nExcel required.' }],
     ['provider_api_failure', { name: 'openai-compatible', model: 'schema-model', async understand() { const error = new Error('provider secret'); error.category = 'provider_api_failure'; throw error; } }, supplied],
   ];
