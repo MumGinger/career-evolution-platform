@@ -126,7 +126,7 @@ function createBetaUiServer(options = {}) {
                   exported: current.exported,
                 });
                 value.resumeMarkdown = current.exported.markdown;
-                value.outputs = APPLICANT_OUTPUTS;
+                value.applicantOutputs = APPLICANT_OUTPUTS;
                 value.primaryOutput = 'final-resume.pdf';
               }
             }
