@@ -50,7 +50,7 @@ The immediate product objective is not another Beta and not the first Intelligen
 
 1. Diagnose where source-resume structure and unchanged essential content are dropped between intake, tailoring, artifact generation, and export.
 2. Define the smallest truth-preserving complete-resume composition boundary.
-3. Preserve Candidate Knowledge and 003.6 as the authority for newly generated factual claims.
+3. Preserve the existing Candidate Knowledge and 003.6 boundaries while determining whether unchanged source-resume content can be represented without becoming a new committed claim.
 4. Add regression evidence showing that Projects-only tailored evidence does not collapse the rest of the source resume.
 5. Independently inspect a complete applicant-facing draft before scheduling another real-user Beta.
 
@@ -58,11 +58,11 @@ Applicant-facing workflow clarity and Career Review readability remain verified 
 
 ## Non-negotiable boundaries
 
-- Candidate Knowledge is the only committed fact source for newly generated factual claims.
+- Candidate Knowledge is the only committed fact source.
 - 003.6 is the sole accepted-only Candidate Knowledge writer.
 - LLM understanding and drafting are bounded proposals, not truth.
 - Exact provenance and source support must survive every transformation.
-- Deterministic validation must block unsupported or misplaced generated output.
+- Deterministic validation must block unsupported or misplaced output.
 - Career Review is mandatory before export.
 - Human edits do not automatically update Candidate Knowledge or trigger regeneration.
 - Passing tests, a real-provider engineering run, completed workflow, or available exports do not equal Beta Accepted.
