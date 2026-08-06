@@ -1,5 +1,21 @@
 # Current State
 
+## Beta #2 product acceptance result (2026-08-06)
+
+Beta #2 completed the full real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+
+The user would not submit the generated resume, reported no meaningful time savings, and would not use the product again in its current state. The applicant-facing resume contained only one project statement and omitted personal information, Experience, Skills, Education, and other essential source-resume content. Understanding counts, Evidence Review decisions, Career Review, and the HTML/JSON exports were not sufficiently understandable to a normal applicant.
+
+This does not reverse the existing engineering result: the representative real-provider flow remains **Proven**. It establishes that successful execution, deterministic validation, and export generation do not equal product acceptance.
+
+Durable acceptance records:
+
+- Issue #73 — Beta #1: FAIL and closed.
+- Issue #82 — Beta #2: FAIL and closed.
+- Issue #83 — active blocker: produce a complete, recognizable tailored resume.
+
+The next product action is to diagnose where source-resume structure and unchanged essential content are lost, define a truth-preserving complete-resume composition boundary without weakening Candidate Knowledge or 003.6, and independently verify a complete applicant-facing draft before another Beta.
+
 ## PR #68 validation repair (2026-08-05)
 
 The local Beta UI now executes an evidence-to-export client flow covered by an executable minimal-DOM regression, rather than an HTML string check. Understanding validation visibly lists each excluded source block and its reason. The semantic-graph demo fixture gives every reviewable candidate an explicit fixture decision, and deterministic drafts intentionally omit Professional Summary until a dedicated summary claim scope exists. Full regression: `npm.cmd test` (156 passing).
@@ -8,22 +24,22 @@ The local Beta UI now executes an evidence-to-export client flow covered by an e
 
 The Resume AST-to-Evidence Review bridge now retains retrieved project and experience bullets as reviewable working evidence instead of reducing the path to standalone skill tokens. After explicit acceptance, the existing 003.6 integration path alone evaluates bounded project, responsibility, and skill proposals with their AST span provenance. The local Beta UI now calls the existing structured Resume Draft provider after integration. Candidate Knowledge and Career Review/export boundaries are unchanged.
 
-## Version 1.0 Beta blocker repair in progress
+## Version 1.0 Beta workflow
 
-Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo now requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. Export is blocked when no committed facts populate a core section. No new capability or Candidate Knowledge write path was added.
+Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. No new capability or Candidate Knowledge write path was added.
 
 The local Beta UI is available through `node src/beta-ui.js`. It is a temporary, plain-HTML testing wrapper around the existing Resume AST, Evidence Review/003.6, tailoring, presentation, artifact, validation, Career Review, and export APIs; it is not production frontend architecture. API keys stay in request memory and never enter the local session database or generated outputs.
 
-**Phase:** Milestone 2 — Career Evolution Loop v1 complete for local CLI demo
-**Last updated:** 2026-08-05
+**Phase:** Version 1 product-quality recovery after Beta #2 FAIL  
+**Last updated:** 2026-08-06
 
-## Intelligent Resume v1 — final step before Version 1.0 beta
+## Intelligent Resume v1
 
-The resume pipeline now creates an immutable Presentation Strategy Run after Career Understanding and before artifact generation. It snapshots the target job, Resume Tailoring Plan, Career Understanding, and available Reflection, Curiosity, or Decision Companion context. It may order only already-included committed facts; it cannot add facts, change selection state, strengthen wording, or turn thinking-layer context into a resume claim. The end-to-end demo exports strategy JSON and an HTML explanation beside the validated resume.
+The resume pipeline creates an immutable Presentation Strategy Run after Career Understanding and before artifact generation. It snapshots the target job, Resume Tailoring Plan, Career Understanding, and available Reflection, Curiosity, or Decision Companion context. It may order only already-included committed facts; it cannot add facts, change selection state, strengthen wording, or turn thinking-layer context into a resume claim. The end-to-end demo exports strategy JSON and an HTML explanation beside the validated resume.
 
 ## Completed
 
-- Completed the Human Review MVP, the final Version 1.0 release blocker: Professional Summary, Skills, Experience, and Projects require an explicit approve or edit decision before export. Immutable review runs preserve the AI draft, evidence/provenance, rationale, final approved text, and timestamps. Edits do not write Candidate Knowledge or trigger regeneration.
+- Completed the Human Review MVP: Professional Summary, Skills, Experience, and Projects require an explicit approve or edit decision before export. Immutable review runs preserve the AI draft, evidence/provenance, rationale, final approved text, and timestamps. Edits do not write Candidate Knowledge or trigger regeneration.
 
 - Recorded the AI Career Companion Manifesto as durable product guidance for the platform's evolution from Resume Builder to Life-long Career Companion.
 
@@ -52,14 +68,17 @@ The resume pipeline now creates an immutable Presentation Strategy Run after Car
 - Implemented Career Reflection / Shared Understanding MVP: a snapshot-first, one-response reflection with an optional short note. Immutable runs are source-linked, idempotently deduplicated, and never update Candidate Knowledge or Career Understanding.
 - Implemented Career Curiosity MVP: after reflection, introduce one supported adjacent career possibility, explain it through snapshot items, and record one immutable response without updating Candidate Knowledge or Career Understanding.
 - Completed Milestone 2 — Career Evolution Loop v1: the primary demo now connects Resume Intelligence, Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and a final return invitation. It exports one ordered HTML report and one integrated JSON summary while preserving all existing immutable-run and Candidate Knowledge boundaries.
+- Completed Decision Companion as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
 
 ## Current focus
 
-Decision Companion is complete as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
+Issue #83: produce a complete, recognizable applicant-facing resume while preserving the existing Candidate Knowledge, provenance, deterministic validation, Career Review, and privacy boundaries.
+
+Applicant-facing workflow clarity and Career Review readability are also verified Beta #2 blockers, but complete-resume output is the first gate. Another Beta must not be scheduled until a complete draft is independently inspected.
 
 ## Next decision
 
-Choose the first Intelligent Execution artifact and its validation boundary.
+Define the smallest truth-preserving composition boundary between immutable source-resume content and evidence-backed tailored claims. Intelligent Execution work is deferred until Version 1 produces a complete, submission-evaluable resume.
 
 ## Open questions
 
@@ -68,10 +87,12 @@ Choose the first Intelligent Execution artifact and its validation boundary.
 - Which recovery actions should be available before a user request, and how should their privacy cost be compared?
 - What confirmation and conflict threshold must Candidate Knowledge Integration meet before it accepts a fact?
 - What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
+- How can unchanged source-resume structure be preserved without silently turning source text into newly committed Candidate Knowledge?
 
 ## Milestone 1 Demo update
 
 Milestone 1 Demo is implemented as an integration-only local command. It versions the source resume, runs 002.5, then runs 002.6 before Job Requirements, Information Needs, and Evidence Discovery. It exports immutable semantic and graph runs, terminal decision-state counts, and static HTML graph relationships with readable labels and secondary provenance. Graph evidence is working evidence, not committed Candidate Knowledge coverage; Candidate Knowledge Integration remains the sole accepted-only write path.
+
 # LLM-first Beta path
 
-The preferred real-resume Beta path is now LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage.
+The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #2 evidence recorded in Issue #82 and the active complete-resume blocker in Issue #83, not by the ability to technically complete the flow.
