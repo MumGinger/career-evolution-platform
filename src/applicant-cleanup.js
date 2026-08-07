@@ -2,10 +2,16 @@ const { normalizeVisibleText } = require('./applicant-resume');
 
 const DATE_RANGE = /^(?:[A-Z][a-z]{2,8}\s+)?(?:19|20)\d{2}\s*[–—-]\s*(?:(?:[A-Z][a-z]{2,8}\s+)?(?:19|20)\d{2}|Present|Current)$/i;
 
+function cleanBulletArtifacts(value) {
+  return value
+    .replace(/^(?:[•▪◦]\s*|-\s+)/, '')
+    .replace(/:\s*[•▪◦]\s*/g, ': ');
+}
+
 function cleanStatement(statement = {}) {
   const displayStyle = statement.display_style || 'bullet';
   let text = normalizeVisibleText(statement.text);
-  if (displayStyle === 'bullet') text = text.replace(/^(?:[•▪◦]\s*|-\s+)/, '');
+  if (displayStyle === 'bullet') text = cleanBulletArtifacts(text);
   return {
     ...statement,
     text,
@@ -42,6 +48,7 @@ function cleanRun(run) {
 function cleanMarkdown(markdown) {
   return normalizeVisibleText(markdown)
     .replace(/^(\s*-\s+)[•▪◦]\s*/gm, '$1')
+    .replace(/:\s*[•▪◦]\s*/g, ': ')
     .replace(/^(#{3,}\s+)((?:[A-Z][a-z]{2,8}\s+)?(?:19|20)\d{2}\s*[–—-]\s*(?:(?:[A-Z][a-z]{2,8}\s+)?(?:19|20)\d{2}|Present|Current))$/gim, '$2');
 }
 
