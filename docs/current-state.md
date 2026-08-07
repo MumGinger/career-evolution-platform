@@ -1,7 +1,7 @@
 # Current State
 
-**Phase:** Version 1 fresh-Beta readiness after Beta #4 engineering recovery  
-**Last updated:** 2026-08-06  
+**Phase:** Version 1 fresh-Beta readiness after Beta #4 engineering recovery
+**Last updated:** 2026-08-06
 **Beta Accepted:** **NO / NOT YET**
 
 Repository evidence and the context handoffs are authoritative if this summary becomes stale.
