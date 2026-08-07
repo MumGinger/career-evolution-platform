@@ -5,7 +5,7 @@ const DATE_RANGE = /^(?:[A-Z][a-z]{2,8}\s+)?(?:19|20)\d{2}\s*[–—-]\s*(?:(?:[
 function cleanStatement(statement = {}) {
   const displayStyle = statement.display_style || 'bullet';
   let text = normalizeVisibleText(statement.text);
-  if (displayStyle === 'bullet') text = text.replace(/^[•▪◦-]\s*/, '');
+  if (displayStyle === 'bullet') text = text.replace(/^(?:[•▪◦]\s*|-\s+)/, '');
   return {
     ...statement,
     text,
