@@ -5,7 +5,12 @@ const path = require('node:path');
 const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
-const { APPLICANT_PAGE } = require('./applicant-beta-page');
+const { APPLICANT_PAGE: BASE_APPLICANT_PAGE } = require('./applicant-beta-page');
+
+const APPLICANT_PAGE = BASE_APPLICANT_PAGE.replace(
+  '<details><summary>Provider connection (memory only)</summary>',
+  '<details open><summary>Provider connection (memory only)</summary>',
+);
 
 const APPLICANT_OUTPUTS = [
   'final-resume.pdf',
