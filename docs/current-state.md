@@ -1,123 +1,129 @@
 # Current State
 
-## Beta #4 product acceptance result (2026-08-06)
+**Phase:** Version 1 fresh-Beta readiness after Beta #4 engineering recovery  
+**Last updated:** 2026-08-06  
+**Beta Accepted:** **NO / NOT YET**
 
-Beta #4 used the shipped localhost UI with a real resume and real job description to retest the applicant-readable review and final-output experience delivered after PR #99. The product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+Repository evidence and the context handoffs are authoritative if this summary becomes stale.
 
-The run stopped at **Evidence Review — Candidate 1**. The applicant could not determine whether **Accept** or **Skip** meant verifying truth, judging relevance to the target job, or deciding whether the item should appear in the resume. The phrase **Candidate Knowledge Integration** did not make that decision understandable to a first-time applicant, so continuing would have required guessing rather than informed approval.
+## Latest durable state — Beta #4 engineering recovery
 
-Earlier stages were easy to operate but still contained applicant-facing ambiguity. Landing/Input was generally clear, while **Check connection** and provider **Base URL** were not understood. **Understanding and exclusions** was easy to scan, but the applicant did not understand its purpose, what exclusion meant for the final resume, or why source text had been excluded.
+Beta #4 / Issue #100 remains the authoritative product result: **FAIL**. The run stopped credibly at the first Evidence Review candidate because the applicant could not determine whether Accept/Skip meant truth verification, job relevance, or resume inclusion. That historical result must not be converted into PASS after engineering repair.
 
-After the Beta had already failed, the applicant continued exploring and recorded two supplemental findings. **Ready for review** showed the resume in a more readable presentation, but the UI still showed **Step 3 of 5** with no discoverable action to reach the next stage. The earlier **Understanding and exclusions** section also remained visible at the top of later screens, which was not blocking by itself but felt repetitive and annoying and weakened the sense of progression.
+PR #104, **Clarify Evidence Review decisions and Beta progression**, merged to `chore/project-foundation` at `3ee73fa1c03b9ec59e21397af6dff06acf2e5ca5`.
 
-Durable Beta #4 records:
+The merged engineering recovery resolves the three Beta #4 follow-up issues:
 
-- Issue #100 — Beta #4: **FAIL**.
-- Issue #101 — active blocker: Evidence Review does not tell applicants what Accept or Skip means.
-- Issue #102 — active blocker: Step 3 of 5 shows no clear way to continue after Ready for review.
-- Issue #103 — active supplemental UX finding: Understanding and exclusions remains visible after moving to later steps.
+- Issue #101 — **CLOSED / engineering PASS**. Evidence Review now states, before the choice, that the applicant is deciding whether an item is accurate evidence about them and may support tailored wording for this application. Accept may support later wording but does not guarantee inclusion or rewrite unrelated content. Skip prevents the item from supporting new/rewritten wording and does not delete source-resume text. Job relevance remains separately explained by `Why it may help`; internal Candidate Knowledge / 003.6 terminology is not required to decide.
+- Issue #102 — **CLOSED / engineering PASS**. Draft remains Step 3 of 5 until the applicant uses a visible **Continue to Career Review** action; Career Review then becomes Step 4.
+- Issue #103 — **CLOSED / engineering PASS** after direct browser verification. Earlier Understanding/Evidence panels are hidden after advancing to Draft so stale stages are no longer emphasized.
 
-Later Evidence Review candidates, Draft/validation judgment, Career Review, `final-resume.pdf`, `career-review-report.html`, `final-resume.md`, `final-resume.json`, final submission readiness, time/value, and reuse intent remain **UNKNOWN / not credibly reached** in Beta #4.
+Every Evidence Review candidate remains individually reviewable.
 
-This does not reverse the existing engineering evidence for PR #99. It establishes that applicant-readable presentation alone is not sufficient when the required decision semantics and visible workflow progression are still unclear.
+## Regression and proof status
 
-## Beta #3 product acceptance result (2026-08-06)
+Regression-only commit: `ac45aa3f520c5a0b3186aba3e97567f5927030e6`.
 
-Beta #3 completed the real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+PR #104 final-head CI run `31141269245`:
 
-The complete-resume composition blocker from Beta #2 is materially improved: the applicant-facing draft and Markdown export now contain recognizable identity/contact information and multiple source-resume sections rather than a one-project fragment. Issue #83's merged composition guarantee did not visibly regress.
+- Unit: **PASS**
+- Full integration: **PASS**
+- Patch whitespace: **PASS**
+- HTTP / representative PDF contract: **PASS**
+- Real Chromium pre-fix RED proof: **PASS**
+- Real Chromium current GREEN proof: **PASS**
+- Every Evidence candidate reviewable: **PASS**
+- Draft → Career Review navigation: **PASS**
+- Earlier-stage cleanup after advancement: **PASS**
+- Review threads: **none**
+- Branch synchronization at merge gate: **PASS**
 
-The user still would not treat the result as a practical submission-ready resume. Evidence Review did not make the consequence of Accept clear; broken characters appeared; `passed_with_warnings` was unexplained; Career Review and the HTML report remained dominated by raw JSON, identifiers, and technical labels; `final-resume.json` was not useful to the applicant; and `final-resume.md` was recognizable but not a polished human-facing final format. The user expected a PDF or equivalent submission-ready document and declined repeated final questions because the negative judgment was already clear.
+The pre-fix Chromium run fails specifically because the Beta #4 baseline exposes `Candidate Knowledge Integration (003.6)` instead of an applicant-readable decision. The merged state passes the ordinary-language decision and consequence assertions, negative internal-terminology coverage, all-candidate review path, Draft/Career Review transition, Career Review, and final export flow.
 
-Durable acceptance records:
+The CI historical-red step now runs only when a pull request actually changes the applicant browser regression. This keeps regression-first proof meaningful without causing later documentation-only checkpoint PRs to fail after the repaired behavior becomes the new baseline.
 
-- Issue #73 — Beta #1: FAIL and closed.
-- Issue #82 — Beta #2: FAIL and closed.
-- Issue #83 / PR #87 — complete-resume composition engineering work complete.
-- Issue #93 — Beta #3: FAIL and closed.
-- Issue #97 — applicant-readable review/export engineering requirement implemented through PR #99; Beta #4 product acceptance still failed on later applicant-facing blockers.
+Manual secret-gated real-provider smoke for PR #104 is **UNKNOWN / non-blocking for this presentation-only change**; the provider execution path did not change.
 
-This does not reverse the existing engineering result: the representative real-provider flow remains **Proven**. It establishes that complete composition, successful execution, deterministic validation, and available exports still do not equal product acceptance.
+## Protected truth and authority boundaries
 
-## Beta #2 product acceptance result (2026-08-06)
+The Beta #4 engineering recovery is applicant presentation/navigation only. It does not create a new knowledge, provenance, validation, composition, review, export, or privacy path.
 
-Beta #2 completed the full real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+The following remain authoritative:
 
-The user would not submit the generated resume, reported no meaningful time savings, and would not use the product again in its current state. The applicant-facing resume contained only one project statement and omitted personal information, Experience, Skills, Education, and other essential source-resume content. Understanding counts, Evidence Review decisions, Career Review, and the HTML/JSON exports were not sufficiently understandable to a normal applicant.
+- 003.6 is the sole Candidate Knowledge integration/write path.
+- Accepted working evidence does not become committed Candidate Knowledge except through the existing 003.6 boundary.
+- Skipped evidence creates no Candidate Knowledge fact.
+- Exact validated source-resume content may survive as `source_resume_passthrough`; source passthrough remains source-linked and cannot create Candidate Knowledge.
+- Generated or materially rewritten content remains Candidate-Knowledge-backed and provenance-linked.
+- The complete-resume composition boundary from Issue #83 / PR #87 remains intact.
+- Resume Content Selection, provenance inheritance, claim scope, duplication, coverage, completeness, and deterministic validation rules remain unchanged.
+- Every populated Career Review section requires explicit human review before export.
+- Human review decisions do not silently rewrite Candidate Knowledge.
+- Provider credentials stay memory-only/private and are not written into local session data or generated artifacts.
+- The unresolved complete-source/no-core-tailoring-selection policy recorded from Issue #95 remains unchanged; do not relax `qualityReady()` or invent source-only fallback without a Product decision and regressions.
 
-This does not reverse the existing engineering result: the representative real-provider flow remains **Proven**. It establishes that successful execution, deterministic validation, and export generation do not equal product acceptance.
+## Applicant-facing Version 1 workflow
 
-Durable acceptance records:
+The local Beta path is available through `node src/beta-ui.js`. It remains a temporary local testing wrapper around the existing LLM-first resume/evidence/tailoring/validation/review/export capabilities, not production frontend architecture.
 
-- Issue #73 — Beta #1: FAIL and closed.
-- Issue #82 — Beta #2: FAIL and closed.
-- Issue #83 — complete-resume composition blocker, now engineering-complete through PR #87.
+The visible path is:
 
-## PR #68 validation repair (2026-08-05)
+1. Landing / Input and provider readiness.
+2. Understanding and exclusions.
+3. Evidence Review with an explicit applicant-readable decision for every candidate.
+4. Draft and applicant-readable validation.
+5. Explicit continuation to Career Review; every populated section must be reviewed.
+6. Export, with `final-resume.pdf` as the primary applicant-facing artifact plus readable Career Review HTML, Markdown, and structured JSON.
 
-The local Beta UI now executes an evidence-to-export client flow covered by an executable minimal-DOM regression, rather than an HTML string check. Understanding validation visibly lists each excluded source block and its reason. The semantic-graph demo fixture gives every reviewable candidate an explicit fixture decision, and deterministic drafts intentionally omit Professional Summary until a dedicated summary claim scope exists. Full regression: `npm.cmd test` (156 passing).
+Passing this workflow technically does not equal Beta acceptance.
 
-## Real-resume section-evidence repair (2026-08-04)
+## Product acceptance history
 
-The Resume AST-to-Evidence Review bridge now retains retrieved project and experience bullets as reviewable working evidence instead of reducing the path to standalone skill tokens. After explicit acceptance, the existing 003.6 integration path alone evaluates bounded project, responsibility, and skill proposals with their AST span provenance. The local Beta UI now calls the existing structured Resume Draft provider after integration. Candidate Knowledge and Career Review/export boundaries are unchanged.
+- Beta #1 / Issue #73: **FAIL**.
+- Beta #2 / Issue #82: **FAIL** — the generated artifact was not a complete resume.
+- Issue #83 / PR #87: complete-resume composition engineering repair completed.
+- Beta #3 / Issue #93: **FAIL** — the resume became recognizable and complete, but applicant review/output quality remained too technical and not submission-ready.
+- Issues #95 and #97 / PR #99: applicant-readable review/export, PDF output, and independent proof tiers merged.
+- Beta #4 / Issue #100: **FAIL** — Evidence Review decision meaning was not understandable; supplemental findings #102 and #103 were recorded.
+- Issues #101–#103 / PR #104: engineering recovery completed after regression-first and real-browser proof.
 
-## Version 1.0 Beta workflow
+Beta #4 later-stage judgments — complete Evidence Review burden, Draft/validation quality, Career Review quality, all final artifacts, real submission readiness, time saved, trust, and reuse intent — remain **UNKNOWN** because the run failed before those stages were credibly reached.
 
-Career Review is the product-facing name for the existing immutable Human Review capability. The primary demo requires Evidence Review before it creates the final Career Review: accepted or supported edits flow through existing 003.6, then tailoring, strategy, artifact, and validation rerun. No new capability or Candidate Knowledge write path was added.
+## Existing platform capability baseline
 
-The local Beta UI is available through `node src/beta-ui.js`. It is a temporary, plain-HTML testing wrapper around the existing Resume AST, Evidence Review/003.6, tailoring, presentation, artifact, validation, Career Review, and export APIs; it is not production frontend architecture. API keys stay in request memory and never enter the local session database or generated outputs.
+The project already contains the implemented Version 1 career/resume foundation documented in architecture and context records, including:
 
-**Phase:** Version 1 applicant-facing product-quality recovery after Beta #4 FAIL  
-**Last updated:** 2026-08-06
+- immutable source-resume versions and Resume AST / semantic evidence boundaries;
+- semantic graph and bounded Evidence Discovery working evidence;
+- deterministic Job Intelligence, Information Need, Acquisition Planning/Execution, and 003.6 Candidate Knowledge Integration;
+- immutable Resume Tailoring Plan, Resume Artifact, Presentation Strategy, and Resume Validation runs;
+- Evidence Review and complete Career Review / Human Review gates;
+- source-resume passthrough plus Candidate-Knowledge-generated composition;
+- Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and Decision Companion thinking-layer records that do not silently write Candidate Knowledge;
+- integrated applicant-facing Markdown/JSON/HTML/PDF output paths and the local Beta UI.
 
-## Intelligent Resume v1
-
-The resume pipeline creates an immutable Presentation Strategy Run after Career Understanding and before artifact generation. It snapshots the target job, Resume Tailoring Plan, Career Understanding, and available Reflection, Curiosity, or Decision Companion context. It may order only already-included committed facts; it cannot add facts, change selection state, strengthen wording, or turn thinking-layer context into a resume claim. The end-to-end demo exports strategy JSON and an HTML explanation beside the validated resume.
-
-## Completed
-
-- Completed the Human Review MVP: Professional Summary, Skills, Experience, and Projects require an explicit approve or edit decision before export. Immutable review runs preserve the AI draft, evidence/provenance, rationale, final approved text, and timestamps. Edits do not write Candidate Knowledge or trigger regeneration.
-
-- Recorded the AI Career Companion Manifesto as durable product guidance for the platform's evolution from Resume Builder to Life-long Career Companion.
-
-- Implemented 002.7 Resume AST: async provider runs, nested-schema/provenance firewall, exact `structurally_grouped` layout state, ranked direct `resume_ast` retrieval, and confirmation proposals. Only validated explicit skills/tools may be auto-accepted; 003.6 remains the sole Candidate Knowledge writer. 002.6 remains optional/lazy.
-
-- Established project foundation and working agreement.
-- Documented the product-first vision, architecture principles, and initial design models.
-- Recorded the decision to validate Career before extracting a framework.
-- Implemented MVP-001: a local application-to-interview evidence loop with SQLite persistence, versioned artifacts, and non-learning outcome evidence.
-- Implemented Experiment 002: PDF resume intake that bootstraps traceable Candidate Knowledge facts without inferred content.
-- Implemented Capability 002.5: immutable source-resume versions and semantic runs with exact spans, working entity/relation candidates, and a narrow versioned deterministic policy. Semantic candidates remain outside Candidate Knowledge and are available only as bounded Evidence Discovery input.
-- Implemented Capability 002.6: immutable Resume Semantic Graph Runs that reconstruct bounded relationships from persisted 002.5 spans and entities even when 002.5 relations are absent, preserve artifact/version/span provenance, and expose bounded graph evidence to Discovery without writing Candidate Knowledge.
-- Implemented Capability 003.1: deterministic, versioned Job Intelligence profiles with immutable job-description snapshots, requirement excerpts, policy rationale, and parser/policy metadata.
-- Implemented Capability 003.2: deterministic, persisted, immutable Information Need prioritization runs that retain the job-profile version, candidate-evidence snapshot, policy inputs, evidence references, uncertainty, and rationale.
-- Implemented Capability 003.3: deterministic local Evidence Discovery Runs that search bounded snapshot sources, retain candidate provenance and resolutions, stop when evidence is sufficient, and leave unresolved needs without asking a user or updating Candidate Knowledge.
-- Redefined the remaining Capability 003 sequence: 003.4 is Acquisition Planning, 003.5 is Acquisition Execution, and 003.6 is Candidate Knowledge Integration.
-- Implemented Capability 003.4: deterministic, immutable Acquisition Plan Runs with first-class plans, separate actions, explainable gain-versus-cost rationales, and grouping of compatible unresolved needs under shared actions.
-- Implemented Capability 003.5: deterministic local Acquisition Execution with immutable Acquisition Result Runs, first-class per-action results, raw evidence capture, provenance, timestamps, and independent re-runs for the same plan.
-- Implemented Capability 003.6: deterministic Candidate Knowledge Integration with immutable decisions, accepted-only writes, evidence links, and append-only revisions.
-- Implemented Capability 004.1: immutable, deterministic Resume Tailoring Plan Runs that select committed facts, record requirement coverage and bounded claim scopes, and analyze source-resume wording without editing it.
-- Implemented Capability 004.2: immutable Resume Artifact Runs and first-class structured Resume Artifacts rendered deterministically from one tailoring plan, with statement-level selection/fact provenance and metadata-only omissions and blocked claims.
-- Implemented Capability 004.3: immutable, independently re-runnable Resume Validation Runs with first-class findings and deterministic provenance, claim-scope, plan, coverage, duplication, and completeness checks.
-- Implemented Issue #39 Evidence Review MVP: immutable review runs, interactive and fixture decisions, strict source-bounded edits, 003.6-only integration, regenerated tailoring/artifact/validation, and user-review KPIs.
-- Implemented Career Conversation MVP: after the validated resume workflow completes, ask at most one optional career-direction question and persist only its answer or skipped observation against that workflow. Observations never write Candidate Knowledge or create inferences.
-- Implemented Career Understanding MVP: immutable, read-only Current Career Snapshot Runs explain bounded direction, committed strengths, neutral application activity, unknowns, and feedback without modifying Candidate Knowledge.
-- Implemented Career Reflection / Shared Understanding MVP: a snapshot-first, one-response reflection with an optional short note. Immutable runs are source-linked, idempotently deduplicated, and never update Candidate Knowledge or Career Understanding.
-- Implemented Career Curiosity MVP: after reflection, introduce one supported adjacent career possibility, explain it through snapshot items, and record one immutable response without updating Candidate Knowledge or Career Understanding.
-- Completed Milestone 2 — Career Evolution Loop v1: the primary demo now connects Resume Intelligence, Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and a final return invitation. It exports one ordered HTML report and one integrated JSON summary while preserving all existing immutable-run and Candidate Knowledge boundaries.
-- Completed Decision Companion as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
-- Completed Issue #83 / PR #87 complete-resume composition boundary: exact source-resume passthrough survives alongside evidence-backed generated content without writing passthrough into Candidate Knowledge.
-- Completed Issues #95 and #97 / PR #99 engineering change set for applicant-readable review surfaces, proof separation, and PDF-oriented final output; Beta #4 remains the authoritative product-quality judgment and failed on #101/#102.
+Detailed capability definitions remain in the architecture, vision, issue, PR, and context records; this file records current project state rather than replacing those specifications.
 
 ## Current focus
 
-Resolve Issue #101 so a first-time applicant can understand exactly what Evidence Review is asking before making Accept/Skip decisions, and Issue #102 so visible workflow progression has a discoverable next action. Issue #103 records additional repetitive-stage UX friction that should be addressed as part of the same recovery where appropriate.
+The engineering blocker recovery is complete. The next gate is **fresh product acceptance**, not additional routine implementation.
 
-The product must remain understandable without requiring internal terminology. A fresh Beta must begin from Landing / Input after the fixes are merged; later-stage submission quality, time saved, review burden, trust, and reuse intent remain unknown until that run reaches them credibly.
+After the durable engineering checkpoint is merged, create a new Beta issue and start from Landing/Input with a real resume and real job description. It must be a fresh run, not a continuation of Beta #4.
+
+At the first Evidence Review candidate, verify that the applicant can explain before choosing:
+
+- what the decision is asking;
+- what Accept permits and does not guarantee;
+- what Skip does and does not remove;
+- why job relevance is separate from the accuracy/support decision.
+
+If that is clear, continue through every Evidence candidate, Draft/validation, Career Review, `final-resume.pdf`, `career-review-report.html`, `final-resume.md`, `final-resume.json`, final submission decision, time/value decision, review burden, trust, and whether the applicant would use the product again.
 
 ## Next decision
 
-No product direction change is required from Beta #4. The next gate is whether the applicant-facing decision meaning and workflow progression are clear enough to permit a fresh end-to-end Beta while preserving complete composition, Candidate Knowledge, provenance, deterministic validation, privacy, and human authority. Intelligent Execution work remains deferred until Version 1 is submission-evaluable.
+No new architecture or product-direction choice is required from Issues #101–#103. The next decision is the applicant’s fresh product judgment: is the repaired Version 1 workflow understandable and valuable enough that they would seriously consider submitting the final PDF and using the product again?
+
+Engineering evidence must not answer that question on the applicant’s behalf.
 
 ## Open questions
 
@@ -127,11 +133,17 @@ No product direction change is required from Beta #4. The next gate is whether t
 - What confirmation and conflict threshold must Candidate Knowledge Integration meet before it accepts a fact?
 - What review authority and corroboration threshold are required before outcome evidence changes a priority or skill?
 - What is the smallest applicant-readable review and export experience that preserves truth boundaries without exposing implementation detail?
+- Product policy remains unresolved for a complete source-preserved resume with no included Experience or Projects tailoring selection; do not change this without Product direction.
 
-## Milestone 1 Demo update
+## Test tiers
 
-Milestone 1 Demo is implemented as an integration-only local command. It versions the source resume, runs 002.5, then runs 002.6 before Job Requirements, Information Needs, and Evidence Discovery. It exports immutable semantic and graph runs, terminal decision-state counts, and static HTML graph relationships with readable labels and secondary provenance. Graph evidence is working evidence, not committed Candidate Knowledge coverage; Candidate Knowledge Integration remains the sole accepted-only write path.
+The repository exposes independent proof tiers:
 
-# LLM-first Beta path
+- `npm run test:unit`
+- `npm run test:integration`
+- `npm run test:http-contract`
+- `npm run test:browser-e2e`
+- `npm run test:provider-smoke`
+- `npm run test:all`
 
-The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #4 evidence recorded in Issue #100 and the active applicant-facing blockers in Issues #101 and #102. Issue #103 records additional UX friction. Complete composition, engineering proof, and the ability to technically complete the flow do not establish product acceptance.
+Mock-provider contract evidence, real-browser evidence, real-provider smoke, and real-user Beta acceptance must remain distinct. A green CI total is never sufficient to mark Beta Accepted.
