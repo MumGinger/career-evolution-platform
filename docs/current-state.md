@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Version 1 post-Beta #6 recovery — product decision required
+**Phase:** Version 1 post-Beta #6 recovery — Option 2 implemented; fresh Beta next
 **Last updated:** 2026-08-07
 **Beta Accepted:** **NO / NOT YET**
 
@@ -8,79 +8,81 @@ Repository evidence and context handoffs are authoritative if this summary becom
 
 ## Latest durable product result
 
-Beta #6 / Issue #113 remains **FAIL at Evidence Review Candidate 1**.
+Beta #6 / Issue #113 remains **FAIL at Evidence Review Candidate 1**. The applicant interpreted Accept as reword-for-JD and Skip as keep-original, while expecting both to remain on the resume. Later exploration also rejected the final resume for real use.
 
-The applicant interpreted:
+No engineering change reinterprets Beta #6 as PASS. Beta Accepted remains **NO** until a fresh Beta establishes product acceptance.
 
-- **Accept** = reword this resume material to fit the job better;
-- **Skip** = keep the applicant's original wording;
-- both choices = material that remains on the resume.
+## Product decision and implementation
 
-That did not match the shipped evidence-reuse permission model, so the clean Beta failed at the required Candidate 1 comprehension gate. Supplemental later-stage exploration also found applicant presentation/export defects and ended with the applicant rejecting both the system and final resume.
+Issue #115 is **RESOLVED / COMPLETED**. Product approved Option 2: treat the uploaded V1 resume as applicant-provided source material, and move applicant review to the moment the system proposes a concrete material rewrite or interpretation.
 
-No engineering result may reinterpret Beta #6 as PASS. Beta Accepted remains **NO**.
+PR #118 — `Implement Option 2 concrete tailoring review` — merged to `chore/project-foundation` at `49b8ae0ac705d7d3bd22c19857aabaaa0c3ae9c5`.
 
-## Engineering recovery after Beta #6
+The applicant-visible flow now uses **Tailoring Review** instead of abstract Evidence Review Accept/Skip:
 
-PR #116 — `Recover Beta 6 resume presentation and review clarity` — merged to `chore/project-foundation` at `b0efc92aa390799627e35e9c9d163dab1d6f88d6`.
+- Original wording → Proposed tailored wording;
+- **Use tailored version**;
+- **Keep original wording**;
+- **Needs correction** with applicant-supplied missing/incorrect context.
 
-It addresses the independent presentation/export findings recorded under Issue #97:
+Unchanged wording does not require a meaningless permission decision.
 
-- private-use PDF/icon glyphs are removed at the applicant presentation/export boundary while ordinary Unicode remains intact;
-- multiline Experience headings no longer repeat exact following bullet prose while distinct title/company/date/location metadata is preserved;
-- plain Skills lists render as separated resume items rather than one crammed line;
-- Understanding/exclusions is presented as a no-decision processing summary, with applicant-readable counts and without raw source-alignment/parent-reference messages;
-- Career Review visibly shows applicant-readable presentation rationale alongside source/origin explanation;
-- the Career Review report explains that it represents the final application artifact, is not a deletion log, and does not alter the uploaded resume;
-- final PDF hierarchy, spacing, header treatment, section treatment, and Skills presentation are strengthened;
-- the existing Career Review correction/edit path remains intact.
+## Correction / regeneration boundary
 
-Issue #97 remains **OPEN** because fresh-user submission/readability/value acceptance is still required.
+A Tailoring Review correction is not silently learned. The implementation routes it through:
 
-## Repeated Evidence Review failure — Product Issue #115
+1. the existing acquisition boundary;
+2. Candidate Knowledge integration / 003.6;
+3. a bounded superseding Candidate Fact revision when accepted;
+4. resume tailoring and complete-resume composition regeneration;
+5. deterministic validation;
+6. Tailoring Review again for a new concrete before/after decision.
 
-Evidence Review Candidate 1 comprehension has now failed in three fresh Betas (#4, #5, and #6), despite separate applicant-facing engineering recoveries in PR #104 and PR #111.
+Historical superseded facts remain traceable; the effective current knowledge snapshot excludes the superseded prior fact. The uploaded source resume itself remains immutable.
 
-Per `ENGINEERING_LEAD.md`, engineering has stopped copy-level patching of the same problem and opened Issue #115: **Product decision — Evidence Review meaning has failed three fresh Betas**.
+An adversarial regression proves an AI-only `normalized_meaning` cannot be promoted as source truth merely because the underlying resume span was source-attested.
 
-No new Beta should be prepared until #115 is decided and the resulting behavior is implemented and independently proven.
+## Regression-first proof for PR #118
 
-The current intended model remains unchanged until that decision: Accept permits reviewed evidence to support later new/materially rewritten wording after existing checks; Skip blocks that reuse; neither decision is itself a final-resume inclusion/removal decision.
+Regression-only CI run `31155025138`:
 
-## Regression-first proof for PR #116
+- new Option 2 applicant/HTTP contract: expected **RED** against the prior abstract Evidence Review model;
+- existing unit/integration: **PASS**;
+- then-current shipped browser: **PASS**.
 
-Regression-only CI run `31150317802`:
-
-- new unit presentation regressions: expected **RED**;
-- new current-browser applicant regression: expected **RED**;
-- unrelated HTTP / representative PDF contract: **PASS**.
-
-Final merge-candidate CI run `31150697393`:
+Final merge-candidate CI run `31157897591`:
 
 - unit: **PASS**;
 - full integration: **PASS**;
 - patch whitespace: **PASS**;
 - HTTP / representative PDF contract: **PASS**;
-- historical Chromium RED proof: **PASS**;
+- pre-fix Chromium RED proof: **PASS**;
 - current Chromium GREEN proof: **PASS**;
 - review threads: **PASS / none**;
-- current-primary synchronization: **PASS**.
+- current-primary synchronization at merge gate: **PASS / behind 0**.
 
-Real-provider smoke remains **UNKNOWN / non-blocking** because provider execution did not change.
+The browser proof exercises correction → 003.6 integration → regeneration → second Tailoring Review decision → Draft → Career Review → PDF/report/Markdown/JSON export.
+
+Real-provider smoke remains **UNKNOWN / non-blocking** because the proof used deterministic/mock/injected-provider contracts rather than a live external credentialed run.
+
+## Previous presentation recovery
+
+PR #116 remains merged at `b0efc92aa390799627e35e9c9d163dab1d6f88d6` and preserves the Beta #6 presentation/export fixes: private-use glyph cleanup, safer Experience dedupe, separated Skills, applicant-readable processing summary, Career Review rationale, clearer report scope, and stronger PDF hierarchy.
+
+Issue #97 remains **OPEN** because fresh-user submission/readability/value acceptance is still required.
 
 ## Protected truth and authority boundaries
 
-Unchanged:
+Preserved:
 
 - 003.6 is the sole Candidate Knowledge integration/write path.
-- Accepted working evidence does not become Candidate Knowledge outside 003.6.
-- Skipped evidence creates no Candidate Knowledge fact.
-- Exact validated source-resume content may survive as source-resume passthrough and cannot create Candidate Knowledge.
+- Uploaded source-resume evidence may be source-attested for V1, but AI interpretation of that source is not automatically trusted.
+- Exact validated source-resume passthrough cannot create Candidate Knowledge.
 - Generated/materially rewritten claims remain Candidate-Knowledge-backed and provenance-linked.
-- Issue #83 complete-resume composition and source-passthrough guarantees remain intact.
-- Resume Content Selection, provenance inheritance, claim scope, coverage, completeness, duplication, and deterministic validation authority remain unchanged.
+- Issue #83 complete-resume composition/source-passthrough guarantees remain intact.
+- Resume Content Selection, provenance inheritance, claim scope, coverage, completeness, duplication, and deterministic validation authority remain intact.
 - Career Review / Human Review remains the final explicit human authority before export.
-- Human edits do not silently rewrite Candidate Knowledge.
+- Manual Career Review edits do not silently rewrite Candidate Knowledge.
 - Provider credentials remain memory-only/private.
 - The unresolved complete-source/no-core-tailoring-selection policy from Issue #95 remains unchanged.
 
@@ -96,7 +98,8 @@ Unchanged:
 
 ## Current focus
 
-1. Durably checkpoint the merged PR #116 engineering recovery.
-2. Resolve Product Issue #115 before any further Evidence Review implementation.
-3. Keep Issue #97 open for the eventual fresh-user resume/submission acceptance gate.
-4. Do **not** open Beta #7 until #115 is decided, implemented, regression-proven, and checkpointed.
+1. Merge this Option 2 engineering-readiness checkpoint.
+2. Keep Issue #97 open for fresh-user resume/submission acceptance.
+3. After the checkpoint merges, create a fresh Beta #7 with initial result **UNKNOWN**.
+4. Beta #7 must begin from Landing/Input and independently test Tailoring Review comprehension, including at least one correction/regeneration loop.
+5. Do not reuse Beta #6 judgments as Beta #7 evidence.
