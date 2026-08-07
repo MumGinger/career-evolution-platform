@@ -1,6 +1,6 @@
 # Project Snapshot
 
-**As of:** 2026-08-07 — Beta #6 closed as FAIL
+**As of:** 2026-08-07 — after Beta #6 engineering presentation recovery
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
 
@@ -14,79 +14,73 @@
 - Issues #95 and #97 / PR #99: applicant-readable review/export and proof-tier engineering merged; Issue #97 remains open for product acceptance.
 - Beta #4 / Issue #100: **FAIL**.
 - Issues #101–#103 / PR #104: engineering recovery merged and checkpointed by PR #105.
-- Beta #5 / Issue #106: **FAIL at Evidence Review Candidate 1**.
+- Beta #5 / Issue #106: **FAIL**.
 - Issues #107 and #108 / PR #111: engineering recovery merged and checkpointed by PR #112.
-- Beta #6 / Issue #113: **FAIL at Evidence Review Candidate 1**; later Draft/Career Review/PDF exploration added supplemental product failures.
+- Beta #6 / Issue #113: **FAIL at Evidence Review Candidate 1**; later exploration identified additional presentation/export defects.
+- PR #116: Beta #6 presentation/export engineering recovery merged at `b0efc92aa390799627e35e9c9d163dab1d6f88d6`.
+- Issue #115: **OPEN / Product decision required** because Evidence Review meaning has failed three fresh Betas despite two prior engineering repairs.
 - Beta Accepted: **NO**.
 
 Repository and GitHub evidence override stale context.
 
-## Beta #6 decisive result
+## Beta #6 product result
 
-At Evidence Review Candidate 1, the applicant understood:
+At Evidence Review Candidate 1, the applicant understood Accept as rewording the selected resume material for the job and Skip as keeping the original wording, with both expected to remain on the resume. This did not match the intended evidence-reuse permission model, so the clean Beta failed at Candidate 1.
 
-- Accept as permission to reword the selected resume material to better fit the job description;
-- Skip as keeping the applicant's original wording;
-- both choices as content that would remain on the resume.
+Supplemental exploration found:
 
-The applicant therefore did not understand the choice as evidence-reuse permission distinct from guaranteed final inclusion. The required comprehension gate failed and the clean Beta stopped there.
+- Understanding/exclusions was confusing and exposed technical source-alignment explanations without a useful applicant action;
+- private-use/square glyphs in applicant contact information;
+- crammed Skills presentation;
+- repeated Experience prose between combined headings and bullets;
+- insufficiently clear tailoring/selection rationale;
+- final PDF presentation below the applicant's professional submission bar.
 
-## Supplemental Beta #6 product evidence
+The applicant's final judgment remained that they would not use the system or resume. Beta #6 remains FAIL regardless of subsequent engineering fixes.
 
-The applicant chose to continue exploring later stages. Those observations are supplemental rather than a clean end-to-end Beta result.
+## PR #116 engineering result
 
-### Understanding / exclusions
+PR #116 addresses the presentation/export findings without changing Evidence Review decision semantics:
 
-The section was perceived as confusing, repetitive, and meaningless. Repeated exclusions such as “Source text was not retained for display” and source-alignment/parent-reference explanations did not communicate a useful applicant purpose or action.
+- applicant-visible private-use glyph cleanup;
+- safe multiline heading/bullet duplicate cleanup with metadata-preservation counterexamples;
+- separated Skills presentation;
+- applicant-readable no-decision processing summary instead of raw exclusion internals;
+- visible Career Review presentation rationale;
+- clearer Career Review report scope and non-deletion explanation;
+- stronger final-PDF hierarchy and spacing;
+- existing Career Review correction behavior preserved.
 
-### Draft
+Regression-only CI `31150317802` demonstrated the expected RED state. Final merge-candidate CI `31150697393` passed unit, full integration, whitespace, HTTP/representative-PDF, historical Chromium RED proof, and current Chromium GREEN proof.
 
-- Stage progression was clear.
-- Unreadable square characters appeared around personal/contact information.
-- Skills appeared visually crammed together.
-- Experience content was duplicated between combined title/paragraph content and bullets.
-- The applicant could not identify meaningful tailoring value compared with the uploaded resume beyond possible removal of irrelevant projects.
-- The applicant preferred the Draft font/style to the final PDF.
+Issue #97 remains open because engineering proof does not establish fresh-user submission/value acceptance.
 
-### Career Review
+## Product decision boundary — Issue #115
 
-- The visible correction path worked: the applicant removed an unreadable character and confirmed the correction propagated to the final PDF.
-- A large combined heading field crammed title/date/location material together instead of presenting a clean resume structure.
-- The applicant could not tell why selected content appeared while other source-resume content disappeared.
+The Evidence Review comprehension failure is now a repeated product problem, not another ordinary wording bug.
 
-### Final PDF / value judgment
+Fresh Betas #4, #5, and #6 all failed at Candidate 1 after two prior applicant-facing repairs. Under the project's repeated-failure rule, engineering has stopped patching this surface pending an explicit Product decision about the applicant-visible role/timing of evidence review.
 
-The applicant did not consider the final PDF professionally formatted or submission-ready and concluded:
-
-> “i won't use this system or resume”
-
-Submission readiness, practical value, and reuse intent therefore all fail.
-
-## Open product boundary
-
-Issue #97 remains open. The applicant-readable review/export objective is not accepted.
-
-Beta #6 evidence now shows that successful editing alone is insufficient: the product must also make Evidence Review meaning understandable, make selection/tailoring consequences intelligible to an applicant, and produce a final resume whose presentation and value are strong enough for real submission consideration.
-
-This snapshot records product evidence only. It does not prescribe implementation.
+No new Beta is ready until #115 is decided and the resulting behavior is implemented and independently proven.
 
 ## Protected capability boundary
 
-No Beta observation changes the existing truth or authority boundaries:
+Unchanged:
 
 - 003.6 remains the sole Candidate Knowledge integration/write authority.
 - Source-resume passthrough remains source-linked and cannot create Candidate Knowledge.
-- Generated or materially rewritten claims retain existing Candidate Knowledge, provenance, and validation requirements.
-- Complete-resume composition and source-passthrough guarantees remain unchanged.
-- Deterministic validation remains authoritative.
-- Career Review / Human Review remains the human authority before export.
+- Generated/materially rewritten claims retain Candidate Knowledge, provenance, and validation requirements.
+- Complete-resume composition/source-passthrough guarantees remain intact.
+- Resume Content Selection and deterministic validation authority remain unchanged.
+- Career Review / Human Review remains the final human authority before export.
 - Manual Career Review edits do not silently rewrite Candidate Knowledge.
 - Provider credentials remain memory-only/private.
 - The unresolved complete-source/no-core-tailoring-selection policy from Issue #95 remains unchanged.
 
 ## Next cross-room action
 
-1. Merge the durable Beta #6 failure checkpoint.
-2. Treat Issue #113 as the historical Beta #6 FAIL.
-3. Continue product/engineering recovery from the recorded Beta #6 evidence and open Issue #97.
-4. Do not begin a new Beta until recovery has been independently demonstrated and the next Beta is explicitly prepared.
+1. Merge this durable engineering checkpoint.
+2. Resolve Product Issue #115.
+3. Implement the chosen Evidence Review product model regression-first while preserving all protected truth/authority boundaries.
+4. Durably checkpoint that implementation.
+5. Only then prepare a fresh Beta #7 from Landing/Input. Do not continue Beta #6.
