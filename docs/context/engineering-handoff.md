@@ -5,7 +5,7 @@
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, Issues #95, #97, and #100, PR #99, and current GitHub state.
+Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, Issues #95, #97, and #100, merged PR #99, and current GitHub state.
 
 Repository evidence is authoritative over this handoff.
 
@@ -13,8 +13,8 @@ Repository evidence is authoritative over this handoff.
 
 - Issue #83 / PR #87 completed the complete-resume composition boundary.
 - Beta #3 / Issue #93 is closed as **FAIL**.
-- PR #99 is the engineering change set for Issues #95 and #97.
-- Beta #4 / Issue #100 is the next real-user product gate after PR #99 is merged and primary CI is independently green.
+- PR #99 merged to primary at `f08a01e1fb7b2cc6d78af46c5682b8c57c2f185b` with the engineering work for Issues #95 and #97.
+- Beta #4 / Issue #100 is prepared as the next real-user product gate.
 - Beta Accepted remains **NO**.
 
 ## Protected truth boundary
@@ -25,7 +25,7 @@ Repository evidence is authoritative over this handoff.
 - Whole-resume validation, Career Review of every populated section, and explicit human approval remain mandatory before export.
 - Applicant presentation cleanup may repair visible mojibake, bullet markers, and date styling; it must not mutate stored source authority, Candidate Knowledge, provenance, or validation evidence.
 
-## PR #99 implementation
+## Merged implementation
 
 - Explains Evidence Review Accept before the decision, including the 003.6 and unrelated-content boundary.
 - Presents the complete draft and Career Review as a normal resume rather than raw JSON or UUID-like identifiers.
@@ -36,7 +36,7 @@ Repository evidence is authoritative over this handoff.
 
 ## Test-integrity implementation
 
-PR #99 adds independently named proof tiers:
+The merged state provides independently named proof tiers:
 
 - `npm run test:unit`
 - `npm run test:integration`
@@ -45,7 +45,7 @@ PR #99 adds independently named proof tiers:
 - `npm run test:provider-smoke`
 - `npm run test:all`
 
-It also adds:
+It also includes:
 
 - a representative real-PDF contract from extraction through all approved exports;
 - a real Chromium shipped-flow test with staged recovery;
@@ -54,9 +54,9 @@ It also adds:
 - separate CI jobs so one green total cannot be misreported as Beta acceptance;
 - future regression red/green and counterexample documentation.
 
-## Proof status rules
+## Proof status
 
-Before merging PR #99, independently verify:
+PR #99 final-head CI run `31133523801`:
 
 - Unit: PASS
 - Integration: PASS
@@ -64,11 +64,15 @@ Before merging PR #99, independently verify:
 - Real-browser pre-fix red proof: PASS
 - Real-browser change-set green proof: PASS
 - Whitespace/diff: PASS
-- Review threads: resolved
-- Real-provider smoke: PASS, FAIL, or UNKNOWN; do not infer PASS when not executed
-- Beta acceptance: UNKNOWN / NO until Issue #100 records the user’s judgment
+- Review threads: none
 
-After merge, verify the primary-branch workflow for the merge commit. Do not rely only on pull-request CI.
+Still separate:
+
+- Primary-branch push CI for the merged state: UNKNOWN until independently visible.
+- Real-provider smoke: UNKNOWN until the manual secret-gated workflow is executed.
+- Beta acceptance: NO / UNKNOWN until Issue #100 records the user’s judgment.
+
+Do not infer PASS from a missing run or status.
 
 ## Unresolved product policy
 
@@ -76,9 +80,8 @@ Issue #95 records an unresolved choice when a complete source-preserved resume h
 
 ## Next action
 
-1. Finish PR #99 only after all deterministic CI tiers pass and the diff is independently reviewed.
-2. Merge PR #99 and verify primary-branch CI for the merge commit.
-3. Close Issue #95 when its engineering acceptance criteria are proven.
-4. Keep Issue #97 tied to the fresh user judgment required by its acceptance criterion 8.
-5. Execute Beta #4 / Issue #100 one visible stage at a time with a real resume and real job description.
-6. Do not mark Beta Accepted without the user’s explicit submission, time-savings, review-burden, trust, and reuse judgment.
+1. Verify the primary-branch CI run for the merged state.
+2. Close Issue #95 after its engineering proof is durably recorded.
+3. Keep Issue #97 tied to the fresh user judgment required by its acceptance criterion 8.
+4. Execute Beta #4 / Issue #100 one visible stage at a time with a real resume and real job description.
+5. Do not mark Beta Accepted without the user’s explicit submission, time-savings, review-burden, trust, and reuse judgment.

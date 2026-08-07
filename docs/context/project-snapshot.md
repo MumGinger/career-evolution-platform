@@ -11,15 +11,15 @@
 - **Beta #2 / Issue #82:** FAIL.
 - **Issue #83 / PR #87:** complete-resume composition engineering complete.
 - **Beta #3 / Issue #93:** FAIL.
-- **Issues #95 and #97 / PR #99:** engineering change set for test-integrity hardening and applicant-readable review/export.
-- **Beta #4 / Issue #100:** queued as the next real-user product gate after PR #99 is merged and primary CI is independently green.
+- **Issues #95 and #97 / PR #99:** engineering change set merged at `f08a01e1fb7b2cc6d78af46c5682b8c57c2f185b`.
+- **Beta #4 / Issue #100:** prepared as the next real-user product gate.
 - **Beta Accepted:** NO.
 
-Beta #3 confirmed that Issue #83 materially restored complete-resume composition, but product acceptance still failed because the applicant-facing review and outputs were dominated by implementation detail and lacked a credible submission-ready document.
+Beta #3 confirmed that complete-resume composition was restored, but product acceptance still failed because the applicant-facing review and outputs were dominated by implementation detail and lacked a credible submission-ready document.
 
 ## Current capability boundary
 
-PR #99 preserves the existing complete-resume and truth boundaries while adding an applicant-facing presentation boundary:
+PR #99 adds an applicant-facing presentation boundary while preserving the existing complete-resume and truth boundaries:
 
 - Evidence Review explains what Accept authorizes before the decision and explicitly preserves the 003.6 boundary.
 - Exact source content remains `source_resume_passthrough`, keeps source authority, and never writes Candidate Knowledge.
@@ -31,21 +31,22 @@ PR #99 preserves the existing complete-resume and truth boundaries while adding 
 
 ## Engineering proof boundary
 
-PR #99 separates and reports:
+PR #99 final-head CI run `31133523801` passed independently reported:
 
 - unit tests;
-- integration tests;
+- full integration tests;
+- patch whitespace;
 - HTTP and representative-PDF complete-resume contracts;
-- a real Chromium shipped-flow test;
-- a manual, secret-gated real-provider smoke path.
+- the required pre-fix browser red proof;
+- a real Chromium shipped-flow green proof.
 
-The browser regression must fail against the pre-fix base and pass against the change set. Mock-provider HTTP tests and fake-DOM client tests remain contract evidence, not real browser/provider E2E.
+The manual, secret-gated real-provider smoke is **UNKNOWN** until executed. The primary-branch push workflow for the merge commit is also **UNKNOWN** until independently visible; absence of a status is not PASS.
 
-A missing workflow, provider smoke, or Beta judgment is **UNKNOWN**, never PASS.
+Mock-provider HTTP tests and fake-DOM client tests remain contract evidence, not real browser/provider E2E. Passing engineering proof does not establish Beta acceptance.
 
 ## Active objective
 
-Complete independent PR and primary-branch CI for PR #99, then execute Beta #4 / Issue #100 using a real resume and real job description through the shipped localhost UI.
+Verify the primary-branch CI run for the merged state, then execute Beta #4 / Issue #100 using a real resume and real job description through the shipped localhost UI.
 
 Beta #4 must decide whether the user would submit the PDF, saved meaningful time, found the review burden reasonable, trusted the workflow, and would use the product again.
 
