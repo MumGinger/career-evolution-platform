@@ -8,6 +8,23 @@ function cleanBulletArtifacts(value) {
     .replace(/:\s*[•▪◦]\s*/g, ': ');
 }
 
+function cleanEvidenceSourceText(value) {
+  return normalizeVisibleText(value)
+    .split('\n')
+    .map((line) => line.replace(/^\s*[•▪◦]\s*/, ''))
+    .join('\n')
+    .trim();
+}
+
+function cleanApplicantRationale(value) {
+  return normalizeVisibleText(value)
+    .replace(/Candidate Knowledge/gi, 'reviewed evidence')
+    .replace(/003\.6/gi, 'the evidence review step')
+    .replace(/candidate fact/gi, 'supported applicant information')
+    .replace(/tailoring-plan/gi, 'resume tailoring')
+    .replace(/shared-understanding/gi, 'application context');
+}
+
 function cleanStatement(statement = {}) {
   const displayStyle = statement.display_style || 'bullet';
   let text = normalizeVisibleText(statement.text);
@@ -19,14 +36,59 @@ function cleanStatement(statement = {}) {
   };
 }
 
+function statementPreference(statement) {
+  if (DATE_RANGE.test(statement.text) && statement.display_style === 'line') return 5;
+  return {
+    heading: 4,
+    bullet: 3,
+    line: 2,
+    inline: 1,
+  }[statement.display_style] || 0;
+}
+
+function canonicalStatementText(statement) {
+  return statement.text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+}
+
+function dedupeAdjacentStatements(statements) {
+  const result = [];
+  for (const statement of statements) {
+    const previous = result.at(-1);
+    if (previous && canonicalStatementText(previous) === canonicalStatementText(statement)) {
+      if (statementPreference(statement) > statementPreference(previous)) {
+        result[result.length - 1] = statement;
+      }
+      continue;
+    }
+    result.push(statement);
+  }
+  return result;
+}
+
+function removeRepeatedHeadingPrefixes(statements) {
+  let heading = null;
+  return statements.map((statement) => {
+    if (statement.display_style === 'heading') {
+      heading = statement.text;
+      return statement;
+    }
+    if (statement.display_style !== 'bullet' || !heading) return statement;
+    const prefix = `${heading}:`;
+    if (!statement.text.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase())) return statement;
+    const text = statement.text.slice(prefix.length).trim().replace(/^[-–—]\s+/, '');
+    return text ? { ...statement, text } : statement;
+  });
+}
+
 function cleanVersion(version) {
   if (!version || typeof version !== 'object') return version;
+  const statements = Array.isArray(version.statements)
+    ? removeRepeatedHeadingPrefixes(dedupeAdjacentStatements(version.statements.map(cleanStatement)))
+    : version.statements;
   return {
     ...version,
     placeholder: version.placeholder == null ? version.placeholder : normalizeVisibleText(version.placeholder),
-    statements: Array.isArray(version.statements)
-      ? version.statements.map(cleanStatement)
-      : version.statements,
+    statements,
   };
 }
 
@@ -35,6 +97,9 @@ function cleanReview(review) {
     ...review,
     ai_version: cleanVersion(review.ai_version),
     final_version: cleanVersion(review.final_version),
+    presentation_rationale: Array.isArray(review.presentation_rationale)
+      ? review.presentation_rationale.map(cleanApplicantRationale)
+      : review.presentation_rationale,
   };
 }
 
@@ -53,6 +118,8 @@ function cleanMarkdown(markdown) {
 }
 
 module.exports = {
+  cleanApplicantRationale,
+  cleanEvidenceSourceText,
   cleanMarkdown,
   cleanReview,
   cleanRun,

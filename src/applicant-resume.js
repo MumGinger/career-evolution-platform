@@ -54,16 +54,16 @@ function sectionOriginExplanation(review) {
   const statements = sectionStatements(review);
   const origins = new Set(statements.map((statement) => statement.content_origin).filter(Boolean));
   if (origins.size === 1 && origins.has('source_resume_passthrough')) {
-    return 'Preserved exactly from your uploaded resume. Accepting other evidence did not turn this text into Candidate Knowledge.';
+    return 'Preserved from your uploaded resume. Evidence accepted elsewhere did not silently change this source text.';
   }
   if (origins.has('source_resume_passthrough') && origins.has('candidate_knowledge_generated')) {
-    return 'Combines exact source-resume text with statements created only from evidence you accepted. Generated statements remain linked to Candidate Knowledge and validation.';
+    return 'Combines text from your uploaded resume with new wording supported by evidence you reviewed. New wording remains linked to that reviewed evidence and validation checks.';
   }
-  return 'Created only from evidence you accepted. The statements remain linked to Candidate Knowledge and deterministic validation.';
+  return 'Created from evidence you reviewed. The wording remains linked to that reviewed evidence and validation checks.';
 }
 
 function evidenceAcceptExplanation() {
-  return 'Your decision is whether this item is accurate about you and may be used as evidence to tailor this application. You are not deciding whether this item is relevant to the job; “Why it may help” explains why it was surfaced. Accept lets it support new or tailored wording when later checks allow it, but does not guarantee that it will appear in your resume or change unrelated content. Skip keeps it from supporting new or tailored wording for this application. Skipping does not delete text from your uploaded resume.';
+  return 'The text below already comes from your uploaded resume. This step does not decide what stays in your final resume. You are deciding whether we may treat this specific item as confirmed support for new or rewritten wording for this application. Accept allows this evidence to support new wording after later checks, but it does not guarantee that the evidence or wording will appear in the final resume. Skip means do not reuse this evidence for new wording; it does not remove the original source text. “Why this was surfaced” explains job relevance separately.';
 }
 
 function humanizeCategory(category) {
@@ -103,7 +103,7 @@ function validationSummary(status, findings = []) {
     return {
       tone: 'success',
       title: 'Ready for your review',
-      message: 'The resume passed the deterministic checks. You still make the final approval decision.',
+      message: 'The resume passed the deterministic checks. You still make the final approval or correction decision.',
       warnings: [],
     };
   }
@@ -115,7 +115,7 @@ function validationSummary(status, findings = []) {
       warnings: warnings.length ? warnings : [{
         title: 'Review recommended',
         message: 'The automated checks found a non-blocking concern.',
-        action: 'Read the complete resume and confirm that every section is accurate and useful for the role.',
+        action: 'Read the complete resume and confirm or correct every section before export.',
       }],
     };
   }
@@ -162,15 +162,15 @@ function resumeCss() {
 :root{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#eef1f5}
 *{box-sizing:border-box}
 body{margin:0;padding:32px}
-.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.58in .68in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.35}
-.resume-header{text-align:center;border-bottom:2px solid #253858;padding-bottom:12px;margin-bottom:16px}
-.resume-header .resume-line:first-child{font-size:25px;font-weight:700;margin:0 0 4px}
-.resume-line{margin:3px 0;font-size:10.5pt}
-.resume-section{margin:13px 0 0;break-inside:avoid}
-.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #9aa7ba;padding-bottom:2px;font-size:12.5pt;letter-spacing:.04em;text-transform:uppercase;color:#253858}
-.resume-entry-heading{font-size:10.8pt;margin:7px 0 2px}
-ul{margin:3px 0 5px;padding-left:19px}
-li{font-size:10.2pt;margin:2px 0}
+.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.58in .68in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.42}
+.resume-header{text-align:center;border-bottom:2px solid #253858;padding-bottom:12px;margin-bottom:18px}
+.resume-header .resume-line:first-child{font-size:25px;font-weight:700;margin:0 0 5px}
+.resume-line{margin:4px 0;font-size:10.5pt}
+.resume-section{margin:16px 0 0;break-inside:avoid}
+.resume-section>h2{margin:0 0 7px;border-bottom:1px solid #9aa7ba;padding-bottom:3px;font-size:12.5pt;letter-spacing:.04em;text-transform:uppercase;color:#253858}
+.resume-entry-heading{font-size:10.8pt;line-height:1.35;margin:9px 0 3px}
+ul{margin:4px 0 7px;padding-left:19px}
+li{font-size:10.2pt;line-height:1.4;margin:3px 0}
 @media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.5in .62in}@page{size:Letter;margin:0}}
 `;
 }
@@ -180,15 +180,16 @@ function careerReviewHtml(run, exported) {
   const sections = run.section_reviews.map((review) => {
     const statements = sectionStatements(review);
     const rationale = (review.presentation_rationale || []).map((reason) => `<li>${escapeHtml(reason)}</li>`).join('');
+    const status = review.action === 'edit' ? 'Edited by applicant' : 'Approved';
     return `<section class="review-card">
-      <div class="review-heading"><h2>${escapeHtml(review.section)}</h2><span>Approved</span></div>
+      <div class="review-heading"><h2>${escapeHtml(review.section)}</h2><span>${escapeHtml(status)}</span></div>
       <div class="review-copy">${renderResumeSectionHtml(review.section, statements)}</div>
       <p><strong>Where this came from:</strong> ${escapeHtml(sectionOriginExplanation(review))}</p>
       <details><summary>Why this presentation was used</summary><ul>${rationale || '<li>No additional presentation change was required.</li>'}</ul></details>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Career Review — Approved Resume</title><style>${resumeCss()}
-body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto}.review-intro,.review-card{background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:20px;margin:18px 0}.review-heading{display:flex;justify-content:space-between;align-items:center}.review-heading span{background:#e8f5ec;color:#176b39;border-radius:999px;padding:4px 10px;font-weight:700}.review-copy .resume-section,.review-copy .resume-header{border:0;margin:8px 0;padding:0;text-align:left}.approved-preview{margin:24px 0}.technical-note{font-size:14px;color:#566277}</style></head><body><main class="review-shell"><section class="review-intro"><h1>Career Review complete</h1><p>This report shows the resume you approved in applicant-readable form. It deliberately omits raw identifiers and implementation fields.</p><p class="technical-note">The structured JSON remains available separately for audit and interoperability; it is not the primary applicant review surface.</p></section><div class="approved-preview">${approved}</div><h1>Section-by-section review record</h1>${sections}<section class="review-intro"><h2>Approved resume text</h2><pre>${escapeHtml(normalizeVisibleText(exported.markdown))}</pre></section></main></body></html>`;
+body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto}.review-intro,.review-card{background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:20px;margin:18px 0}.review-heading{display:flex;justify-content:space-between;align-items:center}.review-heading span{background:#e8f5ec;color:#176b39;border-radius:999px;padding:4px 10px;font-weight:700}.review-copy .resume-section,.review-copy .resume-header{border:0;margin:8px 0;padding:0;text-align:left}.approved-preview{margin:24px 0}.technical-note{font-size:14px;color:#566277}</style></head><body><main class="review-shell"><section class="review-intro"><h1>Career Review complete</h1><p>This report shows the resume you approved or corrected in applicant-readable form. It deliberately omits raw identifiers and implementation fields.</p><p class="technical-note">The structured JSON remains available separately for audit and interoperability; it is not the primary applicant review surface.</p></section><div class="approved-preview">${approved}</div><h1>Section-by-section review record</h1>${sections}<section class="review-intro"><h2>Approved resume text</h2><pre>${escapeHtml(normalizeVisibleText(exported.markdown))}</pre></section></main></body></html>`;
 }
 
 function pdfAscii(value) {
@@ -313,7 +314,7 @@ function resumePdf(reviews) {
 }
 
 function writeApplicantOutputs({ directory, run, exported }) {
-  const markdown = normalizeVisibleText(exported.markdown);
+  const markdown = normalizeVisibleText(humanReview.markdown(run));
   const normalizedExport = { ...exported, markdown };
   fs.writeFileSync(path.join(directory, 'final-resume.md'), `${markdown}\n`);
   fs.writeFileSync(path.join(directory, 'final-resume.json'), `${JSON.stringify(normalizedExport, null, 2)}\n`);
