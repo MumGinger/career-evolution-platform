@@ -4,10 +4,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer, APPLICANT_PAGE } = require('../../src/beta-ui');
+const llmUnderstanding = require('../../src/llm-resume-understanding');
 
-async function withServer(run) {
+async function withServer(run, options = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'option2-tailoring-review-'));
-  const app = createBetaUiServer({ port: 0, tempRoot: root });
+  const app = createBetaUiServer({ port: 0, tempRoot: root, ...options });
   const address = await app.listen();
   const base = `http://${address.address}:${address.port}`;
   try { await run({ app, base }); }
@@ -58,6 +59,29 @@ test('LLM-first start treats uploaded resume evidence as source-attested through
   assert.ok(session.integration?.id, '003.6 remains the only Candidate Knowledge write path');
   assert.ok(session.store.getCommittedCandidateKnowledge(session.profileId).length > 0);
 }));
+
+test('source attestation never promotes an AI-only normalized meaning into Candidate Knowledge', async () => {
+  const supplied = input();
+  const text = Buffer.from(supplied.resume.data, 'base64').toString('utf8');
+  const understanding = llmUnderstanding.mockUnderstand({ text });
+  const target = understanding.blocks.find((block) => block.type === 'responsibility');
+  assert.ok(target);
+  target.normalized_meaning = 'Led enterprise AI transformation across the company';
+  const provider = {
+    name: 'mock',
+    model: 'source-bound-adversarial-fixture',
+    async understand() { return { provider: this.name, model: this.model, understanding }; },
+  };
+  await withServer(async ({ app, base }) => {
+    const started = await json(`${base}/api/llm-first/start`, supplied);
+    assert.equal(started.response.status, 201, JSON.stringify(started.value));
+    const session = app.sessions.get(started.value.sessionId);
+    const committed = session.store.getCommittedCandidateKnowledge(session.profileId);
+    assert.ok(committed.length > 0);
+    assert.doesNotMatch(JSON.stringify(committed), /Led enterprise AI transformation/i);
+    assert.match(JSON.stringify(committed), /Delivered business insights and data analysis reporting for stakeholders/i);
+  }, { resumeUnderstandingProviderFromConfig: () => provider });
+});
 
 test('needs-correction records applicant context without silently writing it as Candidate Knowledge', async () => withServer(async ({ app, base }) => {
   const started = await json(`${base}/api/llm-first/start`, input());
