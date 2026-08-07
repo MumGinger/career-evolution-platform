@@ -65,15 +65,30 @@ function dedupeStatements(statements) {
     .map((item) => item.statement);
 }
 
+function removeRepeatedHeadingPrefixes(statements) {
+  let heading = null;
+  return statements.map((statement) => {
+    if (statement.display_style === 'heading') {
+      heading = statement.text;
+      return statement;
+    }
+    if (statement.display_style !== 'bullet' || !heading) return statement;
+    const prefix = `${heading}:`;
+    if (!statement.text.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase())) return statement;
+    const text = statement.text.slice(prefix.length).trim().replace(/^[-–—]\s+/, '');
+    return text ? { ...statement, text } : statement;
+  });
+}
+
 function cleanVersion(version) {
   if (!version || typeof version !== 'object') return version;
   const statements = Array.isArray(version.statements)
-    ? version.statements.map(cleanStatement)
+    ? removeRepeatedHeadingPrefixes(dedupeStatements(version.statements.map(cleanStatement)))
     : version.statements;
   return {
     ...version,
     placeholder: version.placeholder == null ? version.placeholder : normalizeVisibleText(version.placeholder),
-    statements: Array.isArray(statements) ? dedupeStatements(statements) : statements,
+    statements,
   };
 }
 
