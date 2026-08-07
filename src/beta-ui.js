@@ -6,6 +6,7 @@ const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const option2 = require('./option2-tailoring-review');
+const { providerFromConfig: draftProviderFromConfig } = require('./resume-draft');
 const { APPLICANT_PAGE } = require('./applicant-option2-page');
 
 const APPLICANT_OUTPUTS = [
@@ -143,9 +144,42 @@ function validateLegacyConfirm(session, input) {
   }
 }
 
+async function legacyProviderValidation(session) {
+  if (!session.tailoring?.id || !session.presentation?.id) return null;
+  const provider = draftProviderFromConfig(session.providerConfig);
+  const artifact = await session.store.createResumeArtifactDraftRun({
+    resumeTailoringPlanRunId: session.tailoring.id,
+    presentationStrategyRunId: session.presentation.id,
+    provider,
+  });
+  const validation = session.store.createResumeValidationRun({ resumeArtifactRunId: artifact.id });
+  if (validation.validation_status !== 'failed') return null;
+  Object.assign(session, { artifact, draftValidation: validation, stage: 'draft-blocked' });
+  return {
+    stage: 'Draft blocked',
+    resumeMarkdown: '',
+    validation: validation.validation_status,
+    validationFindings: validation.validation_findings,
+    blocked: true,
+    message: 'Career Review is blocked until deterministic draft validation passes.',
+    careerReview: null,
+  };
+}
+
 async function legacyConfirmAsTailoring(session, input) {
-  if (session.stage === 'draft-blocked') return session.option2PreparedResult;
   validateLegacyConfirm(session, input);
+  if (session.stage === 'draft-blocked') {
+    return {
+      ...session.option2PreparedResult,
+      validation: session.option2PreparedResult?.draftValidation,
+      validationFindings: session.option2PreparedResult?.draftValidationFindings,
+      careerReview: null,
+    };
+  }
+  if (session.providerConfig?.provider !== 'mock') {
+    const blocked = await legacyProviderValidation(session);
+    if (blocked) return blocked;
+  }
   const skipped = new Set(input.decisions
     .filter((decision) => decision.action === 'skip')
     .map((decision) => decision.evidence_candidate_id));
