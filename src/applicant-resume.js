@@ -63,7 +63,7 @@ function sectionOriginExplanation(review) {
 }
 
 function evidenceAcceptExplanation() {
-  return 'Accept means: use this source-backed item as approved evidence, send it through Candidate Knowledge Integration (003.6), and allow the resume draft to use it when validation permits. Accept does not automatically rewrite unrelated resume content.';
+  return 'Your decision is whether this item is accurate about you and may be used as evidence to tailor this application. You are not deciding whether this item is relevant to the job; “Why it may help” explains why it was surfaced. Accept lets it support new or tailored wording when later checks allow it, but does not guarantee that it will appear in your resume or change unrelated content. Skip keeps it from supporting new or tailored wording for this application. Skipping does not delete text from your uploaded resume.';
 }
 
 function humanizeCategory(category) {

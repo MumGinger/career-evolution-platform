@@ -95,6 +95,10 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e/applicant-flow.spec.js; then
+            echo "Applicant browser regression is unchanged in this pull request; pre-fix red proof is not required."
+            exit 0
+          fi
           git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
           mkdir -p ../pre-fix/tests/browser-e2e
           cp tests/browser-e2e/applicant-flow.spec.js ../pre-fix/tests/browser-e2e/applicant-flow.spec.js

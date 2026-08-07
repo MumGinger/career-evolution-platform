@@ -93,8 +93,11 @@ test('submission-ready PDF is a valid uncompressed PDF with readable applicant c
   assert.doesNotMatch(pdf.toString('latin1'), /â€¢|\uFFFD/);
 });
 
-test('Accept explanation preserves the 003.6 and human-authority boundary', () => {
+test('Evidence Review explanation states the applicant decision and consequences without internal terminology', () => {
   const explanation = applicant.evidenceAcceptExplanation();
-  assert.match(explanation, /003\.6/);
-  assert.match(explanation, /does not automatically rewrite unrelated resume content/i);
+  assert.match(explanation, /accurate about you/i);
+  assert.match(explanation, /not deciding whether this item is relevant to the job/i);
+  assert.match(explanation, /does not guarantee that it will appear in your resume/i);
+  assert.match(explanation, /Skipping does not delete text from your uploaded resume/i);
+  assert.doesNotMatch(explanation, /Candidate Knowledge|003\.6|Integration/i);
 });
