@@ -3,6 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "description": "Local application-to-interview evidence loop MVP",
-  "scripts": { "test": "node --test tests/*.test.js" },
-  "engines": { "node": ">=22.5.0" }
+  "scripts": {
+    "test": "npm run test:all",
+    "test:unit": "node scripts/run-test-tier.js unit",
+    "test:integration": "node scripts/run-test-tier.js integration",
+    "test:http-contract": "node scripts/run-test-tier.js http-contract",
+    "test:browser-e2e": "node scripts/run-test-tier.js browser-e2e",
+    "test:provider-smoke": "node scripts/run-test-tier.js provider-smoke",
+    "test:all": "node scripts/run-test-tier.js all"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
 }

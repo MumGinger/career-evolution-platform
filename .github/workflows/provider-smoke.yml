@@ -1,0 +1,45 @@
+name: Real Provider Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Provider adapter name
+        required: false
+        default: openai-compatible
+      model:
+        description: Provider model name
+        required: true
+      base_url:
+        description: Optional OpenAI-compatible base URL
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  provider-smoke:
+    name: Real-provider operational compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CEP_PROVIDER_SMOKE: '1'
+      CEP_LLM_PROVIDER: ${{ inputs.provider }}
+      CEP_LLM_MODEL: ${{ inputs.model }}
+      CEP_LLM_BASE_URL: ${{ inputs.base_url }}
+      CEP_LLM_API_KEY: ${{ secrets.CEP_LLM_API_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run privacy-safe provider smoke
+        run: npm run test:provider-smoke
