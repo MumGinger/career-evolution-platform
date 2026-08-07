@@ -48,7 +48,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('real browser makes Evidence Review decisions understandable and keeps progression discoverable', async ({ page, request }) => {
+test('real browser makes evidence reuse and Career Review correction understandable', async ({ page, request }) => {
   await page.goto(baseURL);
   await expect(page.getByRole('heading', { name: 'Build and verify your tailored resume' })).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/1 of 5/);
@@ -73,11 +73,13 @@ test('real browser makes Evidence Review decisions understandable and keeps prog
   await expect(page.locator('#evidence')).toBeVisible();
   await expect(page.locator('#counts .metric')).toHaveCount(4);
 
-  await expect(page.locator('#accept-help')).toContainText('accurate about you');
-  await expect(page.locator('#accept-help')).toContainText('not deciding whether this item is relevant to the job');
-  await expect(page.locator('#accept-help')).toContainText('does not guarantee that it will appear in your resume');
-  await expect(page.locator('#accept-help')).toContainText('Skipping does not delete text from your uploaded resume');
-  await expect(page.locator('#evidence')).not.toContainText(/Candidate Knowledge Integration|003\.6/i);
+  await expect(page.locator('#accept-help')).toContainText('already comes from your uploaded resume');
+  await expect(page.locator('#accept-help')).toContainText('does not decide what stays in your final resume');
+  await expect(page.locator('#accept-help')).toContainText('confirmed support for new or rewritten wording');
+  await expect(page.locator('#accept-help')).toContainText('Accept');
+  await expect(page.locator('#accept-help')).toContainText('Skip');
+  await expect(page.locator('#accept-help')).toContainText('Why this was surfaced');
+  await expect(page.locator('#evidence')).not.toContainText(/Candidate Knowledge|003\.6|Integration/i);
 
   const evidenceCards = page.locator('#cards .evidence-card');
   const decisions = page.locator('select[data-c]');
@@ -85,12 +87,15 @@ test('real browser makes Evidence Review decisions understandable and keeps prog
   expect(await decisions.count()).toBe(await evidenceCards.count());
   for (let index = 0; index < await evidenceCards.count(); index += 1) {
     const card = evidenceCards.nth(index);
-    await expect(card).toContainText('Your decision');
-    await expect(card).toContainText('Is this accurate evidence about you');
-    await expect(card.locator('select[data-c] option[value="accept"]')).toHaveText(/Accept — use as verified support/);
-    await expect(card.locator('select[data-c] option[value="skip"]')).toHaveText(/Skip — do not use as support/);
-    await expect(card).toContainText('Accept can support tailored wording but does not guarantee this item appears in the resume');
-    await expect(card).toContainText('Skip keeps this item from supporting new or rewritten wording');
+    await expect(card).toContainText('From your uploaded resume');
+    await expect(card).toContainText('How this evidence could be reused');
+    await expect(card).toContainText('Why this was surfaced');
+    await expect(card).not.toContainText('Proposed resume use');
+    await expect(card).toContainText('May we treat this as confirmed support for new or rewritten wording for this application?');
+    await expect(card.locator('select[data-c] option[value="accept"]')).toHaveText(/Accept — allow this evidence to support new wording/);
+    await expect(card.locator('select[data-c] option[value="skip"]')).toHaveText(/Skip — do not reuse this evidence for new wording/);
+    await expect(card).toContainText('does not decide whether this source text stays in the final resume');
+    await expect(card).toContainText('does not remove the original source text');
     await decisions.nth(index).selectOption('accept');
   }
 
@@ -115,16 +120,27 @@ test('real browser makes Evidence Review decisions understandable and keeps prog
   const reviewCards = page.locator('#reviews .review-card');
   expect(await reviewCards.count()).toBeGreaterThanOrEqual(5);
   await expect(page.locator('#reviews')).toContainText('Where this came from');
-  await expect(page.locator('#reviews')).not.toContainText(/statement_id|candidate_fact_id|resume_content_selection_ids/);
+  await expect(page.locator('#reviews')).toContainText('Looks correct — approve this section');
+  await expect(page.locator('#reviews')).toContainText('Needs changes — edit this section before export');
+  await expect(page.locator('#reviews')).not.toContainText(/Candidate Knowledge|003\.6|statement_id|candidate_fact_id|resume_content_selection_ids/);
   await expect(page.locator('body')).not.toContainText(/[0-9a-f]{8}-[0-9a-f-]{27,}/i);
   await expect(page.locator('body')).not.toContainText(/â€¢|â€“|ï‚·||�/);
 
-  const checks = page.locator('input[data-reviewed]');
-  expect(await checks.count()).toBe(await reviewCards.count());
-  await expect(page.getByRole('button', { name: 'Approve and export complete resume' })).toBeDisabled();
-  for (let index = 0; index < await checks.count(); index += 1) await checks.nth(index).check();
-  await expect(page.getByRole('button', { name: 'Approve and export complete resume' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Approve and export complete resume' }).click();
+  const actions = page.locator('input[data-review-action]');
+  expect(await actions.count()).toBe((await reviewCards.count()) * 2);
+  await expect(page.getByRole('button', { name: 'Finish review and export resume' })).toBeDisabled();
+
+  await page.locator('input[data-review-action="0"][value="edit"]').check();
+  await expect(page.locator('[data-review-editor="0"]')).toBeVisible();
+  const firstEdit = page.locator('[data-review-editor="0"] [data-review-edit]').first();
+  await expect(firstEdit).toBeVisible();
+  await firstEdit.fill('Taylor Chen Updated');
+
+  for (let index = 1; index < await reviewCards.count(); index += 1) {
+    await page.locator(`input[data-review-action="${index}"][value="approve"]`).check();
+  }
+  await expect(page.getByRole('button', { name: 'Finish review and export resume' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Finish review and export resume' }).click();
 
   await expect(page.locator('#output')).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/5 of 5/);
@@ -136,17 +152,21 @@ test('real browser makes Evidence Review decisions understandable and keeps prog
   const pdf = await request.get(`${baseURL}${pdfHref}`);
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()['content-type']).toContain('application/pdf');
-  expect((await pdf.body()).subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
+  const pdfBody = await pdf.body();
+  expect(pdfBody.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
+  expect(pdfBody.toString('latin1')).toContain('Taylor Chen Updated');
 
   const report = await request.get(`${baseURL}${reportHref}`);
   expect(report.status()).toBe(200);
   const reportText = await report.text();
   expect(reportText).toContain('Career Review complete');
+  expect(reportText).toContain('Taylor Chen Updated');
   expect(reportText).toContain('Where this came from');
-  expect(reportText).not.toMatch(/statement_id|candidate_fact_id|[0-9a-f]{8}-[0-9a-f-]{27,}/i);
+  expect(reportText).not.toMatch(/Candidate Knowledge|003\.6|statement_id|candidate_fact_id|[0-9a-f]{8}-[0-9a-f-]{27,}/i);
 
   for (const name of ['final-resume.md', 'final-resume.json']) {
     const response = await request.get(`${baseURL}/api/llm-first/sessions/${[...app.sessions.keys()][0]}/outputs/${name}`);
     expect(response.status()).toBe(200);
+    expect(await response.text()).toContain('Taylor Chen Updated');
   }
 });

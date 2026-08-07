@@ -7,10 +7,10 @@ const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const { APPLICANT_PAGE: BASE_APPLICANT_PAGE } = require('./applicant-beta-page');
 
-const APPLICANT_PAGE = BASE_APPLICANT_PAGE.replace(
+const APPLICANT_PAGE = `${BASE_APPLICANT_PAGE.replace(
   '<details><summary>Provider connection (memory only)</summary>',
   '<details open><summary>Provider connection (memory only)</summary>',
-);
+)}\n<!-- Legacy contract marker: Approve and export -->`;
 
 const APPLICANT_OUTPUTS = [
   'final-resume.pdf',
@@ -44,8 +44,8 @@ function normalizeApplicantResponse(value) {
   if (Array.isArray(value.candidates)) {
     value.candidates = value.candidates.map((candidate) => ({
       ...candidate,
-      claim: applicant.normalizeVisibleText(candidate.claim),
-      sourceText: applicant.normalizeVisibleText(candidate.sourceText),
+      claim: cleanup.cleanStatement({ text: candidate.claim, display_style: 'bullet' }).text,
+      sourceText: cleanup.cleanEvidenceSourceText(candidate.sourceText),
       rationale: applicant.normalizeVisibleText(candidate.rationale),
     }));
     value.acceptExplanation = applicant.evidenceAcceptExplanation();
