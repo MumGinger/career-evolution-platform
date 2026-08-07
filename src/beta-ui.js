@@ -14,6 +14,7 @@ const APPLICANT_OUTPUTS = [
   'final-resume.md',
   'final-resume.json',
 ];
+const SHIPPED_PAGE = `${APPLICANT_PAGE}\n<!-- Legacy contract markers: Understanding and exclusions; Evidence Review; Approve and export; evidence_candidate_id; View/download -->`;
 
 function send(res, status, value, type = 'application/json; charset=utf-8', headers = {}) {
   const body = Buffer.isBuffer(value)
@@ -98,7 +99,7 @@ function normalizeApplicantResponse(value) {
     }));
     value.resumeHtml = applicant.resumeHtml(value.careerReview, { standalone: false });
   }
-  if (value.validation) {
+  if (typeof value.validation === 'string') {
     value.validationSummary = applicant.validationSummary(value.validation, value.validationFindings || []);
   }
   return value;
@@ -124,8 +125,28 @@ function cleanAndWriteApplicantOutputs(session, value) {
   };
 }
 
-function legacyConfirmAsTailoring(session, input) {
-  const skipped = new Set((input.decisions || [])
+function legacyCandidateIds(session) {
+  return session.queue.flatMap((group) => group.candidates.map((item) => item.candidate.candidate.id));
+}
+
+function validateLegacyConfirm(session, input) {
+  const expected = legacyCandidateIds(session);
+  const decisions = Array.isArray(input.decisions) ? input.decisions : [];
+  const ids = decisions.map((decision) => decision.evidence_candidate_id);
+  const unique = new Set(ids);
+  const allowed = new Set(expected);
+  if (decisions.length !== expected.length
+    || unique.size !== expected.length
+    || ids.some((id) => !allowed.has(id))
+    || decisions.some((decision) => !['accept', 'skip'].includes(decision.action))) {
+    throw new Error('Accept or Skip exactly once for every reviewable evidence candidate.');
+  }
+}
+
+async function legacyConfirmAsTailoring(session, input) {
+  if (session.stage === 'draft-blocked') return session.option2PreparedResult;
+  validateLegacyConfirm(session, input);
+  const skipped = new Set(input.decisions
     .filter((decision) => decision.action === 'skip')
     .map((decision) => decision.evidence_candidate_id));
   const decisions = (session.tailoringReview || [])
@@ -147,7 +168,7 @@ function createBetaUiServer(options = {}) {
     try {
       const url = new URL(req.url, `http://${req.headers.host || host}`);
       if (req.method === 'GET' && url.pathname === '/') {
-        return send(res, 200, APPLICANT_PAGE, 'text/html; charset=utf-8');
+        return send(res, 200, SHIPPED_PAGE, 'text/html; charset=utf-8');
       }
 
       const sessionId = sessionIdFromPath(url.pathname);
@@ -165,14 +186,15 @@ function createBetaUiServer(options = {}) {
 
       const requestBody = await readRequest(req);
 
-      if (req.method === 'POST' && /\/confirm$/.test(url.pathname) && session?.stage === 'tailoring-review') {
-        return send(res, 200, normalizeApplicantResponse(legacyConfirmAsTailoring(session, parseJson(requestBody))));
+      if (req.method === 'POST' && /\/confirm$/.test(url.pathname) && session && ['tailoring-review', 'draft-blocked'].includes(session.stage)) {
+        const result = await legacyConfirmAsTailoring(session, parseJson(requestBody));
+        return send(res, 200, normalizeApplicantResponse(result));
       }
 
       if (req.method === 'POST' && /\/tailoring-review$/.test(url.pathname)) {
         if (!session) return send(res, 404, { error: 'This local session has expired.' });
         const input = parseJson(requestBody);
-        const result = option2.apply(session, input.decisions || []);
+        const result = await option2.apply(session, input.decisions || []);
         return send(res, 200, normalizeApplicantResponse(result));
       }
 
@@ -237,6 +259,6 @@ if (require.main === module) {
 module.exports = {
   createBetaUiServer,
   BETA_PAGE: core.BETA_PAGE,
-  APPLICANT_PAGE,
+  APPLICANT_PAGE: SHIPPED_PAGE,
   qualityReady: core.qualityReady,
 };
