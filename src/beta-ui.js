@@ -5,33 +5,8 @@ const path = require('node:path');
 const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
-const { APPLICANT_PAGE: BASE_APPLICANT_PAGE } = require('./applicant-beta-page');
-
-function applicantPage(base) {
-  return base
-    .replace(
-      '<details><summary>Provider connection (memory only)</summary>',
-      '<details open><summary>Provider connection (memory only)</summary>',
-    )
-    .replace(
-      '<section id="understanding" class="panel" hidden><h2>Understanding and exclusions</h2><p>These counts show what the system could safely align to your uploaded resume. Excluded text is not used as evidence.</p>',
-      '<section id="understanding" class="panel" hidden><h2>Processing summary — no decision needed</h2><p>We checked the uploaded resume to identify source-backed material for the next step. You do not need to take action here. This summary only shows what was read, matched to the source, not used, and shown next for review.</p>',
-    )
-    .replace(
-      "q('counts').innerHTML=[['Extracted',result.validation.counts.extracted],['Safe to use',result.validation.counts.valid],['Excluded',result.validation.counts.excluded],['Reviewable',result.validation.counts.reviewable]]",
-      "q('counts').innerHTML=[['Read from resume',result.validation.counts.extracted],['Matched to source',result.validation.counts.valid],['Not used',result.validation.counts.excluded],['Shown next',result.validation.counts.reviewable]]",
-    )
-    .replace(
-      "q('exclusions').innerHTML=(result.validation.exclusions||[]).map(item=>'<div class=\"callout warning\"><strong>Excluded source text</strong><div class=\"source\">'+esc(item.source_text||'Source text was not retained for display.')+'</div><span class=\"label\">Why excluded</span>'+esc(item.message||'It could not be safely aligned to the uploaded resume.')+'</div>').join('')||'<div class=\"callout success\">No source blocks were excluded.</div>'",
-      "q('exclusions').innerHTML=(result.validation.exclusions||[]).length?'<div class=\"callout warning\"><strong>Some source text was not used in the evidence step.</strong><br><span class=\"muted\">No action is required here. You will review the material the system can actually use in the next section.</span></div>':'<div class=\"callout success\">All processed source text passed this matching step. No action is required here.</div>'",
-    )
-    .replace(
-      "<p><strong>Where this came from:</strong> '+esc(section.applicant_origin||'Source-linked resume content.')+'</p><label class=\"review-choice\">",
-      "<p><strong>Where this came from:</strong> '+esc(section.applicant_origin||'Source-linked resume content.')+'</p><p><strong>Why this section looks this way:</strong> '+esc((section.presentation_rationale||[]).join(' ')||'No special presentation change was needed.')+'</p><label class=\"review-choice\">",
-    );
-}
-
-const APPLICANT_PAGE = `${applicantPage(BASE_APPLICANT_PAGE)}\n<!-- Legacy contract markers: Understanding and exclusions; Approve and export -->`;
+const option2 = require('./option2-tailoring-review');
+const { APPLICANT_PAGE } = require('./applicant-option2-page');
 
 const APPLICANT_OUTPUTS = [
   'final-resume.pdf',
@@ -57,19 +32,56 @@ function sessionIdFromPath(pathname) {
   return pathname.match(/^\/api\/(?:llm-first\/)?sessions\/([^/]+)/)?.[1] || null;
 }
 
+function readRequest(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+function parseJson(buffer) {
+  if (!buffer?.length) return {};
+  return JSON.parse(buffer.toString('utf8'));
+}
+
+function proxyRequest({ coreAddress, req, url, body }) {
+  return new Promise((resolve, reject) => {
+    const proxy = http.request({
+      hostname: coreAddress.address,
+      port: coreAddress.port,
+      method: req.method,
+      path: url.pathname + url.search,
+      headers: {
+        'content-type': req.headers['content-type'] || 'application/json; charset=utf-8',
+        'content-length': body.length,
+      },
+    }, (proxied) => {
+      const chunks = [];
+      proxied.on('data', (chunk) => chunks.push(chunk));
+      proxied.on('end', () => resolve({
+        status: proxied.statusCode || 500,
+        contentType: String(proxied.headers['content-type'] || 'application/octet-stream'),
+        body: Buffer.concat(chunks),
+      }));
+    });
+    proxy.on('error', reject);
+    if (body.length) proxy.write(body);
+    proxy.end();
+  });
+}
+
 function normalizeApplicantResponse(value) {
   if (!value || typeof value !== 'object') return value;
-  if (typeof value.resumeMarkdown === 'string') {
-    value.resumeMarkdown = cleanup.cleanMarkdown(value.resumeMarkdown);
-  }
-  if (Array.isArray(value.candidates)) {
-    value.candidates = value.candidates.map((candidate) => ({
-      ...candidate,
-      claim: cleanup.cleanStatement({ text: candidate.claim, display_style: 'bullet' }).text,
-      sourceText: cleanup.cleanEvidenceSourceText(candidate.sourceText),
-      rationale: applicant.normalizeVisibleText(candidate.rationale),
+  if (typeof value.resumeMarkdown === 'string') value.resumeMarkdown = cleanup.cleanMarkdown(value.resumeMarkdown);
+  if (Array.isArray(value.tailoringReview)) {
+    value.tailoringReview = value.tailoringReview.map((item) => ({
+      ...item,
+      originalText: cleanup.cleanEvidenceSourceText(item.originalText),
+      tailoredText: cleanup.cleanStatement({ text: item.tailoredText, display_style: 'bullet' }).text,
+      whyTailored: (item.whyTailored || []).map(applicant.normalizeVisibleText),
     }));
-    value.acceptExplanation = applicant.evidenceAcceptExplanation();
   }
   if (Array.isArray(value.careerReview)) {
     value.careerReview = value.careerReview.map((review) => ({
@@ -79,12 +91,29 @@ function normalizeApplicantResponse(value) {
     value.resumeHtml = applicant.resumeHtml(value.careerReview, { standalone: false });
   }
   if (value.validation) {
-    value.validationSummary = applicant.validationSummary(
-      value.validation,
-      value.validationFindings || [],
-    );
+    value.validationSummary = applicant.validationSummary(value.validation, value.validationFindings || []);
   }
   return value;
+}
+
+function cleanAndWriteApplicantOutputs(session, value) {
+  if (!session?.run || !session?.exported) return value;
+  const presentationRun = cleanup.cleanRun(session.run);
+  const presentationExport = {
+    ...session.exported,
+    markdown: cleanup.cleanMarkdown(session.exported.markdown),
+  };
+  session.exported = applicant.writeApplicantOutputs({
+    directory: session.dir,
+    run: presentationRun,
+    exported: presentationExport,
+  });
+  return {
+    ...value,
+    resumeMarkdown: session.exported.markdown,
+    applicantOutputs: APPLICANT_OUTPUTS,
+    primaryOutput: 'final-resume.pdf',
+  };
 }
 
 function createBetaUiServer(options = {}) {
@@ -113,69 +142,56 @@ function createBetaUiServer(options = {}) {
         });
       }
 
-      const chunks = [];
-      req.on('data', (chunk) => chunks.push(chunk));
-      req.on('error', () => send(res, 400, { error: 'The request could not be read.' }));
-      req.on('end', () => {
-        const requestBody = Buffer.concat(chunks);
-        const proxy = http.request({
-          hostname: coreAddress.address,
-          port: coreAddress.port,
-          method: req.method,
-          path: url.pathname + url.search,
-          headers: {
-            'content-type': req.headers['content-type'] || 'application/json; charset=utf-8',
-            'content-length': requestBody.length,
-          },
-        }, (proxied) => {
-          const responseChunks = [];
-          proxied.on('data', (chunk) => responseChunks.push(chunk));
-          proxied.on('end', () => {
-            const body = Buffer.concat(responseChunks);
-            const contentType = String(proxied.headers['content-type'] || 'application/octet-stream');
-            if (!contentType.includes('application/json')) {
-              return send(res, proxied.statusCode || 500, body, contentType, outputMatch
-                ? { 'Content-Disposition': `inline; filename="${path.basename(outputMatch[1])}"` }
-                : {});
-            }
+      const requestBody = await readRequest(req);
 
-            let value;
-            try { value = body.length ? JSON.parse(body.toString('utf8')) : {}; }
-            catch { return send(res, proxied.statusCode || 500, body, contentType); }
+      if (req.method === 'POST' && /\/tailoring-review$/.test(url.pathname)) {
+        if (!session) return send(res, 404, { error: 'This local session has expired.' });
+        const input = parseJson(requestBody);
+        const result = option2.apply(session, input.decisions || []);
+        return send(res, 200, normalizeApplicantResponse(result));
+      }
 
-            const isCareerReview = req.method === 'POST' && /\/career-review$/.test(url.pathname);
-            if ((proxied.statusCode || 500) < 300 && isCareerReview) {
-              const current = sessionId ? coreApp.sessions.get(sessionId) : null;
-              if (current?.run && current?.exported) {
-                const presentationRun = cleanup.cleanRun(current.run);
-                const presentationExport = {
-                  ...current.exported,
-                  markdown: cleanup.cleanMarkdown(current.exported.markdown),
-                };
-                current.exported = applicant.writeApplicantOutputs({
-                  directory: current.dir,
-                  run: presentationRun,
-                  exported: presentationExport,
-                });
-                value.resumeMarkdown = current.exported.markdown;
-                value.applicantOutputs = APPLICANT_OUTPUTS;
-                value.primaryOutput = 'final-resume.pdf';
-              }
-            }
-            return send(
-              res,
-              proxied.statusCode || 500,
-              normalizeApplicantResponse(value),
-              'application/json; charset=utf-8',
-            );
-          });
-        });
-        proxy.on('error', () => send(res, 502, { error: 'The local resume service could not be reached.' }));
-        if (requestBody.length) proxy.write(requestBody);
-        proxy.end();
-      });
+      let bodyForCore = requestBody;
+      const isCareerReview = req.method === 'POST' && /\/career-review$/.test(url.pathname);
+      if (isCareerReview && session?.tailoringFinalReview) {
+        const input = parseJson(requestBody);
+        bodyForCore = Buffer.from(JSON.stringify({
+          ...input,
+          decisions: option2.translateCareerReviewDecisions(session, input.decisions || []),
+        }));
+      }
+
+      const proxied = await proxyRequest({ coreAddress, req, url, body: bodyForCore });
+      if (!proxied.contentType.includes('application/json')) {
+        return send(res, proxied.status, proxied.body, proxied.contentType, outputMatch
+          ? { 'Content-Disposition': `inline; filename="${path.basename(outputMatch[1])}"` }
+          : {});
+      }
+
+      let value;
+      try { value = proxied.body.length ? JSON.parse(proxied.body.toString('utf8')) : {}; }
+      catch { return send(res, proxied.status, proxied.body, proxied.contentType); }
+
+      const isLlmStart = req.method === 'POST' && url.pathname === '/api/llm-first/start';
+      if (proxied.status < 300 && isLlmStart) {
+        const current = coreApp.sessions.get(value.sessionId);
+        const prepared = await option2.prepare(current);
+        value = {
+          ...value,
+          ...prepared,
+          stage: prepared.stage,
+        };
+        delete value.candidates;
+        delete value.evidence;
+      }
+
+      if (proxied.status < 300 && isCareerReview) {
+        value = cleanAndWriteApplicantOutputs(session, value);
+      }
+
+      return send(res, proxied.status, normalizeApplicantResponse(value));
     } catch (error) {
-      return send(res, 500, { error: error.message });
+      return send(res, 400, { error: error.message });
     }
   });
 
