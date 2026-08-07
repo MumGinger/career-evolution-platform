@@ -11,9 +11,10 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  engineering-tests:
+    name: Unit and integration
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -26,8 +27,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Run full test suite
-        run: npm test
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
 
       - name: Check patch whitespace (pull request)
         if: github.event_name == 'pull_request'
@@ -38,3 +45,70 @@ jobs:
         if: github.event_name != 'pull_request'
         shell: pwsh
         run: git diff --check HEAD^...HEAD
+
+  http-contract:
+    name: HTTP and representative PDF contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install PDF extraction dependency
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run HTTP and applicant contract tests
+        run: npm run test:http-contract
+
+  browser-e2e:
+    name: Real browser shipped flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Prove applicant regression is red on the pre-fix commit
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
+          mkdir -p ../pre-fix/tests/browser-e2e
+          cp tests/browser-e2e/applicant-flow.spec.js ../pre-fix/tests/browser-e2e/applicant-flow.spec.js
+          cp playwright.config.js ../pre-fix/playwright.config.js
+          ln -s "$GITHUB_WORKSPACE/node_modules" ../pre-fix/node_modules
+          set +e
+          (cd ../pre-fix && "$GITHUB_WORKSPACE/node_modules/.bin/playwright" test --config=playwright.config.js --workers=1)
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected the applicant-facing regression to fail on the pre-fix commit, but it passed."
+            exit 1
+          fi
+          echo "Pre-fix regression failed as expected; green proof follows on the pull-request head."
+
+      - name: Run real browser end-to-end test
+        run: npm run test:browser-e2e
