@@ -106,8 +106,51 @@ function buildTailoringReview(session) {
 function sourceAttestationDecisions(session) {
   return session.queue.flatMap((group) => group.candidates.map((item) => evidenceReview.decisionFrom(item.candidate, {
     action: 'accepted',
-    rationale: 'V1 source attestation: this evidence is exact source-backed material from the applicant-uploaded resume. The applicant is not being asked to re-verify it before tailoring.',
+    rationale: 'V1 source attestation: this item is traceable to exact text in the applicant-uploaded resume. The source text is trusted; any later materially changed wording remains separately reviewable.',
   })));
+}
+
+function sourceAttestedProposal(source, reviewDecision, reviewRun) {
+  const candidate = source.candidate;
+  const exact = String(candidate.provenance?.exact_source_text || candidate.supporting_text || '').trim();
+  if (!exact) return null;
+  const sourceReference = candidate.provenance?.evidence_span_id || candidate.source_reference;
+  const entityType = source.entity_type;
+  let value;
+  if (entityType === 'skill') value = { name: exact };
+  else if (['responsibility', 'achievement', 'domain_knowledge'].includes(entityType)) value = { text: exact };
+  else if (entityType === 'credential') value = { name: exact };
+  else if (entityType === 'project') {
+    const parentRaw = String(candidate.provenance?.semantic?.raw_text || '').trim();
+    const contextualText = String(candidate.provenance?.contextual_match?.matched_source_text || '').trim();
+    const name = parentRaw || exact;
+    value = { name, source_reference: sourceReference };
+    if (contextualText && normal(contextualText) !== normal(name)) value.text = contextualText;
+  } else return null;
+  return {
+    entityType,
+    value,
+    displayValue: entityType === 'project' && value.text ? `${value.name}: ${value.text}` : exact,
+    confirmationStatus: 'confirmed',
+    confidenceLevel: candidate.confidence_level,
+    sourceEvidenceRefs: reviewDecision.source_evidence_refs,
+    relatedReferences: [reviewRun.id],
+  };
+}
+
+function integrateSourceAttestedEvidence({ store, candidateProfileId, discoveryRunId, reviewRun }) {
+  const proposals = reviewRun.review_decisions
+    .filter((decision) => decision.action === 'accepted')
+    .map((decision) => {
+      const source = store.getEvidenceReviewCandidate(discoveryRunId, decision.evidence_candidate_id);
+      return sourceAttestedProposal(source, decision, reviewRun);
+    })
+    .filter(Boolean);
+  return proposals.length ? store.createCandidateKnowledgeIntegrationRun({
+    candidateProfileId,
+    evidenceDiscoveryRunId: discoveryRunId,
+    proposals,
+  }) : null;
 }
 
 async function prepare(session) {
@@ -120,7 +163,7 @@ async function prepare(session) {
     decisions,
     reviewActor: 'source_resume_attestation',
   });
-  const integration = evidenceReview.integrateReviewedEvidence({
+  const integration = integrateSourceAttestedEvidence({
     store: session.store,
     candidateProfileId: session.profileId,
     discoveryRunId: session.discoveryId,
@@ -276,4 +319,6 @@ module.exports = {
   translateCareerReviewDecisions,
   buildTailoringReview,
   sourceAttestationDecisions,
+  integrateSourceAttestedEvidence,
+  sourceAttestedProposal,
 };
