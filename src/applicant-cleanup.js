@@ -8,6 +8,14 @@ function cleanBulletArtifacts(value) {
     .replace(/:\s*[•▪◦]\s*/g, ': ');
 }
 
+function cleanEvidenceSourceText(value) {
+  return normalizeVisibleText(value)
+    .split('\n')
+    .map((line) => line.replace(/^\s*[•▪◦]\s*/, ''))
+    .join('\n')
+    .trim();
+}
+
 function cleanStatement(statement = {}) {
   const displayStyle = statement.display_style || 'bullet';
   let text = normalizeVisibleText(statement.text);
@@ -19,14 +27,44 @@ function cleanStatement(statement = {}) {
   };
 }
 
+function statementPreference(statement) {
+  if (DATE_RANGE.test(statement.text) && statement.display_style === 'line') return 5;
+  return {
+    heading: 4,
+    bullet: 3,
+    line: 2,
+    inline: 1,
+  }[statement.display_style] || 0;
+}
+
+function dedupeStatements(statements) {
+  const selected = new Map();
+  for (const [index, statement] of statements.entries()) {
+    const key = statement.text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+    if (!key) continue;
+    const current = selected.get(key);
+    if (!current) {
+      selected.set(key, { index, statement });
+      continue;
+    }
+    if (statementPreference(statement) > statementPreference(current.statement)) {
+      selected.set(key, { index: current.index, statement });
+    }
+  }
+  return [...selected.values()]
+    .sort((left, right) => left.index - right.index)
+    .map((item) => item.statement);
+}
+
 function cleanVersion(version) {
   if (!version || typeof version !== 'object') return version;
+  const statements = Array.isArray(version.statements)
+    ? version.statements.map(cleanStatement)
+    : version.statements;
   return {
     ...version,
     placeholder: version.placeholder == null ? version.placeholder : normalizeVisibleText(version.placeholder),
-    statements: Array.isArray(version.statements)
-      ? version.statements.map(cleanStatement)
-      : version.statements,
+    statements: Array.isArray(statements) ? dedupeStatements(statements) : statements,
   };
 }
 
@@ -53,6 +91,7 @@ function cleanMarkdown(markdown) {
 }
 
 module.exports = {
+  cleanEvidenceSourceText,
   cleanMarkdown,
   cleanReview,
   cleanRun,
