@@ -20,6 +20,8 @@ function normalizeVisibleText(value) {
   return text
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
     .replace(/[\uF0B7\u25AA\u25E6]/g, '•')
+    .replace(/[\uE000-\uF8FF]/g, '')
+    .replace(/[\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/gu, '')
     .replace(/\uFFFD/g, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -127,6 +129,14 @@ function validationSummary(status, findings = []) {
   };
 }
 
+function splitSkillItems(value) {
+  const text = normalizeVisibleText(value);
+  if (!text) return [];
+  const separator = text.includes(':') ? /\s*(?:[;•|]|\n)\s*/ : /\s*(?:[,;•|]|\n)\s*/;
+  const items = text.split(separator).map((item) => item.trim()).filter(Boolean);
+  return items.length ? items : [text];
+}
+
 function renderStatementHtml(statement) {
   const text = escapeHtml(statement.text);
   if (statement.display_style === 'heading') return `<h3 class="resume-entry-heading">${text}</h3>`;
@@ -135,6 +145,11 @@ function renderStatementHtml(statement) {
 }
 
 function renderResumeSectionHtml(sectionName, statements) {
+  if (String(sectionName).toLowerCase() === 'skills') {
+    const skills = statements.flatMap((statement) => splitSkillItems(statement.text));
+    return `<section class="resume-section resume-skills-section"><h2>${escapeHtml(sectionName)}</h2><ul class="resume-skills">${skills.map((skill) => `<li>${escapeHtml(skill)}</li>`).join('')}</ul></section>`;
+  }
+
   const rendered = statements.map(renderStatementHtml);
   const bullets = [];
   const blocks = [];
@@ -159,19 +174,23 @@ function resumeHtml(reviews, { title = 'Approved Resume', standalone = true } = 
 
 function resumeCss() {
   return `
-:root{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#eef1f5}
+:root{font-family:Inter,"Segoe UI",Arial,Helvetica,sans-serif;color:#172033;background:#eef1f5}
 *{box-sizing:border-box}
 body{margin:0;padding:32px}
-.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.58in .68in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.42}
-.resume-header{text-align:center;border-bottom:2px solid #253858;padding-bottom:12px;margin-bottom:18px}
-.resume-header .resume-line:first-child{font-size:25px;font-weight:700;margin:0 0 5px}
-.resume-line{margin:4px 0;font-size:10.5pt}
-.resume-section{margin:16px 0 0;break-inside:avoid}
-.resume-section>h2{margin:0 0 7px;border-bottom:1px solid #9aa7ba;padding-bottom:3px;font-size:12.5pt;letter-spacing:.04em;text-transform:uppercase;color:#253858}
-.resume-entry-heading{font-size:10.8pt;line-height:1.35;margin:9px 0 3px}
-ul{margin:4px 0 7px;padding-left:19px}
-li{font-size:10.2pt;line-height:1.4;margin:3px 0}
-@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.5in .62in}@page{size:Letter;margin:0}}
+.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.5in .6in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.36;color:#172033}
+.resume-header{text-align:center;border-bottom:1.5px solid #253858;padding-bottom:10px;margin-bottom:15px}
+.resume-header .resume-line:first-child{font-size:27px;font-weight:750;letter-spacing:.01em;margin:0 0 4px}
+.resume-header .resume-line:not(:first-child){font-size:9.6pt;color:#36445a}
+.resume-line{margin:3px 0;font-size:10pt;white-space:pre-line}
+.resume-section{margin:13px 0 0;break-inside:avoid}
+.resume-section>h2{margin:0 0 6px;border-bottom:1px solid #a8b2c1;padding-bottom:2px;font-size:11.5pt;letter-spacing:.055em;text-transform:uppercase;color:#253858}
+.resume-entry-heading{font-size:10.7pt;line-height:1.3;margin:8px 0 2px;font-weight:700;white-space:pre-line}
+ul{margin:3px 0 6px;padding-left:18px}
+li{font-size:10pt;line-height:1.36;margin:2px 0}
+.resume-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:26px;row-gap:1px;margin-top:2px}
+.resume-skills li{margin:1px 0}
+@media(max-width:650px){.resume-skills{grid-template-columns:1fr}}
+@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.44in .56in}@page{size:Letter;margin:0}}
 `;
 }
 
@@ -185,11 +204,11 @@ function careerReviewHtml(run, exported) {
       <div class="review-heading"><h2>${escapeHtml(review.section)}</h2><span>${escapeHtml(status)}</span></div>
       <div class="review-copy">${renderResumeSectionHtml(review.section, statements)}</div>
       <p><strong>Where this came from:</strong> ${escapeHtml(sectionOriginExplanation(review))}</p>
-      <details><summary>Why this presentation was used</summary><ul>${rationale || '<li>No additional presentation change was required.</li>'}</ul></details>
+      <div class="presentation-note"><strong>Why this section looks this way:</strong><ul>${rationale || '<li>No additional presentation change was required.</li>'}</ul></div>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Career Review — Approved Resume</title><style>${resumeCss()}
-body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto}.review-intro,.review-card{background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:20px;margin:18px 0}.review-heading{display:flex;justify-content:space-between;align-items:center}.review-heading span{background:#e8f5ec;color:#176b39;border-radius:999px;padding:4px 10px;font-weight:700}.review-copy .resume-section,.review-copy .resume-header{border:0;margin:8px 0;padding:0;text-align:left}.approved-preview{margin:24px 0}.technical-note{font-size:14px;color:#566277}</style></head><body><main class="review-shell"><section class="review-intro"><h1>Career Review complete</h1><p>This report shows the resume you approved or corrected in applicant-readable form. It deliberately omits raw identifiers and implementation fields.</p><p class="technical-note">The structured JSON remains available separately for audit and interoperability; it is not the primary applicant review surface.</p></section><div class="approved-preview">${approved}</div><h1>Section-by-section review record</h1>${sections}<section class="review-intro"><h2>Approved resume text</h2><pre>${escapeHtml(normalizeVisibleText(exported.markdown))}</pre></section></main></body></html>`;
+body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto}.review-intro,.review-card{background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:20px;margin:18px 0}.review-heading{display:flex;justify-content:space-between;align-items:center}.review-heading span{background:#e8f5ec;color:#176b39;border-radius:999px;padding:4px 10px;font-weight:700}.review-copy .resume-section,.review-copy .resume-header{border:0;margin:8px 0;padding:0;text-align:left}.approved-preview{margin:24px 0}.technical-note{font-size:14px;color:#566277}.presentation-note{background:#f6f8fb;border-radius:8px;padding:10px 12px}.presentation-note ul{margin-bottom:0}</style></head><body><main class="review-shell"><section class="review-intro"><h1>Career Review complete</h1><p>This report shows the resume you approved or corrected in applicant-readable form. It deliberately omits raw identifiers and implementation fields.</p><p class="technical-note">The structured JSON remains available separately for audit and interoperability; it is not the primary applicant review surface.</p></section><section class="review-intro"><h2>What changed for this application</h2><p>This is the final reviewed application resume, not a deletion log. Content not shown in this report is simply not part of this application artifact; your uploaded resume remains unchanged.</p><p>For each included section, <strong>Where this came from</strong> explains whether the wording was preserved from your source resume or created from reviewed evidence, and <strong>Why this section looks this way</strong> shows the available presentation rationale.</p></section><div class="approved-preview">${approved}</div><h1>Section-by-section review record</h1>${sections}<section class="review-intro"><h2>Approved resume text</h2><pre>${escapeHtml(normalizeVisibleText(exported.markdown))}</pre></section></main></body></html>`;
 }
 
 function pdfAscii(value) {
@@ -228,10 +247,17 @@ function pdfLines(reviews) {
         text: statement.text,
         style: index === 0 ? 'name' : 'contact',
       }));
-      lines.push({ style: 'space' });
+      lines.push({ style: 'header-rule' });
       continue;
     }
     lines.push({ text: review.section, style: 'section' });
+    if (String(review.section).toLowerCase() === 'skills') {
+      statements.flatMap((statement) => splitSkillItems(statement.text)).forEach((skill) => {
+        lines.push({ text: `- ${skill}`, style: 'bullet' });
+      });
+      lines.push({ style: 'space' });
+      continue;
+    }
     for (const statement of statements) {
       if (statement.display_style === 'heading') lines.push({ text: statement.text, style: 'heading' });
       else if (statement.display_style === 'line' || statement.display_style === 'inline') lines.push({ text: statement.text, style: 'line' });
@@ -245,10 +271,10 @@ function pdfLines(reviews) {
 function resumePdf(reviews) {
   const pageWidth = 612;
   const pageHeight = 792;
-  const left = 54;
-  const right = 54;
-  const top = 50;
-  const bottom = 48;
+  const left = 50;
+  const right = 50;
+  const top = 42;
+  const bottom = 42;
   const pages = [];
   let commands = [];
   let y = pageHeight - top;
@@ -270,17 +296,23 @@ function resumePdf(reviews) {
   }
 
   for (const item of pdfLines(reviews)) {
-    if (item.style === 'space') { y -= 5; continue; }
-    if (item.style === 'name') addText(item.text, { font: 'F2', size: 18, leading: 22, align: 'center' });
+    if (item.style === 'space') { y -= 4; continue; }
+    if (item.style === 'header-rule') {
+      y -= 2;
+      commands.push(`0.18 0.25 0.38 RG ${left} ${y} m ${pageWidth - right} ${y} l S`);
+      y -= 10;
+      continue;
+    }
+    if (item.style === 'name') addText(item.text, { font: 'F2', size: 20, leading: 24, align: 'center' });
     else if (item.style === 'contact') addText(item.text, { size: 9.5, leading: 12, align: 'center' });
     else if (item.style === 'section') {
       if (y - 30 < bottom) nextPage();
       y -= 3;
       commands.push(`0.18 0.25 0.38 RG ${left} ${y - 2} m ${pageWidth - right} ${y - 2} l S`);
-      addText(item.text.toUpperCase(), { font: 'F2', size: 11.5, leading: 16 });
-    } else if (item.style === 'heading') addText(item.text, { font: 'F2', size: 10.5, leading: 14 });
-    else if (item.style === 'bullet') addText(item.text, { size: 9.8, leading: 13, indent: 10 });
-    else addText(item.text, { size: 9.8, leading: 13 });
+      addText(item.text.toUpperCase(), { font: 'F2', size: 12, leading: 17 });
+    } else if (item.style === 'heading') addText(item.text, { font: 'F2', size: 10.7, leading: 14 });
+    else if (item.style === 'bullet') addText(item.text, { size: 10, leading: 13.5, indent: 11 });
+    else addText(item.text, { size: 10, leading: 13.5 });
   }
   if (commands.length || !pages.length) pages.push(commands.join('\n'));
 
@@ -333,6 +365,7 @@ module.exports = {
   resumePdf,
   sectionOriginExplanation,
   sectionStatements,
+  splitSkillItems,
   validationSummary,
   writeApplicantOutputs,
 };
