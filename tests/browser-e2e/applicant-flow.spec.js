@@ -72,6 +72,9 @@ test('real browser makes evidence reuse and Career Review correction understanda
   await expect(page.locator('#understanding')).toBeVisible();
   await expect(page.locator('#evidence')).toBeVisible();
   await expect(page.locator('#counts .metric')).toHaveCount(4);
+  await expect(page.locator('#understanding')).toContainText('Processing summary — no decision needed');
+  await expect(page.locator('#understanding')).toContainText('You do not need to take action here');
+  await expect(page.locator('#understanding')).not.toContainText(/safely align|exact normalized source span|Parent reference/i);
 
   await expect(page.locator('#accept-help')).toContainText('already comes from your uploaded resume');
   await expect(page.locator('#accept-help')).toContainText('does not decide what stays in your final resume');
@@ -107,6 +110,8 @@ test('real browser makes evidence reuse and Career Review correction understanda
   await expect(page.locator('#preview')).toContainText('Taylor Chen');
   await expect(page.locator('#preview')).toContainText('Experience');
   await expect(page.locator('#preview')).toContainText('Education');
+  await expect(page.locator('#preview .resume-skills')).toBeVisible();
+  expect(await page.locator('#preview .resume-skills li').count()).toBeGreaterThanOrEqual(4);
   await expect(page.locator('#validation')).toContainText(/Ready for your review|Ready for review/);
   await expect(page.locator('#state')).toHaveText(/3 of 5/);
   await expect(page.locator('#career')).toBeHidden();
@@ -120,6 +125,7 @@ test('real browser makes evidence reuse and Career Review correction understanda
   const reviewCards = page.locator('#reviews .review-card');
   expect(await reviewCards.count()).toBeGreaterThanOrEqual(5);
   await expect(page.locator('#reviews')).toContainText('Where this came from');
+  await expect(page.locator('#reviews')).toContainText('Why this section looks this way');
   await expect(page.locator('#reviews')).toContainText('Looks correct — approve this section');
   await expect(page.locator('#reviews')).toContainText('Needs changes — edit this section before export');
   await expect(page.locator('#reviews')).not.toContainText(/Candidate Knowledge|003\.6|statement_id|candidate_fact_id|resume_content_selection_ids/);
@@ -155,6 +161,8 @@ test('real browser makes evidence reuse and Career Review correction understanda
   const pdfBody = await pdf.body();
   expect(pdfBody.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
   expect(pdfBody.toString('latin1')).toContain('Taylor Chen Updated');
+  expect(pdfBody.toString('latin1')).toContain('/F2 20 Tf');
+  expect(pdfBody.toString('latin1')).toContain('/F2 12 Tf');
 
   const report = await request.get(`${baseURL}${reportHref}`);
   expect(report.status()).toBe(200);
@@ -162,6 +170,8 @@ test('real browser makes evidence reuse and Career Review correction understanda
   expect(reportText).toContain('Career Review complete');
   expect(reportText).toContain('Taylor Chen Updated');
   expect(reportText).toContain('Where this came from');
+  expect(reportText).toContain('What changed for this application');
+  expect(reportText).toMatch(/uploaded resume remains unchanged/i);
   expect(reportText).not.toMatch(/Candidate Knowledge|003\.6|statement_id|candidate_fact_id|[0-9a-f]{8}-[0-9a-f-]{27,}/i);
 
   for (const name of ['final-resume.md', 'final-resume.json']) {
