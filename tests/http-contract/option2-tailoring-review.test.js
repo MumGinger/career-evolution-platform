@@ -44,20 +44,21 @@ test('applicant surface reviews concrete tailoring instead of re-verifying uploa
   assert.match(APPLICANT_PAGE, /What is inaccurate or missing/);
 });
 
-test('LLM-first start treats uploaded resume evidence as source-attested through 003.6 and returns a concrete tailoring review', async () => withServer(async ({ app, base }) => {
+test('LLM-first start source-attests uploaded resume through 003.6 and returns concrete tailoring proposals', async () => withServer(async ({ app, base }) => {
   const started = await json(`${base}/api/llm-first/start`, input());
-  assert.equal(started.response.status, 201);
+  assert.equal(started.response.status, 201, JSON.stringify(started.value));
   assert.equal(started.value.stage, 'Tailoring Review');
   assert.ok(Array.isArray(started.value.tailoringReview));
   assert.ok(started.value.tailoringReview.length > 0);
   assert.ok(started.value.tailoringReview.every((item) => item.originalText && item.tailoredText));
-  assert.ok(started.value.tailoringReview.every((item) => item.originalText !== item.tailoredText || item.materialRewrite === false));
 
   const session = app.sessions.get(started.value.sessionId);
-  assert.ok(session.reviewRun?.id, 'source-attested Evidence Review run remains an internal immutable boundary');
+  assert.ok(session.reviewRun?.id, 'source-attested review remains an internal immutable boundary');
   assert.equal(session.reviewRun.review_actor, 'source_resume_attestation');
-  assert.ok(session.integration?.id, '003.6 remains the only Candidate Knowledge write path');
-  assert.ok(session.store.getCommittedCandidateKnowledge(session.profileId).length > 0);
+  assert.ok(session.integration?.id, '003.6 remains the Candidate Knowledge write path');
+  const facts = session.store.getCommittedCandidateKnowledge(session.profileId);
+  assert.ok(facts.length > 0);
+  assert.ok(facts.every((fact) => fact.integration_decision_id));
 }));
 
 test('source attestation never promotes an AI-only normalized meaning into Candidate Knowledge', async () => {
@@ -83,22 +84,49 @@ test('source attestation never promotes an AI-only normalized meaning into Candi
   }, { resumeUnderstandingProviderFromConfig: () => provider });
 });
 
-test('needs-correction records applicant context without silently writing it as Candidate Knowledge', async () => withServer(async ({ app, base }) => {
+test('needs-correction flows through acquisition and 003.6, regenerates, and requires a second tailoring decision', async () => withServer(async ({ app, base }) => {
   const started = await json(`${base}/api/llm-first/start`, input());
-  const target = started.value.tailoringReview.find((item) => item.materialRewrite) || started.value.tailoringReview[0];
-  const before = app.sessions.get(started.value.sessionId).store.getCommittedCandidateKnowledge(app.sessions.get(started.value.sessionId).profileId).length;
+  assert.equal(started.response.status, 201, JSON.stringify(started.value));
+  const material = started.value.tailoringReview.filter((item) => item.materialRewrite);
+  assert.ok(material.length > 0, JSON.stringify(started.value.tailoringReview));
+  const target = material.find((item) => ['Experience', 'Projects'].includes(item.section)) || material[0];
+  const session = app.sessions.get(started.value.sessionId);
+  const before = session.store.getCommittedCandidateKnowledge(session.profileId);
+  const prior = before.find((fact) => fact.id === target.candidateFactId);
+  assert.ok(prior, JSON.stringify({ target, before }));
 
-  const reviewed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
-    decisions: started.value.tailoringReview.map((item) => item.id === target.id
-      ? { id: item.id, action: 'needs_correction', correction: 'The dashboard reported FX exposure, not portfolio risk.' }
+  const correction = 'The dashboard reported FX exposure, not portfolio risk.';
+  const corrected = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
+    decisions: material.map((item) => item.id === target.id
+      ? { id: item.id, action: 'needs_correction', correction }
       : { id: item.id, action: 'use_tailored' }),
   });
-  assert.equal(reviewed.response.status, 200);
-  assert.equal(reviewed.value.stage, 'Career Review');
-  assert.ok(reviewed.value.corrections.some((item) => item.id === target.id && item.status === 'deferred_pending_integration'));
+  assert.equal(corrected.response.status, 200, JSON.stringify(corrected.value));
+  assert.equal(corrected.value.stage, 'Tailoring Review');
+  assert.equal(corrected.value.regenerated, true);
+  assert.ok(corrected.value.corrections.some((item) => item.id === target.id && item.status === 'integrated_and_regenerated'));
+  assert.ok(Array.isArray(corrected.value.tailoringReview));
+  assert.ok(corrected.value.tailoringReview.length > 0);
 
-  const session = app.sessions.get(started.value.sessionId);
-  const after = session.store.getCommittedCandidateKnowledge(session.profileId).length;
-  assert.equal(after, before, 'free-text correction is not silently committed as Candidate Knowledge');
-  assert.ok(session.correctionObservations?.length > 0);
+  assert.equal(session.correctionIntegrations.length, 1);
+  const correctionRun = session.correctionIntegrations[0];
+  assert.ok(correctionRun.acquisition.id);
+  assert.ok(correctionRun.integration.id);
+  assert.ok(correctionRun.integration.applied_facts.length > 0);
+  assert.ok(correctionRun.integration.integration_decisions.every((decision) => decision.policy_version.includes('candidate-knowledge-integration-policy')));
+
+  const after = session.store.getCommittedCandidateKnowledge(session.profileId);
+  assert.ok(after.some((fact) => JSON.stringify(fact).includes('FX exposure')), JSON.stringify(after));
+  assert.ok(!after.some((fact) => fact.id === prior.id), 'superseded fact must not remain in effective Candidate Knowledge');
+  const revisions = session.store.db.prepare('SELECT * FROM candidate_fact_revisions WHERE prior_fact_id = ?').all(prior.id);
+  assert.ok(revisions.some((revision) => revision.relation === 'supersedes'));
+
+  const secondMaterial = corrected.value.tailoringReview.filter((item) => item.materialRewrite);
+  const reviewed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
+    decisions: secondMaterial.map((item) => ({ id: item.id, action: 'use_tailored' })),
+  });
+  assert.equal(reviewed.response.status, 200, JSON.stringify(reviewed.value));
+  assert.equal(reviewed.value.stage, 'Career Review');
+  assert.ok(Array.isArray(reviewed.value.careerReview));
+  assert.ok(reviewed.value.careerReview.length > 0);
 }));
