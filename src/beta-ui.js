@@ -44,8 +44,8 @@ function normalizeApplicantResponse(value) {
   if (Array.isArray(value.candidates)) {
     value.candidates = value.candidates.map((candidate) => ({
       ...candidate,
-      claim: applicant.normalizeVisibleText(candidate.claim),
-      sourceText: applicant.normalizeVisibleText(candidate.sourceText),
+      claim: cleanup.cleanStatement({ text: candidate.claim, display_style: 'bullet' }).text,
+      sourceText: cleanup.cleanEvidenceSourceText(candidate.sourceText),
       rationale: applicant.normalizeVisibleText(candidate.rationale),
     }));
     value.acceptExplanation = applicant.evidenceAcceptExplanation();
