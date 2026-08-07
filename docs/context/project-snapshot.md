@@ -1,111 +1,117 @@
 # Project Snapshot
 
-**As of:** 2026-08-06 — after Beta #5 FAIL
+**As of:** 2026-08-06 — after Beta #5 engineering recovery
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
 
 ## State
 
 - The representative evidence-to-export engineering flow remains **Implemented and Integrated** for its specified behavior.
-- **Beta #1 / Issue #73:** FAIL.
-- **Beta #2 / Issue #82:** FAIL.
-- **Issue #83 / PR #87:** complete-resume composition engineering complete.
-- **Beta #3 / Issue #93:** FAIL.
-- **Issues #95 and #97 / PR #99:** applicant-readable review/export and proof-tier engineering merged; Issue #97 remains open as a product-quality objective.
-- **Beta #4 / Issue #100:** FAIL at Evidence Review Candidate 1.
-- **Issues #101–#103 / PR #104:** engineering recovery merged at `3ee73fa1c03b9ec59e21397af6dff06acf2e5ca5` and checkpointed by PR #105 at `40ad92315105b04bc1911f23c8f9daaeb77971f3`.
-- **Beta #5 / Issue #106:** **FAIL** at Evidence Review Candidate 1; issue closed after recording the result.
-- **Issue #107:** OPEN — decisive Beta #5 blocker, Evidence Review still reads as a resume-inclusion decision.
-- **Issue #108:** OPEN — supplemental Beta #5 finding, Career Review asks for approval without a clear correction path.
-- **Beta Accepted:** **NO**.
+- Beta #1 / Issue #73: **FAIL**.
+- Beta #2 / Issue #82: **FAIL**.
+- Issue #83 / PR #87: complete-resume composition engineering complete.
+- Beta #3 / Issue #93: **FAIL**.
+- Issues #95 and #97 / PR #99: applicant-readable review/export and proof-tier engineering merged; Issue #97 remains open for fresh-user product acceptance.
+- Beta #4 / Issue #100: **FAIL**.
+- Issues #101–#103 / PR #104: engineering recovery merged and checkpointed by PR #105.
+- Beta #5 / Issue #106: **FAIL at Evidence Review Candidate 1**. This historical result is unchanged.
+- Issues #107 and #108 / PR #111: engineering recovery merged at `f06ce4633799e1e938d267a29b1aba9cf9851281`; both issues are closed after regression and shipped-browser proof.
+- Beta Accepted: **NO**.
 
-Beta #5 is not a continuation of Beta #4. It was a fresh run from Landing/Input with a real resume and real job description. The historical Beta #4 result remains unchanged.
+The next product gate must be a fresh Beta. Engineering proof does not convert Beta #5 into PASS.
 
-## Decisive Beta #5 evidence
+## What PR #111 changed
 
-The applicant still interpreted Accept/Skip as deciding whether the reviewed material should be placed in the tailored resume.
+### Evidence Review
 
-Direct user evidence included:
+The applicant-facing decision now separates three concepts that Beta #5 conflated:
 
-> “ask me to whether put this on my resume”
+- **uploaded source evidence** — what came from the applicant's resume;
+- **possible evidence reuse** — how that evidence may support new or rewritten tailored wording;
+- **job relevance** — why the evidence was surfaced.
 
-> “skip means doesn't put on my resume for this job?”
+Accept permits the reviewed evidence to support new/rewritten wording after later checks. It does not guarantee final-resume inclusion and does not decide whether source-resume text remains. Skip prevents that evidence from being reused for new/rewritten wording and does not delete the uploaded source text.
 
-> “i upload my resume and these are all true i don't need to verify again right … so what i think is that this is whether i want to put it on my resume”
+The old `Proposed resume use` framing and applicant-visible Candidate Knowledge / 003.6 terminology are removed from the primary decision surface. Every Evidence Review candidate remains individually reviewable.
 
-The applicant therefore could not make Candidate 1's decision with the product's intended consequence in mind. Continuing would have required guessing, so the credible Beta stopped there.
+### Draft presentation
 
-Additional Candidate 1 confusion:
+Applicant presentation cleanup now:
 
-- **Source text** versus **Proposed resume use** was not practically distinguishable;
-- stray bullet markers reduced readability;
-- the applicant expected ordinary tailoring to trim less-relevant details within a useful experience and was unsure whether the Accept wording allowed that.
-
-## Earlier-stage Beta #5 observations
-
-### Landing / Input
-
-- Generally clear and unobtrusive.
-- **Base URL** remained unexplained to the applicant.
-
-### Understanding and exclusions
-
-The applicant still did not understand the purpose of the section, what was being extracted, or what "safe to use" / "safely align" meant. They chose to move on rather than spend more time interpreting it.
-
-## Supplemental later-stage evidence
-
-After the Beta had already failed, the applicant manually continued exploring the UI. This evidence is useful but does not make those stages credibly reached for Beta acceptance.
-
-### Draft / validation
-
-The applicant reported that the draft remained hard to read and "very stupid" because of repetitive content and poor formatting. Visible content included paragraph text repeated as bullets, stray bullet markers, compressed headings/dates, and duplicated project/experience wording. This is recorded against Issue #97.
+- removes unexplained source bullet glyphs;
+- collapses adjacent duplicate visible statements caused by alternate presentation forms;
+- removes a repeated entry/project heading prefix from the following bullet;
+- preserves identical legitimate source wording when it occurs under separate jobs or headings;
+- preserves negative values such as `-5%`;
+- keeps existing date-range and mojibake cleanup at the presentation boundary only.
 
 ### Career Review
 
-The applicant did not know how to correct content they could not approve and believed every section had to be approved before PDF export. Issue #108 records this finding.
+Every populated section now presents a visible human choice:
+
+- `Looks correct — approve this section`; or
+- `Needs changes — edit this section before export`.
+
+An applicant can correct reviewed text before export instead of approving incorrect content merely to continue. Manual edits use the existing Human Review edit authority, preserve the original AI version separately, do not write Candidate Knowledge, and flow through PDF, Career Review HTML, Markdown, and JSON.
 
 ## Protected capability boundary
 
-The Beta #5 product failure does **not** alter the truth or authority model:
+PR #111 did not introduce a new knowledge, provenance, composition, validation, provider, review, export, or privacy authority path.
 
 - 003.6 remains the sole Candidate Knowledge integration/write authority.
-- Exact source content remains source-resume passthrough, source-linked, and unable to create Candidate Knowledge.
-- Generated or materially rewritten claims remain Candidate-Knowledge-backed with existing provenance and validation requirements.
-- Complete-resume composition and source-passthrough guarantees from Issue #83 / PR #87 remain intact.
+- Source-resume passthrough remains source-linked and cannot create Candidate Knowledge.
+- Generated or materially rewritten claims retain existing Candidate Knowledge, provenance, and validation requirements.
+- Complete-resume composition and source-passthrough guarantees remain unchanged.
 - Deterministic validation remains authoritative.
-- Every populated Career Review section still requires explicit human review before export.
-- Human review decisions do not silently rewrite Candidate Knowledge.
-- `final-resume.pdf` remains the intended primary applicant-facing output; readable Career Review HTML, Markdown, and structured JSON remain available.
-- Provider keys remain memory-only/private.
+- Career Review / Human Review remains the human authority before export.
+- Manual Career Review edits do not silently rewrite Candidate Knowledge.
+- Provider credentials remain memory-only/private.
 - The unresolved complete-source/no-core-tailoring-selection policy recorded from Issue #95 remains unchanged.
 
-No Beta finding authorizes weakening provenance, Candidate Knowledge, validation, source-passthrough, privacy, or human-review boundaries.
+## Engineering proof
 
-## Acceptance status
+Regression-first browser and unit changes were committed before production behavior changed.
 
-The following remain **UNKNOWN / not credibly reached in Beta #5**:
+PR #111 final merge-candidate CI run `31146301364`:
 
-- later Evidence Review candidates and full Evidence Review burden;
-- Draft progression and validation as a clean end-to-end stage;
-- every Career Review section as a clean end-to-end stage;
-- `final-resume.pdf` submission quality;
-- `career-review-report.html` usefulness;
-- `final-resume.md` equivalence;
-- `final-resume.json` equivalence;
-- final submission decision;
-- meaningful time saved;
-- practical value;
-- end-to-end trust and transparency;
-- whether the applicant would use the product again.
+- unit tests: **PASS**;
+- full integration tests: **PASS**;
+- patch whitespace: **PASS**;
+- HTTP / representative PDF contract: **PASS**;
+- pre-change Chromium RED proof: **PASS**;
+- current Chromium GREEN proof: **PASS**;
+- every Evidence candidate remains reviewable: **PASS**;
+- Career Review correction path: **PASS**;
+- applicant edit reaches PDF/HTML/Markdown/JSON: **PASS**;
+- source-completeness counterexamples: **PASS**;
+- review threads: **none**;
+- current-primary merge candidate: **PASS**.
 
-No prior work was reported lost.
+The final CI checkout tested the PR merge ref combining #111 with the Beta #5 failure checkpoint on primary (`07420fe2216c25bbfbb369c14e8a640978f342aa`).
+
+Manual secret-gated real-provider smoke for this presentation/human-review change is **UNKNOWN / non-blocking** because the provider execution path did not change.
+
+## Product acceptance still unresolved
+
+Issue #97 remains open. A fresh Beta must determine whether a first-time applicant:
+
+- understands Evidence Review without interpreting Accept/Skip as final inclusion;
+- can complete every Evidence candidate with reasonable burden;
+- finds the Draft readable and free of material repetition/artifacts;
+- discovers how to correct a Career Review section without coaching;
+- trusts the review/source explanations;
+- would submit `final-resume.pdf` without rebuilding it elsewhere;
+- saves meaningful time;
+- would use the product again.
+
+Beta #5 later-stage judgments remain **UNKNOWN** because the credible run stopped at Evidence Review Candidate 1.
 
 ## Next cross-room action
 
-1. Treat Issue #107 as the decisive current product blocker.
-2. Keep Issue #97 active for applicant-readable Draft/final-resume quality and Issue #108 active for the Career Review correction-path problem.
-3. Do not reinterpret closed Issues #101–#103 as product acceptance; they remain engineering proof only.
-4. Resolve and durably checkpoint the blocking product findings before creating the next Beta.
-5. The next Beta must be fresh from Landing/Input with a real resume and real job description; do not continue Beta #5.
+1. Merge the durable Beta #5 engineering recovery checkpoint containing this snapshot, `docs/context/engineering-handoff.md`, `docs/context/beta-handoff.md`, and `docs/current-state.md`.
+2. Only after the checkpoint is merged, create a fresh Beta #6 issue.
+3. Beta #6 must start from Landing/Input with a real resume and real job description; do not continue Beta #5.
+4. Retest Evidence Review Candidate 1 comprehension before the applicant chooses.
+5. If that blocker is cleared, continue through every Evidence candidate, Draft/validation, Career Review, all final artifacts, submission readiness, time/value, burden, trust, and reuse intent.
 
 Current GitHub and Layer 1 records override this snapshot.
