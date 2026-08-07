@@ -176,16 +176,16 @@ test('representative PDF survives extraction, review, composition, Career Review
       'Taylor Chen',
       'taylor.chen@example.com',
       '+1 416 555 0199',
-      'Senior Analyst',
+      'Senior Analyst – Northstar Insurance',
       'Built recurring executive reporting for claims leaders.',
-      'Data Analyst',
+      'Data Analyst – City Lab',
       'Automated data quality checks with Python and SQL.',
       'Python, SQL, Power BI, Tableau',
-      'B.Sc. Statistics',
+      'B.Sc. Statistics – Example University',
       'Microsoft Power BI Data Analyst',
       'Azure Data Fundamentals',
     ]) assert.equal(count(markdown, phrase), 1, `${phrase}\n${markdown}`);
-    assert.doesNotMatch(markdown, /â€¢|â€“|ï‚·||\uFFFD/);
+    assert.doesNotMatch(markdown, /-\s+[•▪◦]|â€¢|â€“|ï‚·||\uFFFD/);
 
     const jsonResponse = await fetch(`${base}/api/llm-first/sessions/${started.value.sessionId}/outputs/final-resume.json`);
     const structured = await jsonResponse.json();
