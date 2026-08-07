@@ -79,6 +79,14 @@ async function json(url, options = {}) {
 function count(text, phrase) {
   return text.split(phrase).length - 1;
 }
+function markdownSection(markdown, heading) {
+  const marker = `## ${heading}`;
+  const start = markdown.indexOf(marker);
+  assert.notEqual(start, -1, `${heading} section is missing\n${markdown}`);
+  const remainder = markdown.slice(start + marker.length);
+  const nextSection = remainder.search(/\n## /);
+  return nextSection === -1 ? remainder : remainder.slice(0, nextSection);
+}
 
 test('representative PDF survives extraction, review, composition, Career Review, and every export', async () => {
   const check = spawnSync('pdftotext', ['-v'], { encoding: 'utf8' });
@@ -180,12 +188,15 @@ test('representative PDF survives extraction, review, composition, Career Review
       'Built recurring executive reporting for claims leaders.',
       'Data Analyst – City Lab',
       'Automated data quality checks with Python and SQL.',
-      'Python, SQL, Power BI, Tableau',
       'B.Sc. Statistics – Example University',
       'Microsoft Power BI Data Analyst',
       'Azure Data Fundamentals',
     ]) assert.equal(count(markdown, phrase), 1, `${phrase}\n${markdown}`);
-    assert.doesNotMatch(markdown, /-\s+[•▪◦]|â€¢|â€“|ï‚·||\uFFFD/);
+    const skills = markdownSection(markdown, 'Skills');
+    for (const skill of ['Python', 'SQL', 'Power BI', 'Tableau']) {
+      assert.equal(count(skills, `- ${skill}`), 1, `${skill} is not preserved exactly once in Skills\n${skills}`);
+    }
+    assert.doesNotMatch(markdown, /[•▪◦]|â€¢|â€“|ï‚·||\uFFFD/);
 
     const jsonResponse = await fetch(`${base}/api/llm-first/sessions/${started.value.sessionId}/outputs/final-resume.json`);
     const structured = await jsonResponse.json();
