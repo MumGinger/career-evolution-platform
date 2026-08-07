@@ -76,9 +76,7 @@ async function json(url, options = {}) {
   const response = await fetch(url, options);
   return { response, value: await response.json() };
 }
-function count(text, phrase) {
-  return text.split(phrase).length - 1;
-}
+function count(text, phrase) { return text.split(phrase).length - 1; }
 function markdownSection(markdown, heading) {
   const marker = `## ${heading}`;
   const start = markdown.indexOf(marker);
@@ -88,7 +86,7 @@ function markdownSection(markdown, heading) {
   return nextSection === -1 ? remainder : remainder.slice(0, nextSection);
 }
 
-test('representative PDF survives extraction, review, composition, Career Review, and every export', async () => {
+test('representative PDF survives Option 2 source attestation, concrete review, composition, Career Review, and every export', async () => {
   const check = spawnSync('pdftotext', ['-v'], { encoding: 'utf8' });
   assert.notEqual(check.error?.code, 'ENOENT', 'pdftotext is required for the representative PDF contract tier');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'representative-pdf-contract-'));
@@ -115,26 +113,16 @@ test('representative PDF survives extraction, review, composition, Career Review
       }),
     });
     assert.equal(started.response.status, 201, JSON.stringify(started.value));
-    assert.ok(started.value.candidates.some((item) => item.section === 'project'), JSON.stringify(started.value.candidates));
-
-    const confirmed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/confirm`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        decisions: started.value.candidates.map((item) => ({
-          evidence_candidate_id: item.evidence_candidate_id,
-          action: item.section === 'project' ? 'accept' : 'skip',
-        })),
-      }),
-    });
-    assert.equal(confirmed.response.status, 200, JSON.stringify(confirmed.value));
-    assert.equal(confirmed.value.blocked, false, JSON.stringify(confirmed.value));
-    assert.ok(Array.isArray(confirmed.value.careerReview));
+    assert.equal(started.value.stage, 'Tailoring Review');
+    assert.ok(Array.isArray(started.value.tailoringReview));
 
     const session = app.sessions.get(started.value.sessionId);
+    assert.equal(session.reviewRun.review_actor, 'source_resume_attestation');
+    assert.ok(session.integration?.id);
     const committed = session.store.getCommittedCandidateKnowledge(session.profileId);
     assert.ok(committed.length > 0);
-    assert.ok(committed.every((fact) => fact.entity_type === 'project'), JSON.stringify(committed));
+    assert.ok(committed.some((fact) => fact.entity_type === 'project'));
+    assert.ok(committed.some((fact) => fact.entity_type === 'responsibility'));
 
     const artifact = session.artifact.resume_artifacts[0];
     const bySection = new Map(artifact.content.sections.map((section) => [section.section, section.statements]));
@@ -150,17 +138,22 @@ test('representative PDF survives extraction, review, composition, Career Review
         assert.ok(statement.provenance.candidate_fact_ids.length > 0);
       }
     }
-    assert.ok(bySection.get('Projects').some((statement) => statement.content_origin === 'candidate_knowledge_generated'));
-    assert.ok(artifact.content.sections
-      .filter((section) => section.section !== 'Projects')
-      .flatMap((section) => section.statements)
-      .every((statement) => statement.content_origin === 'source_resume_passthrough'));
+
+    const material = started.value.tailoringReview.filter((item) => item.materialRewrite);
+    const reviewed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decisions: material.map((item) => ({ id: item.id, action: 'keep_original' })) }),
+    });
+    assert.equal(reviewed.response.status, 200, JSON.stringify(reviewed.value));
+    assert.equal(reviewed.value.stage, 'Career Review');
+    assert.ok(Array.isArray(reviewed.value.careerReview));
 
     const completed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/career-review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        decisions: confirmed.value.careerReview.map((section) => ({ section: section.section, action: 'approve' })),
+        decisions: reviewed.value.careerReview.map((section) => ({ section: section.section, action: 'approve' })),
       }),
     });
     assert.equal(completed.response.status, 200, JSON.stringify(completed.value));
