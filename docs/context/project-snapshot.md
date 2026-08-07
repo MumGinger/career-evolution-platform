@@ -1,7 +1,7 @@
 # Project Snapshot
 
-**As of:** 2026-08-06 — after Beta #4 engineering recovery  
-**Repository:** `MumGinger/career-evolution-platform`  
+**As of:** 2026-08-06 — after Beta #4 engineering recovery
+**Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
 
 ## State
