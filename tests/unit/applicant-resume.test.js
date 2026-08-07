@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const applicant = require('../../src/applicant-resume');
+const cleanup = require('../../src/applicant-cleanup');
 
 function reviewRun() {
   return {
@@ -54,6 +55,12 @@ test('visible text normalization repairs common PDF mojibake without inventing c
     'Built dashboards • improved reporting – 2023',
   );
   assert.equal(applicant.normalizeVisibleText('A\uF0B7 B\uFFFD'), 'A• B');
+});
+
+test('visible bullet cleanup preserves legitimate leading negative values', () => {
+  assert.equal(cleanup.cleanStatement({ text: '• Reduced review time.', display_style: 'bullet' }).text, 'Reduced review time.');
+  assert.equal(cleanup.cleanStatement({ text: '- Reduced review time.', display_style: 'bullet' }).text, 'Reduced review time.');
+  assert.equal(cleanup.cleanStatement({ text: '-5% variance remained.', display_style: 'bullet' }).text, '-5% variance remained.');
 });
 
 test('passed_with_warnings is translated into applicant-readable action language', () => {
