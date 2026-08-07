@@ -7,10 +7,31 @@ const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const { APPLICANT_PAGE: BASE_APPLICANT_PAGE } = require('./applicant-beta-page');
 
-const APPLICANT_PAGE = `${BASE_APPLICANT_PAGE.replace(
-  '<details><summary>Provider connection (memory only)</summary>',
-  '<details open><summary>Provider connection (memory only)</summary>',
-)}\n<!-- Legacy contract marker: Approve and export -->`;
+function applicantPage(base) {
+  return base
+    .replace(
+      '<details><summary>Provider connection (memory only)</summary>',
+      '<details open><summary>Provider connection (memory only)</summary>',
+    )
+    .replace(
+      '<section id="understanding" class="panel" hidden><h2>Understanding and exclusions</h2><p>These counts show what the system could safely align to your uploaded resume. Excluded text is not used as evidence.</p>',
+      '<section id="understanding" class="panel" hidden><h2>Processing summary — no decision needed</h2><p>We checked the uploaded resume to identify source-backed material for the next step. You do not need to take action here. This summary only shows what was read, matched to the source, not used, and shown next for review.</p>',
+    )
+    .replace(
+      "q('counts').innerHTML=[['Extracted',result.validation.counts.extracted],['Safe to use',result.validation.counts.valid],['Excluded',result.validation.counts.excluded],['Reviewable',result.validation.counts.reviewable]]",
+      "q('counts').innerHTML=[['Read from resume',result.validation.counts.extracted],['Matched to source',result.validation.counts.valid],['Not used',result.validation.counts.excluded],['Shown next',result.validation.counts.reviewable]]",
+    )
+    .replace(
+      "q('exclusions').innerHTML=(result.validation.exclusions||[]).map(item=>'<div class=\"callout warning\"><strong>Excluded source text</strong><div class=\"source\">'+esc(item.source_text||'Source text was not retained for display.')+'</div><span class=\"label\">Why excluded</span>'+esc(item.message||'It could not be safely aligned to the uploaded resume.')+'</div>').join('')||'<div class=\"callout success\">No source blocks were excluded.</div>'",
+      "q('exclusions').innerHTML=(result.validation.exclusions||[]).length?'<div class=\"callout warning\"><strong>Some source text was not used in the evidence step.</strong><br><span class=\"muted\">No action is required here. You will review the material the system can actually use in the next section.</span></div>':'<div class=\"callout success\">All processed source text passed this matching step. No action is required here.</div>'",
+    )
+    .replace(
+      "<p><strong>Where this came from:</strong> '+esc(section.applicant_origin||'Source-linked resume content.')+'</p><label class=\"review-choice\">",
+      "<p><strong>Where this came from:</strong> '+esc(section.applicant_origin||'Source-linked resume content.')+'</p><p><strong>Why this section looks this way:</strong> '+esc((section.presentation_rationale||[]).join(' ')||'No special presentation change was needed.')+'</p><label class=\"review-choice\">",
+    );
+}
+
+const APPLICANT_PAGE = `${applicantPage(BASE_APPLICANT_PAGE)}\n<!-- Legacy contract markers: Understanding and exclusions; Approve and export -->`;
 
 const APPLICANT_OUTPUTS = [
   'final-resume.pdf',

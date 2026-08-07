@@ -46,8 +46,12 @@ function statementPreference(statement) {
   }[statement.display_style] || 0;
 }
 
+function canonicalText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+}
+
 function canonicalStatementText(statement) {
-  return statement.text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+  return canonicalText(statement.text);
 }
 
 function dedupeAdjacentStatements(statements) {
@@ -63,6 +67,25 @@ function dedupeAdjacentStatements(statements) {
     result.push(statement);
   }
   return result;
+}
+
+function removeEmbeddedBulletLinesFromHeadings(statements) {
+  return statements.map((statement, index) => {
+    if (statement.display_style !== 'heading' || !statement.text.includes('\n')) return statement;
+
+    const followingBullets = new Set();
+    for (let cursor = index + 1; cursor < statements.length; cursor += 1) {
+      const next = statements[cursor];
+      if (next.display_style === 'heading') break;
+      if (next.display_style === 'bullet') followingBullets.add(canonicalStatementText(next));
+    }
+    if (!followingBullets.size) return statement;
+
+    const lines = statement.text.split('\n').map((line) => line.trim()).filter(Boolean);
+    const retained = lines.filter((line) => !followingBullets.has(canonicalText(line)));
+    if (!retained.length || retained.length === lines.length) return statement;
+    return { ...statement, text: retained.join('\n') };
+  });
 }
 
 function removeRepeatedHeadingPrefixes(statements) {
@@ -82,9 +105,13 @@ function removeRepeatedHeadingPrefixes(statements) {
 
 function cleanVersion(version) {
   if (!version || typeof version !== 'object') return version;
-  const statements = Array.isArray(version.statements)
-    ? removeRepeatedHeadingPrefixes(dedupeAdjacentStatements(version.statements.map(cleanStatement)))
-    : version.statements;
+  let statements = version.statements;
+  if (Array.isArray(statements)) {
+    statements = statements.map(cleanStatement);
+    statements = removeEmbeddedBulletLinesFromHeadings(statements);
+    statements = dedupeAdjacentStatements(statements);
+    statements = removeRepeatedHeadingPrefixes(statements);
+  }
   return {
     ...version,
     placeholder: version.placeholder == null ? version.placeholder : normalizeVisibleText(version.placeholder),
