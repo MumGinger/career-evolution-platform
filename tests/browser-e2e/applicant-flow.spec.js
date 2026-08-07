@@ -48,7 +48,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('real browser reviews concrete tailoring, captures correction safely, and preserves Career Review authority', async ({ page, request }) => {
+test('real browser reviews concrete tailoring, regenerates after correction, and preserves Career Review authority', async ({ page, request }) => {
   await page.goto(baseURL);
   await expect(page.getByRole('heading', { name: 'Build and verify your tailored resume' })).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/1 of 5/);
@@ -84,18 +84,38 @@ test('real browser reviews concrete tailoring, captures correction safely, and p
   await expect(page.locator('#tailoring')).toContainText('Needs correction');
   await expect(page.locator('#tailoring')).not.toContainText(/Evidence Review|Accept —|Skip —|Candidate Knowledge|003\.6/i);
 
-  const materialChoices = page.locator('input[data-tailoring-choice]');
-  expect(await materialChoices.count()).toBeGreaterThan(0);
-  const materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
+  let materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
   expect(await materialCards.count()).toBeGreaterThan(0);
-
   const firstCard = materialCards.first();
   const firstName = await firstCard.locator('input[data-tailoring-choice]').first().getAttribute('name');
   await firstCard.locator('input[value="needs_correction"]').check();
   await expect(firstCard.locator('.correction-box')).toBeVisible();
-  await firstCard.locator(`textarea[data-correction="${firstName}"]`).fill('This wording misses the source context; keep my original wording for this draft.');
-
+  await firstCard.locator(`textarea[data-correction="${firstName}"]`).fill('The dashboard focused on FX exposure reporting; it did not cover portfolio risk.');
   for (let index = 1; index < await materialCards.count(); index += 1) {
+    await materialCards.nth(index).locator('input[value="use_tailored"]').check();
+  }
+  await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Apply my wording choices' }).click();
+
+  await expect(page.locator('#tailoring')).toBeVisible();
+  await expect(page.locator('#draft')).toBeHidden();
+  await expect(page.locator('#state')).toHaveText(/2 of 5.*Tailoring Review/);
+  await expect(page.locator('#tailoring-status')).toContainText('Correction integrated and proposal regenerated');
+  await expect(page.locator('#tailoring-status')).toContainText('Review the new before/after proposal again');
+  await expect(page.locator('#tailoring')).toContainText('FX exposure reporting');
+  await expect(page.locator('#tailoring')).not.toContainText(/Candidate Knowledge|003\.6/i);
+
+  const session = [...app.sessions.values()][0];
+  expect(session.reviewRun.review_actor).toBe('source_resume_attestation');
+  expect(session.integration?.id).toBeTruthy();
+  expect(session.correctionIntegrations?.length).toBe(1);
+  expect(session.correctionIntegrations[0].acquisition?.id).toBeTruthy();
+  expect(session.correctionIntegrations[0].integration?.applied_facts?.length).toBeGreaterThan(0);
+  expect(session.store.getCommittedCandidateKnowledge(session.profileId).some((fact) => JSON.stringify(fact).includes('FX exposure reporting'))).toBe(true);
+
+  materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
+  expect(await materialCards.count()).toBeGreaterThan(0);
+  for (let index = 0; index < await materialCards.count(); index += 1) {
     await materialCards.nth(index).locator('input[value="use_tailored"]').check();
   }
   await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
@@ -111,16 +131,9 @@ test('real browser reviews concrete tailoring, captures correction safely, and p
   await expect(page.locator('#preview .resume-skills')).toBeVisible();
   expect(await page.locator('#preview .resume-skills li').count()).toBeGreaterThanOrEqual(4);
   await expect(page.locator('#validation')).toContainText(/Ready for your review|Ready for review/);
-  await expect(page.locator('#correction-status')).toContainText('Correction recorded');
-  await expect(page.locator('#correction-status')).toContainText('not silently written to Candidate Knowledge');
   await expect(page.locator('#state')).toHaveText(/3 of 5/);
   await expect(page.locator('#career')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Continue to Career Review' })).toBeVisible();
-
-  const session = [...app.sessions.values()][0];
-  expect(session.reviewRun.review_actor).toBe('source_resume_attestation');
-  expect(session.integration?.id).toBeTruthy();
-  expect(session.correctionObservations?.length).toBe(1);
 
   await page.getByRole('button', { name: 'Continue to Career Review' }).click();
   await expect(page.locator('#draft')).toBeHidden();
@@ -146,7 +159,6 @@ test('real browser reviews concrete tailoring, captures correction safely, and p
   const firstEdit = page.locator('[data-review-editor="0"] [data-review-edit]').first();
   await expect(firstEdit).toBeVisible();
   await firstEdit.fill('Taylor Chen Updated');
-
   for (let index = 1; index < await reviewCards.count(); index += 1) {
     await page.locator(`input[data-review-action="${index}"][value="approve"]`).check();
   }
