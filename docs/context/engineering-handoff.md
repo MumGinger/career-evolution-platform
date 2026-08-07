@@ -1,87 +1,87 @@
 # Engineering Handoff
 
 **Owner:** Engineering Room  
-**Checkpoint:** 2026-08-06
+**Checkpoint:** 2026-08-06 — Beta #4 engineering recovery
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, Issues #95, #97, and #100, merged PR #99, and current GitHub state.
+Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, `docs/context/beta-handoff.md`, Issue #100, closed Issues #101–#103, merged PRs #99 and #104, and current GitHub state.
 
 Repository evidence is authoritative over this handoff.
 
 ## Current state
 
-- Issue #83 / PR #87 completed the complete-resume composition boundary.
-- Beta #3 / Issue #93 is closed as **FAIL**.
-- PR #99 merged to primary at `f08a01e1fb7b2cc6d78af46c5682b8c57c2f185b` with the engineering work for Issues #95 and #97.
-- Beta #4 / Issue #100 is prepared as the next real-user product gate.
-- Beta Accepted remains **NO**.
+- Beta #4 / Issue #100 remains the authoritative product result: **FAIL**. Do not reinterpret it as PASS.
+- PR #104 merged to `chore/project-foundation` at `3ee73fa1c03b9ec59e21397af6dff06acf2e5ca5`.
+- Issue #101 is **CLOSED / engineering PASS**: Evidence Review now states the applicant decision and both Accept/Skip consequences in ordinary language before the choice.
+- Issue #102 is **CLOSED / engineering PASS**: Draft Step 3 now has an explicit `Continue to Career Review` transition before Step 4 appears.
+- Issue #103 is **CLOSED / engineering PASS** after direct browser verification that stale Understanding/Evidence panels disappear after advancing to Draft.
+- Beta Accepted remains **NO**. The next product gate must be a fresh Beta from Landing/Input; it is not a continuation of Beta #4.
+
+## Applicant-visible decision contract
+
+Before an Evidence Review choice, the shipped UI now makes clear:
+
+- the decision is whether the item is accurate evidence about the applicant and may support tailored wording for this application;
+- `Why it may help` communicates job relevance separately from the decision;
+- **Accept** permits the item to support new/tailored wording when later checks allow it, but does not guarantee resume inclusion and does not automatically rewrite unrelated content;
+- **Skip** prevents the item from supporting new/rewritten wording for this application and does not delete source-resume text;
+- the applicant does not need `Candidate Knowledge`, `Candidate Knowledge Integration`, `003.6`, or other internal terminology to decide.
+
+Every Evidence Review candidate remains individually reviewable.
 
 ## Protected truth boundary
 
-- Exact validated source content remains verbatim `source_resume_passthrough`, has zero Resume Content Selection references, and never writes Candidate Knowledge.
-- Generated or materially rewritten claims remain `candidate_knowledge_generated` and require Evidence Review → 003.6 → included selection, inherited provenance, and deterministic claim-scope validation.
-- A source statement may disappear only when independently validated as replaced by matching Candidate Knowledge generated content in the same section.
-- Whole-resume validation, Career Review of every populated section, and explicit human approval remain mandatory before export.
-- Applicant presentation cleanup may repair visible mojibake, bullet markers, and date styling; it must not mutate stored source authority, Candidate Knowledge, provenance, or validation evidence.
+PR #104 changed applicant presentation/navigation only. The existing service still receives the same evidence candidate ID plus Accept/Skip action.
 
-## Merged implementation
+The following remain unchanged and protected:
 
-- Explains Evidence Review Accept before the decision, including the 003.6 and unrelated-content boundary.
-- Presents the complete draft and Career Review as a normal resume rather than raw JSON or UUID-like identifiers.
-- Translates deterministic warning states into applicant-readable, actionable language without weakening the underlying gate.
-- Keeps structured JSON and Markdown as secondary outputs.
-- Adds `final-resume.pdf` as the primary applicant-facing export and a readable Career Review HTML report.
-- Preserves the original API/service flow behind a presentation wrapper rather than adding a new knowledge or validation path.
+- 003.6 remains the sole Candidate Knowledge integration/write authority;
+- exact validated source content remains source-resume passthrough and cannot create Candidate Knowledge;
+- generated/materially rewritten content remains Candidate-Knowledge-backed and provenance-linked;
+- complete-resume composition/source-passthrough boundaries remain intact;
+- deterministic validation remains authoritative;
+- every populated Career Review section still requires explicit human review before export;
+- provider credentials remain memory-only/private;
+- the unresolved complete-source/no-core-tailoring-selection policy recorded from Issue #95 remains unchanged.
 
-## Test-integrity implementation
+## Regression-first proof
 
-The merged state provides independently named proof tiers:
+Regression-only commit: `ac45aa3f520c5a0b3186aba3e97567f5927030e6`.
 
-- `npm run test:unit`
-- `npm run test:integration`
-- `npm run test:http-contract`
-- `npm run test:browser-e2e`
-- `npm run test:provider-smoke`
-- `npm run test:all`
+PR #104 final-head CI run `31141269245`:
 
-It also includes:
+- Unit: **PASS**
+- Full integration: **PASS**
+- Patch whitespace: **PASS**
+- HTTP / representative PDF contract: **PASS**
+- Real Chromium pre-fix RED proof: **PASS** — the regression fails on the Beta #4 base because the old applicant copy exposes `Candidate Knowledge Integration (003.6)` instead of an understandable decision.
+- Real Chromium PR-head GREEN proof: **PASS**
+- Every Evidence Review candidate reviewable: **PASS**
+- Draft Step 3 → explicit Career Review Step 4 transition: **PASS**
+- Earlier Understanding/Evidence state hidden after advancement: **PASS**
+- Review threads: **PASS / none**
+- Branch synchronization at merge gate: **PASS**
 
-- a representative real-PDF contract from extraction through all approved exports;
-- a real Chromium shipped-flow test with staged recovery;
-- an executable pre-fix red proof for the applicant-facing browser regression;
-- a manual, secret-gated, synthetic real-provider compatibility workflow;
-- separate CI jobs so one green total cannot be misreported as Beta acceptance;
-- future regression red/green and counterexample documentation.
+The browser regression also verifies the primary PDF/readable Career Review/export path still completes after the repaired decision and navigation states.
 
-## Proof status
+## CI integrity
 
-PR #99 final-head CI run `31133523801`:
+The historical-red step in `.github/workflows/ci.yml` now runs only when the browser regression file changes in the pull request. This preserves real red/green proof for behavior-changing regressions while allowing later documentation/checkpoint PRs to validate the current baseline without an artificial expected-failure requirement.
 
-- Unit: PASS
-- Integration: PASS
-- HTTP / representative PDF contract: PASS
-- Real-browser pre-fix red proof: PASS
-- Real-browser change-set green proof: PASS
-- Whitespace/diff: PASS
-- Review threads: none
+## Explicit UNKNOWN / non-acceptance evidence
 
-Still separate:
+- Manual secret-gated real-provider smoke for PR #104: **UNKNOWN / non-blocking for this presentation-only change** because the provider execution path did not change.
+- Fresh-user acceptance after the repair: **UNKNOWN** until the next Beta.
+- Submission readiness, time saved, review burden, trust, and reuse intent after the repair: **UNKNOWN** until the next Beta reaches those stages credibly.
 
-- Primary-branch push CI for the merged state: UNKNOWN until independently visible.
-- Real-provider smoke: UNKNOWN until the manual secret-gated workflow is executed.
-- Beta acceptance: NO / UNKNOWN until Issue #100 records the user’s judgment.
-
-Do not infer PASS from a missing run or status.
-
-## Unresolved product policy
-
-Issue #95 records an unresolved choice when a complete source-preserved resume has no included Experience or Projects tailoring selection. The current `qualityReady()` tailoring requirement remains unchanged. Do not implement source-only fallback or relax the gate without a Product decision and positive/counterexample regressions.
+No engineering PASS may be substituted for those product judgments.
 
 ## Next action
 
-1. Verify the primary-branch CI run for the merged state.
-2. Close Issue #95 after its engineering proof is durably recorded.
-3. Keep Issue #97 tied to the fresh user judgment required by its acceptance criterion 8.
-4. Execute Beta #4 / Issue #100 one visible stage at a time with a real resume and real job description.
-5. Do not mark Beta Accepted without the user’s explicit submission, time-savings, review-burden, trust, and reuse judgment.
+1. Merge the durable engineering checkpoint containing this handoff and `docs/context/project-snapshot.md` / `docs/current-state.md`.
+2. Only after that checkpoint is merged, open a **fresh Beta issue**.
+3. Start that Beta from Landing/Input with a real resume and real job description.
+4. At Evidence Review Candidate 1, verify the applicant can explain the Accept/Skip decision before choosing and can distinguish accuracy, relevance, and guaranteed inclusion.
+5. Continue through every Evidence candidate, Draft/validation, Career Review, PDF/HTML/Markdown/JSON, final submission judgment, time/value, review burden, trust, and reuse intent.
+6. Keep Beta #4 / Issue #100 as FAIL regardless of the next Beta result.
