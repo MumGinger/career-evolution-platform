@@ -1,5 +1,26 @@
 # Current State
 
+## Beta #4 product acceptance result (2026-08-06)
+
+Beta #4 used the shipped localhost UI with a real resume and real job description to retest the applicant-readable review and final-output experience delivered after PR #99. The product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
+
+The run stopped at **Evidence Review — Candidate 1**. The applicant could not determine whether **Accept** or **Skip** meant verifying truth, judging relevance to the target job, or deciding whether the item should appear in the resume. The phrase **Candidate Knowledge Integration** did not make that decision understandable to a first-time applicant, so continuing would have required guessing rather than informed approval.
+
+Earlier stages were easy to operate but still contained applicant-facing ambiguity. Landing/Input was generally clear, while **Check connection** and provider **Base URL** were not understood. **Understanding and exclusions** was easy to scan, but the applicant did not understand its purpose, what exclusion meant for the final resume, or why source text had been excluded.
+
+After the Beta had already failed, the applicant continued exploring and recorded two supplemental findings. **Ready for review** showed the resume in a more readable presentation, but the UI still showed **Step 3 of 5** with no discoverable action to reach the next stage. The earlier **Understanding and exclusions** section also remained visible at the top of later screens, which was not blocking by itself but felt repetitive and annoying and weakened the sense of progression.
+
+Durable Beta #4 records:
+
+- Issue #100 — Beta #4: **FAIL**.
+- Issue #101 — active blocker: Evidence Review does not tell applicants what Accept or Skip means.
+- Issue #102 — active blocker: Step 3 of 5 shows no clear way to continue after Ready for review.
+- Issue #103 — active supplemental UX finding: Understanding and exclusions remains visible after moving to later steps.
+
+Later Evidence Review candidates, Draft/validation judgment, Career Review, `final-resume.pdf`, `career-review-report.html`, `final-resume.md`, `final-resume.json`, final submission readiness, time/value, and reuse intent remain **UNKNOWN / not credibly reached** in Beta #4.
+
+This does not reverse the existing engineering evidence for PR #99. It establishes that applicant-readable presentation alone is not sufficient when the required decision semantics and visible workflow progression are still unclear.
+
 ## Beta #3 product acceptance result (2026-08-06)
 
 Beta #3 completed the real-provider browser workflow and produced `final-resume.md`, `final-resume.json`, and `career-review-report.html`, but the product result is **FAIL** and **Beta Accepted remains NO / NOT YET**.
@@ -14,7 +35,7 @@ Durable acceptance records:
 - Issue #82 — Beta #2: FAIL and closed.
 - Issue #83 / PR #87 — complete-resume composition engineering work complete.
 - Issue #93 — Beta #3: FAIL and closed.
-- Issue #97 — active blocker: make complete resume review and export applicant-readable.
+- Issue #97 — applicant-readable review/export engineering requirement implemented through PR #99; Beta #4 product acceptance still failed on later applicant-facing blockers.
 
 This does not reverse the existing engineering result: the representative real-provider flow remains **Proven**. It establishes that complete composition, successful execution, deterministic validation, and available exports still do not equal product acceptance.
 
@@ -46,7 +67,7 @@ Career Review is the product-facing name for the existing immutable Human Review
 
 The local Beta UI is available through `node src/beta-ui.js`. It is a temporary, plain-HTML testing wrapper around the existing Resume AST, Evidence Review/003.6, tailoring, presentation, artifact, validation, Career Review, and export APIs; it is not production frontend architecture. API keys stay in request memory and never enter the local session database or generated outputs.
 
-**Phase:** Version 1 applicant-facing product-quality recovery after Beta #3 FAIL  
+**Phase:** Version 1 applicant-facing product-quality recovery after Beta #4 FAIL  
 **Last updated:** 2026-08-06
 
 ## Intelligent Resume v1
@@ -86,16 +107,17 @@ The resume pipeline creates an immutable Presentation Strategy Run after Career 
 - Completed Milestone 2 — Career Evolution Loop v1: the primary demo now connects Resume Intelligence, Career Conversation, Career Understanding, Shared Understanding, Career Curiosity, and a final return invitation. It exports one ordered HTML report and one integrated JSON summary while preserving all existing immutable-run and Candidate Knowledge boundaries.
 - Completed Decision Companion as the final Thinking Layer MVP. It is a source-linked, immutable comparison flow that preserves uncertainty and user independence; no recommendation or knowledge write is added.
 - Completed Issue #83 / PR #87 complete-resume composition boundary: exact source-resume passthrough survives alongside evidence-backed generated content without writing passthrough into Candidate Knowledge.
+- Completed Issues #95 and #97 / PR #99 engineering change set for applicant-readable review surfaces, proof separation, and PDF-oriented final output; Beta #4 remains the authoritative product-quality judgment and failed on #101/#102.
 
 ## Current focus
 
-Issue #97: make the already-complete approved resume practical for a normal applicant to review and submit.
+Resolve Issue #101 so a first-time applicant can understand exactly what Evidence Review is asking before making Accept/Skip decisions, and Issue #102 so visible workflow progression has a discoverable next action. Issue #103 records additional repetitive-stage UX friction that should be addressed as part of the same recovery where appropriate.
 
-The applicant-facing experience must not require raw JSON, identifiers, escaped line breaks, or technical validation labels as the primary review surface. Evidence Review must explain what Accept means, visible broken characters must be absent, Career Review must support informed approval, and a polished submission-ready resume export must be available.
+The product must remain understandable without requiring internal terminology. A fresh Beta must begin from Landing / Input after the fixes are merged; later-stage submission quality, time saved, review burden, trust, and reuse intent remain unknown until that run reaches them credibly.
 
 ## Next decision
 
-Define the smallest applicant-facing product boundary that turns the complete approved resume into a readable review and polished final deliverable while preserving complete composition, Candidate Knowledge, provenance, deterministic validation, privacy, and human authority. Intelligent Execution work remains deferred until Version 1 is submission-evaluable.
+No product direction change is required from Beta #4. The next gate is whether the applicant-facing decision meaning and workflow progression are clear enough to permit a fresh end-to-end Beta while preserving complete composition, Candidate Knowledge, provenance, deterministic validation, privacy, and human authority. Intelligent Execution work remains deferred until Version 1 is submission-evaluable.
 
 ## Open questions
 
@@ -112,4 +134,4 @@ Milestone 1 Demo is implemented as an integration-only local command. It version
 
 # LLM-first Beta path
 
-The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #3 evidence recorded in Issue #93 and the active applicant-facing review/export blocker in Issue #97, not by complete composition or the ability to technically complete the flow.
+The preferred real-resume Beta path is LLM-first with deterministic trust boundaries. The Resume AST pipeline remains legacy/diagnostic for offline and synthetic coverage. Beta Accepted remains blocked by the Beta #4 evidence recorded in Issue #100 and the active applicant-facing blockers in Issues #101 and #102. Issue #103 records additional UX friction. Complete composition, engineering proof, and the ability to technically complete the flow do not establish product acceptance.
