@@ -83,6 +83,14 @@ function normalizeApplicantResponse(value) {
       whyTailored: (item.whyTailored || []).map(applicant.normalizeVisibleText),
     }));
   }
+  if (Array.isArray(value.candidates)) {
+    value.candidates = value.candidates.map((candidate) => ({
+      ...candidate,
+      claim: cleanup.cleanStatement({ text: candidate.claim, display_style: 'bullet' }).text,
+      sourceText: cleanup.cleanEvidenceSourceText(candidate.sourceText),
+      rationale: applicant.normalizeVisibleText(candidate.rationale),
+    }));
+  }
   if (Array.isArray(value.careerReview)) {
     value.careerReview = value.careerReview.map((review) => ({
       ...cleanup.cleanReview(review),
@@ -116,6 +124,19 @@ function cleanAndWriteApplicantOutputs(session, value) {
   };
 }
 
+function legacyConfirmAsTailoring(session, input) {
+  const skipped = new Set((input.decisions || [])
+    .filter((decision) => decision.action === 'skip')
+    .map((decision) => decision.evidence_candidate_id));
+  const decisions = (session.tailoringReview || [])
+    .filter((item) => item.materialRewrite)
+    .map((item) => ({
+      id: item.id,
+      action: skipped.has(item.evidenceCandidateId) ? 'keep_original' : 'use_tailored',
+    }));
+  return option2.apply(session, decisions);
+}
+
 function createBetaUiServer(options = {}) {
   const host = options.host || '127.0.0.1';
   const port = options.port ?? 3000;
@@ -143,6 +164,10 @@ function createBetaUiServer(options = {}) {
       }
 
       const requestBody = await readRequest(req);
+
+      if (req.method === 'POST' && /\/confirm$/.test(url.pathname) && session?.stage === 'tailoring-review') {
+        return send(res, 200, normalizeApplicantResponse(legacyConfirmAsTailoring(session, parseJson(requestBody))));
+      }
 
       if (req.method === 'POST' && /\/tailoring-review$/.test(url.pathname)) {
         if (!session) return send(res, 404, { error: 'This local session has expired.' });
@@ -176,12 +201,7 @@ function createBetaUiServer(options = {}) {
       if (proxied.status < 300 && isLlmStart) {
         const current = coreApp.sessions.get(value.sessionId);
         const prepared = await option2.prepare(current);
-        value = {
-          ...value,
-          ...prepared,
-          stage: prepared.stage,
-        };
-        delete value.candidates;
+        value = { ...value, ...prepared, stage: prepared.stage };
         delete value.evidence;
       }
 
