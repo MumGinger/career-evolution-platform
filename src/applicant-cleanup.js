@@ -16,6 +16,15 @@ function cleanEvidenceSourceText(value) {
     .trim();
 }
 
+function cleanApplicantRationale(value) {
+  return normalizeVisibleText(value)
+    .replace(/Candidate Knowledge/gi, 'reviewed evidence')
+    .replace(/003\.6/gi, 'the evidence review step')
+    .replace(/candidate fact/gi, 'supported applicant information')
+    .replace(/tailoring-plan/gi, 'resume tailoring')
+    .replace(/shared-understanding/gi, 'application context');
+}
+
 function cleanStatement(statement = {}) {
   const displayStyle = statement.display_style || 'bullet';
   let text = normalizeVisibleText(statement.text);
@@ -73,6 +82,9 @@ function cleanReview(review) {
     ...review,
     ai_version: cleanVersion(review.ai_version),
     final_version: cleanVersion(review.final_version),
+    presentation_rationale: Array.isArray(review.presentation_rationale)
+      ? review.presentation_rationale.map(cleanApplicantRationale)
+      : review.presentation_rationale,
   };
 }
 
@@ -91,6 +103,7 @@ function cleanMarkdown(markdown) {
 }
 
 module.exports = {
+  cleanApplicantRationale,
   cleanEvidenceSourceText,
   cleanMarkdown,
   cleanReview,
