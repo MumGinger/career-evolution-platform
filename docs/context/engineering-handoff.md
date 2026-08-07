@@ -1,119 +1,109 @@
 # Engineering Handoff
 
 **Owner:** Engineering Room
-**Checkpoint:** 2026-08-06 — Beta #5 engineering recovery
+**Checkpoint:** 2026-08-07 — Beta #6 presentation recovery / Product decision required
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, `docs/context/beta-handoff.md`, Beta #5 / Issue #106, closed Issues #107 and #108, open Issue #97, merged PR #111, and current GitHub state.
+Read `PROJECT_CONTEXT.md`, `ENGINEERING_LEAD.md`, `AGENTS.md`, `docs/context/project-snapshot.md`, this file, `docs/context/beta-handoff.md`, Beta #6 / Issue #113, open Issues #97 and #115, merged PR #116, and current GitHub state.
 
 Repository evidence is authoritative over this handoff.
 
 ## Current state
 
-- Beta #5 / Issue #106 remains the authoritative product result: **FAIL at Evidence Review Candidate 1**.
-- PR #111 merged to `chore/project-foundation` at `f06ce4633799e1e938d267a29b1aba9cf9851281`.
-- Issue #107 is **CLOSED / engineering PASS** after regression-first and real-browser proof of the Evidence Review reuse/inclusion distinction.
-- Issue #108 is **CLOSED / engineering PASS** after direct browser proof of an applicant correction/edit path through Career Review and export.
-- Issue #97 remains **OPEN** because full applicant-readable resume quality and real-user submission acceptance still require a fresh Beta.
+- Beta #6 / Issue #113 remains the authoritative latest product result: **FAIL at Evidence Review Candidate 1**.
 - Beta Accepted remains **NO**.
+- PR #116 merged to `chore/project-foundation` at `b0efc92aa390799627e35e9c9d163dab1d6f88d6` and resolves the independent Beta #6 presentation/export engineering defects.
+- Issue #97 remains **OPEN** because applicant-readable resume/submission/value acceptance requires a future fresh Beta.
+- Issue #115 is **OPEN / Product decision required**. It records that Evidence Review meaning has failed fresh Betas #4, #5, and #6 despite prior engineering repairs in PR #104 and PR #111.
+- Do not open the next Beta until #115 is decided, the resulting behavior is implemented regression-first, and that implementation is durably checkpointed.
 
-No product or architecture decision is currently required before the next fresh Beta.
+## Why engineering stopped patching Evidence Review copy
 
-## Applicant-visible contract after PR #111
+`ENGINEERING_LEAD.md` requires engineering to stop when the same implementation problem repeats and determine whether the underlying product/architecture/state model is wrong.
 
-### Evidence Review
+The applicant's Evidence Review interpretation has failed three times:
 
-The primary review surface distinguishes:
+- Beta #4: truth verification vs job relevance vs resume inclusion was unclear.
+- Beta #5: Accept/Skip was read as include/exclude from the tailored resume.
+- Beta #6: Accept was read as reword-for-JD and Skip as keep-original wording, with both expected to remain in the resume.
 
-- what came from the uploaded resume;
-- how that evidence may support new or rewritten tailored wording;
-- why the evidence was surfaced for this job.
+Another wording-only repair would violate the repeated-failure rule. Issue #115 therefore requires Product to decide the applicant-visible role/timing of this decision before engineering continues that surface.
 
-Accept permits evidence reuse for new/rewritten wording after later checks. It does not guarantee final-resume inclusion. Skip blocks evidence reuse for new/rewritten wording and does not remove original source-resume text.
+Until then, the current semantics remain unchanged and no engineering PASS should be claimed for Evidence Review comprehension.
 
-Applicant-visible Candidate Knowledge / 003.6 terminology and the old `Proposed resume use` framing are absent from the primary decision surface. Every candidate remains individually reviewable.
+## PR #116 applicant-visible recovery
 
-### Draft presentation
+Presentation/export changes only:
 
-Presentation cleanup is intentionally bounded:
-
-- leading source bullet glyphs may be removed for display;
-- adjacent duplicate display statements may collapse to one structured copy;
-- a heading repeated immediately at the start of its following bullet may be removed from that bullet;
-- identical legitimate source statements separated by distinct jobs/headings must remain separate;
-- negative values such as `-5%` must remain intact;
-- stored source authority, provenance, and Candidate Knowledge are not modified by presentation cleanup.
-
-### Career Review
-
-Every populated section exposes two applicant choices:
-
-- approve the section as correct; or
-- mark it as needing changes and edit the exported section text.
-
-The edit path uses the existing Human Review `edit` authority. The original AI version remains separately stored. Manual edits are not learned as Candidate Knowledge and are applied to the approved export set.
+- private-use PDF/icon glyphs are removed from applicant-visible text without changing stored source authority;
+- exact bullet prose embedded as a separate line inside a multiline heading is removed from that heading when the actual following bullet already carries it;
+- distinct title/company/date/location metadata remains preserved;
+- plain Skills lists are presented as separated resume items;
+- Understanding/exclusions is reframed as **Processing summary — no decision needed**, with applicant-readable counts and no raw source-alignment/parent-reference messages;
+- Career Review visibly surfaces applicant-readable presentation rationale alongside source/origin explanation;
+- Career Review report explains the final application artifact and that it is not a deletion log; the uploaded source resume remains unchanged;
+- final PDF hierarchy/spacing/header/Skills treatment is strengthened;
+- the working Career Review correction/edit path is preserved.
 
 ## Protected truth and authority boundary
 
-PR #111 does not alter:
+PR #116 does **not** alter:
 
 - 003.6 as the sole Candidate Knowledge integration/write authority;
 - Candidate Knowledge acceptance/conflict rules;
 - source-resume passthrough authority;
-- complete-resume composition;
-- Resume Content Selection or provenance inheritance;
+- complete-resume composition or Resume Content Selection authority;
+- provenance inheritance;
 - claim-scope, coverage, completeness, duplication, or deterministic validation rules;
 - provider execution or credential privacy;
-- Career Review as the final human review authority before export;
-- the unresolved complete-source/no-core-tailoring-selection policy from Issue #95.
+- Career Review / Human Review as the final human authority before export;
+- the unresolved complete-source/no-core-tailoring-selection policy from Issue #95;
+- Evidence Review decision semantics pending #115.
 
-Manual Career Review edits remain human-authority changes to the reviewed artifact, not new profile knowledge.
+Applicant cleanup is a presentation/export boundary only. Stored source evidence is not rewritten by the cleanup.
 
 ## Regression-first proof
 
-Regression changes preceded production behavior changes. The regression-only phase demonstrated expected failure on the shipped pre-change behavior before the applicant-facing fix was implemented.
+Regression-only commit sequence culminated at head `d2b9a63047b1c559f5e2e90eebb731a791d33f72` before production implementation.
 
-PR #111 final merge-candidate CI run `31146301364`:
+Regression-only CI run `31150317802`:
+
+- Beta #6 unit presentation counterexamples: **RED as expected**;
+- real browser current-head flow: **RED as expected**;
+- unrelated HTTP / representative PDF contract: **PASS**.
+
+Final merge-candidate CI run `31150697393`:
 
 - Unit: **PASS**
 - Full integration: **PASS**
 - Patch whitespace: **PASS**
 - HTTP / representative PDF contract: **PASS**
-- Pre-change Chromium RED proof: **PASS**
+- Pre-fix Chromium RED proof: **PASS**
 - Current Chromium GREEN proof: **PASS**
-- Every Evidence Review candidate reviewable: **PASS**
-- Source/reuse/relevance labels and consequences: **PASS**
-- Source bullet cleanup: **PASS**
-- Adjacent duplicate presentation cleanup: **PASS**
-- Repeated heading-prefix cleanup: **PASS**
-- Legitimate repeated source text across separate entries preserved: **PASS**
-- Negative-value counterexample preserved: **PASS**
-- Career Review correction path: **PASS**
-- Manual edit propagated to PDF, Career Review HTML, Markdown, and JSON: **PASS**
 - Review threads: **PASS / none**
-- Current-primary merge candidate: **PASS**
+- Current-primary synchronization: **PASS**
 
-The final Actions checkout used the PR merge ref combining head `8c81775fef46ca1397a06aaddf9d1508254fefc8` with primary Beta #5 checkpoint `07420fe2216c25bbfbb369c14e8a640978f342aa`.
+The final browser flow covers the applicant processing summary, Evidence Review baseline behavior, separated Skills in Draft, Career Review rationale/correction path, final PDF, readable report, Markdown, and JSON.
 
-## Explicit UNKNOWN / non-acceptance evidence
+Real-provider smoke remains **UNKNOWN / non-blocking** because provider execution did not change.
 
-- Manual secret-gated real-provider smoke for PR #111: **UNKNOWN / non-blocking** because provider execution did not change.
-- Fresh-user comprehension of the repaired Evidence Review: **UNKNOWN** until Beta #6.
-- Draft readability with the user's real resume: **UNKNOWN** until Beta #6.
-- Career Review correction discoverability for a fresh applicant: **UNKNOWN** until Beta #6.
-- Submission readiness, review burden, trust, time saved, practical value, and reuse intent: **UNKNOWN** until Beta #6.
+## Explicit product UNKNOWN / FAIL state
 
-Engineering proof must not substitute for those product judgments.
+Engineering proof does not establish:
+
+- Evidence Review product comprehension after a future product-model change;
+- fresh-user understanding of meaningful tailoring/selection consequences;
+- submission readiness of the repaired final PDF for the real applicant;
+- end-to-end review burden, trust, time saved, practical value, or reuse intent.
+
+Beta #6 already recorded submission readiness, practical value, and reuse intent as FAIL for that shipped version. Those historical judgments remain unchanged.
 
 ## Next action
 
-1. Merge the durable Beta #5 engineering recovery checkpoint.
-2. Only after that checkpoint is merged, create a **fresh Beta #6 issue**.
-3. Start Beta #6 from Landing/Input with a real resume and real job description.
-4. At Evidence Review Candidate 1, ask the applicant to explain the decision, Accept, Skip, source-text preservation, relevance, and final-inclusion consequence before choosing; do not coach the answer.
-5. If Candidate 1 is understandable, continue through every Evidence candidate.
-6. Inspect Draft readability/repetition and Career Review correction discoverability.
-7. Inspect PDF, Career Review HTML, Markdown, and JSON directly.
-8. Record submission, time/value, burden, trust, and reuse judgments from the applicant.
-9. Keep Beta #5 / Issue #106 as FAIL regardless of Beta #6 outcome.
+1. Merge the durable Beta #6 engineering recovery checkpoint.
+2. Product resolves Issue #115.
+3. Engineering implements the chosen model regression-first without weakening Candidate Knowledge, 003.6, provenance, composition, validation, privacy, or human-authority boundaries.
+4. Run all independent proof tiers and review the shipped browser path.
+5. Durably checkpoint the resulting engineering state.
+6. Only then create a fresh Beta #7 from Landing/Input. Do not continue Beta #6.
