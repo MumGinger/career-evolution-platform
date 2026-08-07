@@ -16,7 +16,7 @@ async function withServer(run) {
 async function json(url, options = {}) { const response = await fetch(url, options); return { response, value: await response.json() }; }
 function input() {
   const resume = `Ya-Ching Tang
-y a.ching@example.com | +1 416 555 0123
+ya.ching@example.com | +1 416 555 0123
 
 Skills
 Power BI, Python, SQL
@@ -33,7 +33,7 @@ Education
 B.Sc. Information Systems — Example University
 
 Certifications
-Microsoft Power BI Data Analyst`.replace('y a.ching', 'ya.ching');
+Microsoft Power BI Data Analyst`;
   const jobText = `Company: Zurich
 Role Title: Data Analytics and AI Analyst
 
