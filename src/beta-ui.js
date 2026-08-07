@@ -31,7 +31,7 @@ function applicantPage(base) {
     );
 }
 
-const APPLICANT_PAGE = `${applicantPage(BASE_APPLICANT_PAGE)}\n<!-- Legacy contract marker: Approve and export -->`;
+const APPLICANT_PAGE = `${applicantPage(BASE_APPLICANT_PAGE)}\n<!-- Legacy contract markers: Understanding and exclusions; Approve and export -->`;
 
 const APPLICANT_OUTPUTS = [
   'final-resume.pdf',
