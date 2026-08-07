@@ -98,6 +98,22 @@ test('presentation cleanup removes exact repeated statements while retaining one
   assert.deepEqual(review.ai_version.statements, review.final_version.statements);
 });
 
+test('presentation cleanup removes a repeated heading prefix from the following bullet', () => {
+  const review = cleanup.cleanReview({
+    section: 'Projects',
+    ai_version: {
+      placeholder: null,
+      statements: [
+        { text: 'Claims Intelligence Dashboard', display_style: 'heading' },
+        { text: 'Claims Intelligence Dashboard: - Built Power BI dashboards.', display_style: 'bullet' },
+      ],
+    },
+    final_version: null,
+  });
+  assert.equal(review.ai_version.statements[0].text, 'Claims Intelligence Dashboard');
+  assert.equal(review.ai_version.statements[1].text, 'Built Power BI dashboards.');
+});
+
 test('passed_with_warnings is translated into applicant-readable action language', () => {
   const summary = applicant.validationSummary('passed_with_warnings', [{
     category: 'coverage_gap',
