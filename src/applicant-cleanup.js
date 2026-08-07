@@ -46,23 +46,23 @@ function statementPreference(statement) {
   }[statement.display_style] || 0;
 }
 
-function dedupeStatements(statements) {
-  const selected = new Map();
-  for (const [index, statement] of statements.entries()) {
-    const key = statement.text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-    if (!key) continue;
-    const current = selected.get(key);
-    if (!current) {
-      selected.set(key, { index, statement });
+function canonicalStatementText(statement) {
+  return statement.text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+}
+
+function dedupeAdjacentStatements(statements) {
+  const result = [];
+  for (const statement of statements) {
+    const previous = result.at(-1);
+    if (previous && canonicalStatementText(previous) === canonicalStatementText(statement)) {
+      if (statementPreference(statement) > statementPreference(previous)) {
+        result[result.length - 1] = statement;
+      }
       continue;
     }
-    if (statementPreference(statement) > statementPreference(current.statement)) {
-      selected.set(key, { index: current.index, statement });
-    }
+    result.push(statement);
   }
-  return [...selected.values()]
-    .sort((left, right) => left.index - right.index)
-    .map((item) => item.statement);
+  return result;
 }
 
 function removeRepeatedHeadingPrefixes(statements) {
@@ -83,7 +83,7 @@ function removeRepeatedHeadingPrefixes(statements) {
 function cleanVersion(version) {
   if (!version || typeof version !== 'object') return version;
   const statements = Array.isArray(version.statements)
-    ? removeRepeatedHeadingPrefixes(dedupeStatements(version.statements.map(cleanStatement)))
+    ? removeRepeatedHeadingPrefixes(dedupeAdjacentStatements(version.statements.map(cleanStatement)))
     : version.statements;
   return {
     ...version,
