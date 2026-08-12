@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Career Evolution Platform uses specialist agents to reduce serial debugging and prevent one implementation role from silently crossing product, resume-structure, content, presentation, and validation boundaries.
+The Career Evolution Platform uses specialist agents to reduce serial debugging and prevent one implementation role from silently crossing product, resume-structure, content, review-UX, presentation, and validation boundaries.
 
 This model is intentionally small. It borrows the role-specialization and Codex custom-agent idea from `msitarzewski/agency-agents`, but the roles below are Career Evolution Platform-specific and preserve this repository's existing truth, provenance, human-review, and delivery rules.
 
@@ -21,6 +21,8 @@ Default topology:
           |                    |                    |
   Resume Structure      Resume Content      Presentation / UX
       Engineer            Specialist               |
+          |                    |            Review UX Designer
+          |                    |                    |
           |                    |            Resume Visual Designer
           |                    |                    |
           |                    |            Frontend Presentation
@@ -79,6 +81,32 @@ Primary proof:
 - content-length and duplication sanity checks;
 - clear separation of original wording, proposed wording, and applicant decision.
 
+### Career Resume Review UX Designer
+
+Owns:
+
+- Tailoring Review information architecture and applicant-facing review units;
+- mapping multiple changed lines back to one recognizable Experience or Project entry;
+- original-versus-tailored comparison hierarchy;
+- decision burden, correction flow, stage clarity, and the scope of each approval;
+- continuity from source resume entry to Tailoring Review and later Career Review.
+
+Must not:
+
+- change source parsing, entry parentage, or composition semantics;
+- rewrite claims or decide which wording is more persuasive;
+- redesign final PDF typography or page composition;
+- weaken Candidate Knowledge, provenance, 003.6, validation, or Career Review authority;
+- implement UI code unless the Engineering Lead explicitly changes the task from design to implementation.
+
+Primary proof:
+
+- changes from one Experience or Project are visibly grouped under that entry;
+- each material changed line remains understandable and controllable;
+- no-change content does not create review work;
+- the applicant can tell what belongs together without seeing internal fact or statement identifiers;
+- review burden is lower than the previous statement-by-statement surface without hiding material decisions.
+
 ### Career Resume Visual Designer
 
 Owns:
@@ -113,14 +141,14 @@ Owns:
 
 Must not:
 
-- invent resume hierarchy when the Visual Designer has not specified it;
+- invent resume hierarchy when the Visual Designer or Review UX Designer has not specified it;
 - change parsing/grouping to make CSS easier;
 - rewrite resume content;
 - broaden a ticket into unrelated frontend cleanup.
 
 Primary proof:
 
-- browser/rendered artifact checks against the Visual Designer's acceptance criteria;
+- browser/rendered artifact checks against the owning design acceptance criteria;
 - focused regression plus full relevant suite.
 
 ### Career Resume Quality Reviewer
@@ -149,6 +177,7 @@ Records each applicable criterion as `PASS`, `FAIL`, or `UNKNOWN`, including:
 - no empty bullet artifacts;
 - applicant decisions applied to the intended entry;
 - content expansion remains proportionate and supported;
+- Tailoring Review groups changes by recognizable source entry;
 - professional visual hierarchy;
 - PDF/review-surface equivalence;
 - truth/provenance/validation boundaries preserved.
@@ -164,6 +193,8 @@ The Engineering Lead should dispatch by failure type instead of asking every age
 | Project/job/education boundaries wrong | Resume Structure Engineer | Quality Reviewer |
 | Duplicate source + rewritten content | Resume Structure Engineer | Content Specialist |
 | Tailoring too long, cosmetic, or low-value | Resume Content Specialist | Quality Reviewer |
+| One resume entry becomes many confusing review cards | Resume Review UX Designer | Structure Engineer |
+| Review choices are clear technically but burdensome or contextless | Resume Review UX Designer | Quality Reviewer |
 | Skills wall, bad spacing, misplaced Summary, bad dates | Resume Visual Designer | Frontend Presentation Engineer |
 | Review UI and PDF disagree | Frontend Presentation Engineer | Visual Designer |
 | Final output looks correct technically but not trustworthy | Resume Quality Reviewer | Relevant owning specialist |
@@ -177,13 +208,15 @@ Parallel work is encouraged only when inputs are stable and outputs are independ
 Good parallel work:
 
 - Structure Engineer traces grouping while Visual Designer defines final resume presentation criteria.
-- Content Specialist reviews tailoring expansion while Frontend Presentation Engineer inspects review/PDF divergence.
+- Content Specialist reviews tailoring expansion while Review UX Designer inspects applicant decision burden.
+- Frontend Presentation Engineer can implement a frozen Review UX or Visual Designer contract while the other independent branch is already settled.
 - Quality Reviewer prepares an acceptance matrix while implementation is still underway, but does not issue the independent verdict until implementation is frozen.
 
 Do not parallelize:
 
 - two agents editing the same files without a Lead-owned merge plan;
 - visual work that depends on unresolved entry grouping;
+- review-UX work that depends on unresolved source-entry identity;
 - content rewrite decisions that depend on unresolved source/provenance status;
 - independent proof before the candidate implementation is frozen.
 
@@ -206,13 +239,14 @@ A specialist must stop and return a boundary conflict instead of making a local 
 
 Issue #126 is the first trial of this operating model.
 
-The Lead should initially fan out three bounded investigations:
+The Lead initially used bounded specialist investigations to separate four failure classes:
 
-1. **Resume Structure Engineer** — find where source section and entry grouping diverges, especially Gift Recommendation App, duplicate paragraph/bullet content, Education/Certification duplication, and empty bullets.
-2. **Resume Content Specialist** — determine whether Tailoring Review proposals or composition cause disproportionate expansion or repeated wording, without changing grouping.
-3. **Resume Visual Designer** — define a concrete final-resume presentation acceptance sheet from the actual Beta #8 failures, independent of parser fixes.
+1. **Resume Structure Engineer** — locate where source section and entry identity were lost and caused Gift Recommendation App, duplicate paragraph/bullet content, and cross-entry bleed.
+2. **Resume Content Specialist** — identify disproportionate expansion and repeated provider alternatives without changing grouping.
+3. **Resume Review UX Designer** — group multiple material changes from the same source Project or Experience into one applicant-recognizable review unit without collapsing independent wording decisions.
+4. **Resume Visual Designer** — verify the existing final-resume presentation contract only after structure is trustworthy rather than masking upstream corruption with CSS.
 
-After the structural cause is known, the Lead decides the smallest coherent implementation slice. The Frontend Presentation Engineer implements only presentation changes that remain after structure is trustworthy. The Resume Quality Reviewer then performs a frozen independent draft/PDF comparison before another Beta.
+After the structural cause is known, the Lead decides the smallest coherent implementation slice. The Frontend Presentation Engineer implements only presentation changes that remain after structure is trustworthy. The Resume Quality Reviewer then performs a frozen complete-path draft/PDF comparison before another Beta.
 
 ## Codex integration
 
