@@ -329,9 +329,10 @@ function renderPresentationSectionHtml(model) {
     return `<section class="resume-section resume-summary-section"><h2>${escapeHtml(model.section)}</h2>${renderBodyHtml(model.entries[0]?.body || [], { linesOnly: true })}</section>`;
   }
   if (model.kind === 'skills') {
-    const grouped = model.groups.map((group) => `<div class="resume-skill-group"><span class="resume-skill-label">${escapeHtml(group.label)}</span><span class="resume-skill-values">${escapeHtml(group.values)}</span></div>`).join('');
+    const groupRows = model.groups.map((group) => `<div class="resume-skill-group"><span class="resume-skill-label">${escapeHtml(group.label)}</span><span class="resume-skill-values">${escapeHtml(group.values)}</span></div>`).join('');
+    const grouped = model.groups.length ? `<div class="resume-skill-groups">${groupRows}</div>` : '';
     const flat = model.items.length ? `<ul class="resume-skills">${model.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
-    return `<section class="resume-section resume-skills-section"><h2>${escapeHtml(model.section)}</h2><div class="resume-skills resume-skill-groups">${grouped}</div>${flat}</section>`;
+    return `<section class="resume-section resume-skills-section"><h2>${escapeHtml(model.section)}</h2>${grouped}${flat}</section>`;
   }
   if (model.kind === 'entries') {
     const entries = model.entries.map((entry) => {
@@ -346,8 +347,7 @@ function renderPresentationSectionHtml(model) {
 }
 
 function renderResumeSectionHtml(sectionName, statements) {
-  const models = resumePresentationModel([{ section: sectionName, final_version: { placeholder: null, statements } }]);
-  return models.map(renderPresentationSectionHtml).join('');
+  return renderPresentationSectionHtml(presentationSection(sectionName, statements));
 }
 
 function resumeHtml(reviews, { title = 'Approved Resume', standalone = true } = {}) {
@@ -384,8 +384,8 @@ li{font-size:9.7pt;line-height:1.31;margin:1.5px 0;padding-left:1px}
 .resume-skill-group{display:flex;gap:7px;align-items:flex-start;margin:1px 0;font-size:9.55pt;line-height:1.28}
 .resume-skill-label{font-weight:700;min-width:96px;flex:0 0 96px}
 .resume-skill-values{flex:1}
-.resume-skills-section>.resume-skills:not(.resume-skill-groups){display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:0}
-.resume-skills-section>.resume-skills:not(.resume-skill-groups) li{margin:0}
+.resume-skills-section>.resume-skills{display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:0}
+.resume-skills-section>.resume-skills li{margin:0}
 .resume-education-section .resume-entry{margin-bottom:7px}
 .resume-education-section .resume-line{margin:1px 0}
 @media(max-width:650px){.resume-entry-head{display:block}.resume-entry-date{display:block;text-align:left;margin-top:1px}.resume-skill-group{display:block}.resume-skill-label{display:block;min-width:0}.resume-paper{padding:24px}}
