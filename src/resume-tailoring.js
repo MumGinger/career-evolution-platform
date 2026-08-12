@@ -1,6 +1,6 @@
 const POLICY_VERSION = 'resume-tailoring-policy/1.1.0';
 const GENERIC = new Set(['communication', 'teamwork']);
-const SUMMARY_ELIGIBLE = new Set(['skill', 'project', 'experience', 'achievement', 'responsibility']);
+const SUMMARY_ELIGIBLE = new Set(['skill', 'project', 'experience', 'achievement', 'responsibility', 'education']);
 
 function normalize(value) { return String(value || '').toLowerCase().replace(/[^a-z0-9+#]+/g, ' ').trim().replace(/\s+/g, ' '); }
 function values(fact) { const value = fact.value || fact.canonical_value || {}; return Object.values(value).filter((item) => typeof item === 'string').map(normalize); }
