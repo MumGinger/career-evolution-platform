@@ -72,12 +72,15 @@ function crossSectionSummary(selection, section) { return section === 'Professio
 function providerSelectionSetKey(statement) {
   return [...new Set(statement.resume_content_selection_ids || [])].sort().join('\u001f');
 }
+function providerStatementPriority(statement, selections) {
+  return Math.max(0, ...(statement.resume_content_selection_ids || []).map((id) => selections.get(id)?.priority_score || 0));
+}
 function completedProviderSections(providerSections, plan, facts) {
   const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
   const droppedAlternatives = [];
   const sections = providerSections.map((section) => {
     const seenSelectionSets = new Set();
-    const statements = section.statements.filter((statement) => {
+    let statements = section.statements.filter((statement) => {
       const linked = statement.resume_content_selection_ids.map((id) => selections.get(id)).filter(Boolean);
       const factIds = statement.provenance?.candidate_fact_ids || [];
       const valid = linked.length === statement.resume_content_selection_ids.length
@@ -98,6 +101,20 @@ function completedProviderSections(providerSections, plan, facts) {
       seenSelectionSets.add(selectionSetKey);
       return true;
     });
+    if (section.section === 'Professional Summary' && statements.length > 1) {
+      statements = [...statements].sort((left, right) =>
+        providerStatementPriority(right, selections) - providerStatementPriority(left, selections)
+          || left.statement_id.localeCompare(right.statement_id));
+      for (const dropped of statements.slice(1)) {
+        droppedAlternatives.push({
+          section: section.section,
+          statement_id: dropped.statement_id,
+          resume_content_selection_ids: [...dropped.resume_content_selection_ids],
+          reason: 'summary_statement_limit',
+        });
+      }
+      statements = statements.slice(0, 1);
+    }
     return { ...section, statements };
   });
   const rendered = new Set(sections.flatMap((section) => section.statements.flatMap((statement) => statement.resume_content_selection_ids)));
