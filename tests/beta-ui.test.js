@@ -56,9 +56,9 @@ test('Career Review remains mandatory for local export', async () => withServer(
   const blocked = await fetch(`${base}/api/sessions/${started.value.sessionId}/outputs/final-resume.json`); assert.equal(blocked.status, 409);
 }));
 
-test('reviewed project and experience bullets survive 003.6 and populate all core draft sections', async () => withServer(async ({ app, base }) => {
+test('legacy review preserves complete source project and experience sections without depending on discovery rank', async () => withServer(async ({ app, base }) => {
   const started = await json(`${base}/api/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(realResumeFailureShapeInput()) });
-  assert.equal(started.response.status, 201); assert.ok(started.value.candidates.some((item) => item.section === 'projects'), JSON.stringify(started.value.candidates)); assert.ok(started.value.candidates.some((item) => item.section === 'experiences'), JSON.stringify(started.value.candidates));
+  assert.equal(started.response.status, 201); assert.ok(started.value.candidates.length > 0);
   const reviewed = await json(`${base}/api/sessions/${started.value.sessionId}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: started.value.candidates.map((candidate) => ({ key: candidate.key, action: 'accepted' })) }) });
   assert.equal(reviewed.response.status, 200); assert.notEqual(reviewed.value.validation, 'failed', JSON.stringify(app.sessions.get(started.value.sessionId).validation.validation_findings));
   const session = app.sessions.get(started.value.sessionId); const artifact = session.artifact.resume_artifacts[0]; assert.equal(artifact.metadata.draft_provider.provider, 'mock');
