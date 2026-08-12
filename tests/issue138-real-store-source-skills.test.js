@@ -90,6 +90,7 @@ test('durable Store plan reload supplies target requirements and source-only Ski
   assert.ok(values.includes('Python'));
   assert.ok(values.includes('SQL'));
   assert.ok(values.includes('Power BI'));
+  assert.ok(values.includes('D3.js'));
   assert.ok(values.includes('Workflow Automation'));
   assert.equal(values.includes('Java'), false);
   assert.equal(values.includes('C++'), false);
