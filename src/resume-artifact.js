@@ -191,6 +191,19 @@ function composeSections(generatedSections, plan, facts) {
       return { section: name, position: index + 1, placeholder: null, statements: generated.statements };
     }
 
+    if (name === 'Skills' && generated.statements.length) {
+      const generatedIds = generated.statements.map((statement) => statement.statement_id);
+      for (const sourceStatement of sourceStatements) {
+        superseded.push({
+          source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id,
+          generated_statement_ids: generatedIds,
+          reason: 'supported_job_specific_skills_replacement',
+        });
+      }
+      for (const statement of generated.statements) usedGenerated.add(statement.statement_id);
+      return { section: name, position: index + 1, placeholder: null, statements: generated.statements };
+    }
+
     const statements = [];
     const omissionFor = (sourceStatement) => explicitOmissions.get(normal(sourceStatement.text)) || [];
     const sourceId = (sourceStatement) => sourceStatement.source_statement_id || sourceStatement.statement_id;
@@ -283,7 +296,7 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       draft_completion_failures: completion.failures,
       dropped_provider_alternatives: completion.droppedAlternatives,
       composition: composed.composition,
-      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary statements replace the broad source Summary and are recorded as superseded source content. Cross-section Summary use is supplemental: every included selection still renders in its primary approved section. These composition decisions never write Candidate Knowledge.',
+      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary and Skills sections may replace broader source sections and are recorded as superseded source content. Cross-section Summary use is supplemental: every included selection still renders in its primary approved section. These composition decisions never write Candidate Knowledge.',
     },
     rendered_statement_count: rendered.length,
   };
