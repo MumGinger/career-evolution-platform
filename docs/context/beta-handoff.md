@@ -1,13 +1,13 @@
 # Beta Handoff
 
 **Owner:** Beta Room
-**Checkpoint:** 2026-08-07 — Option 2 engineering-ready; fresh Beta #7 next
+**Checkpoint:** 2026-08-12 — Beta #7 closed FAIL; layout engineering recovered; fresh Beta #8 next
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, Beta #6 / Issue #113, open Issue #97, closed Product Issue #115, merged PR #118, and current shipped GitHub state.
+Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, closed Beta #7 / Issue #121, open Issues #122 and #97, merged PR #123, and current shipped GitHub state.
 
-Act only as a neutral first-time applicant and Beta Product Tester during a Beta. Do not discuss code, architecture, schemas, prompts, APIs, provider internals, implementation solutions, or engineering test design.
+Act only as a neutral first-time applicant and Beta Product Tester during a Beta. Do not discuss code, architecture, schemas, prompts, APIs, provider internals, Candidate Knowledge internals, implementation solutions, or engineering test design.
 
 ## Product acceptance history
 
@@ -16,77 +16,126 @@ Act only as a neutral first-time applicant and Beta Product Tester during a Beta
 - Beta #3 / Issue #93: **FAIL**.
 - Beta #4 / Issue #100: **FAIL**.
 - Beta #5 / Issue #106: **FAIL**.
-- Beta #6 / Issue #113: **FAIL at the old Evidence Review Candidate 1**.
+- Beta #6 / Issue #113: **FAIL**.
+- Beta #7 / Issue #121: **FAIL**.
 - Beta Accepted: **NO**.
 
-## Beta #6 historical result
+## Beta #7 historical result
 
-The applicant interpreted the old Evidence Review as Accept = reword for the job, Skip = keep original, while expecting both choices to remain on the resume. That did not match the shipped model, so Beta #6 failed. Supplemental later-stage exploration also rejected the final resume/system for real use.
+Beta #7 reached final resume review but the applicant would not submit the generated PDF.
 
-Do not reinterpret or continue Beta #6 after engineering changes.
+Fresh applicant judgment:
 
-## Product model changed after Beta #6
+- content might be usable, but formatting/layout was far too poor;
+- Skills were dense;
+- Summary was visually misplaced under Experience;
+- Education was compressed and difficult to scan;
+- text boundaries visually ran together;
+- Project dates appeared after bullets;
+- final PDF looked worse than a credible professional resume;
+- time saved versus manual tailoring: **NO**;
+- the applicant would wait for the next product update rather than use the current output again.
 
-Product Issue #115 is now closed after Option 2 was explicitly approved and implemented in PR #118, merged at `49b8ae0ac705d7d3bd22c19857aabaaa0c3ae9c5`.
+A secondary finding was that Tailoring Review sometimes appeared to change mainly titles rather than deliver obvious substantive tailoring value.
 
-The next fresh Beta will no longer test the old abstract Accept/Skip Evidence Review. The applicant-visible stage is now **Tailoring Review**:
+Do not reinterpret or continue Beta #7 after engineering changes.
 
-- show the applicant's original wording;
-- show the proposed tailored wording;
-- ask **Use tailored version**, **Keep original wording**, or **Needs correction**;
-- do not require a decision when there is no material wording change.
+## Engineering recovery after Beta #7
 
-The uploaded resume should feel like source material the applicant already supplied, not something they must repeatedly prove.
+PR #123 merged at `2fa1f084f8e06cc8f9ee095d406aa6c0033c95af`.
 
-## Correction experience that must be tested
+Engineering proof now exists for a shared professional resume presentation model across Draft/review and final PDF:
 
-At least once in Beta #7, use **Needs correction** on a materially changed proposal and provide realistic missing/incorrect context.
+- standalone Professional Summary;
+- categorized Skills shown as readable label/value groups;
+- flat skills remain separate scan-friendly items;
+- conventional Experience, Projects, and Education entry hierarchy;
+- dates placed with the corresponding entry heading;
+- trailing Project dates moved into the project header position;
+- Education fields separated into readable school/date/degree/detail hierarchy;
+- date-like achievement prose remains body text;
+- Career Review section copy remains populated;
+- source content and approved wording remain intact at the presentation boundary.
 
-Expected applicant-visible behavior:
+Regression-only CI `31596052613` proved the prior renderer failed the new layout contract. Final merge-candidate CI `31597221430` passed unit, full integration, whitespace, HTTP/representative PDF, pre-fix browser RED proof, and current browser GREEN.
 
-1. the product accepts the explanation;
-2. it does not silently proceed to Career Review;
-3. it regenerates the tailoring proposal;
-4. the applicant returns to Tailoring Review and sees a new before/after proposal;
-5. the applicant makes a new concrete wording decision;
-6. only then does the workflow proceed to Draft and Career Review.
+This is engineering readiness evidence only. It does not establish applicant submission acceptance.
 
-Judge this only as a user experience. Do not inspect or discuss internal engineering boundaries in the Beta Room.
+## Issue state for the next Beta
 
-## Engineering readiness evidence
+Issue #122 remains **OPEN** because its acceptance criteria explicitly require fresh-user judgment that the final PDF is submission-ready and saves meaningful time.
 
-Engineering regression-first RED CI: `31155025138`.
+Issue #97 also remains **OPEN** for the broader applicant-readable review/export/value acceptance gate.
 
-Final merge-candidate CI: `31157897591`, with unit, full integration, whitespace, HTTP/representative-PDF, pre-fix browser RED proof, and current browser GREEN all PASS. Review threads were empty and the branch was synchronized with primary at merge.
+## Fresh Beta #8 primary retest
 
-This is engineering evidence only. It does not establish product acceptance.
+After the durable checkpoint is merged and the Beta #8 issue is created, begin from Landing/Input with a real resume and real job description. Treat the applicant as fresh to this shipped version and do not coach around the repaired layout.
 
-PR #116's presentation/export repairs also remain shipped: contact glyph cleanup, safer Experience dedupe, separated Skills, applicant-readable processing summary, Career Review rationale, clearer report explanation, stronger PDF hierarchy, and Career Review correction/edit propagation.
+The primary retest is the actual applicant-facing resume presentation, especially `final-resume.pdf`:
 
-## Fresh Beta #7 requirements
+- Is Professional Summary clearly separate and appropriately placed?
+- Are Skills easy to scan rather than dense or concatenated?
+- Do Experience entries have normal title/company/location/date/bullet hierarchy?
+- Do Projects have normal heading/date/bullet hierarchy, with dates beside the heading rather than after bullets?
+- Is Education readable with school, dates, degree/major/minor/GPA/honors clearly separated?
+- Do section and field boundaries look intentional rather than concatenated?
+- Is the final PDF at least as readable and credible as the Draft/Career Review surface?
+- Does all expected source/approved content remain present without duplication?
+- Would the applicant seriously consider submitting the PDF without rebuilding it elsewhere?
 
-After this checkpoint is merged and the Beta #7 issue is created, begin from Landing/Input with a real resume and real job description. Treat the applicant as completely fresh to the new model.
+## Secondary watch item
 
-Do not coach the applicant on what Tailoring Review is supposed to mean before observing their interpretation.
+Continue to observe Tailoring Review without coaching:
 
-Test, in order:
+- does the proposed wording feel materially useful for the job rather than mostly title-level edits?
+- can the applicant tell what actually changed and why?
 
-- Landing/Input;
-- Processing summary / understanding stage;
-- every materially changed Tailoring Review proposal;
-- at least one Needs correction → regenerated Tailoring Review loop;
-- Draft and validation;
-- Career Review, including whether section rationale and correction remain understandable;
-- `final-resume.pdf` as the primary submission artifact;
-- `career-review-report.html`;
-- `final-resume.md` and `final-resume.json` as secondary artifacts;
-- final real-submission decision;
-- time saved / practical value;
-- trust and review burden;
-- whether the applicant would use the product again.
+This is secondary to the #122 final-layout acceptance gate unless it independently becomes a credible blocker.
 
-Beta Accepted requires fresh applicant evidence. Green engineering checks are not sufficient.
+## Required visible stages
+
+A fresh Beta #8 should still cover:
+
+1. Landing / Input
+2. Processing summary / understanding
+3. every materially changed Tailoring Review proposal
+4. correction/regeneration if a genuine correction is needed
+5. Draft and applicant-readable validation
+6. Career Review — every populated section
+7. `final-resume.pdf`
+8. `career-review-report.html`
+9. `final-resume.md`
+10. `final-resume.json` as secondary artifact
+11. final real-submission decision
+12. time/value decision
+13. review-burden and trust decision
+14. whether the applicant would use the product again
+
+Do not invent false information solely to exercise a correction path.
+
+## Required final judgments
+
+Record as PASS, FAIL, or UNKNOWN using the applicant's own evidence:
+
+- final PDF professional credibility;
+- Summary placement/readability;
+- Skills scanability;
+- Experience hierarchy;
+- Projects hierarchy/date placement;
+- Education hierarchy;
+- section/field boundary clarity;
+- complete resume confidence;
+- Tailoring Review usefulness;
+- Career Review usefulness/burden;
+- trust/transparency;
+- submission readiness;
+- would submit `final-resume.pdf`;
+- time saved versus manual tailoring;
+- practical value;
+- would use the product again.
+
+Beta Accepted still requires fresh applicant evidence. Green engineering checks are not sufficient.
 
 ## Room state
 
-Beta #6 is complete and closed. Beta Accepted is **NO**. Once this engineering-readiness checkpoint merges, a fresh Beta #7 may be created with initial result **UNKNOWN**. Do not reuse Beta #6 judgments as Beta #7 evidence.
+Beta #7 is complete and closed as **FAIL**. Beta Accepted is **NO**. Once the Beta #7 layout-recovery checkpoint merges, a fresh Beta #8 may be created with initial result **UNKNOWN**. Do not reuse Beta #7 judgments as Beta #8 evidence.
