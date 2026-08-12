@@ -213,6 +213,12 @@ function installRuntimeBoundaries() {
         const sourceResumeArtifact = input.sourceResumeArtifact || latestSourceResumeSnapshot(this, input.candidateProfileId);
         return createPlan.call(this, { ...input, sourceResumeArtifact });
       };
+      const getPlan = Store.prototype.getResumeTailoringPlanRun;
+      Store.prototype.getResumeTailoringPlanRun = function getCompleteResumeTailoringPlan(id) {
+        const plan = getPlan.call(this, id);
+        const profile = this.getJobRequirementProfile(plan.job_requirement_profile_id);
+        return { ...plan, job_requirements: profile.requirements || [] };
+      };
       const createReview = Store.prototype.createHumanReviewRun;
       Store.prototype.createHumanReviewRun = function createCompleteResumeHumanReview(input) {
         ensureExpandedReviewSchema(this.db);
