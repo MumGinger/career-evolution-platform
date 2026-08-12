@@ -26,6 +26,36 @@ function visibleStatements(artifact) {
 }
 function sourceStatement(statement) { return statement?.content_origin === 'source_resume_passthrough'; }
 
+function validateGeneratedSectionReplacement({ section, replacementReason, generatedIds, generatedEntries, selections, preserved }) {
+  if (!generatedIds.length || generatedEntries.length !== generatedIds.length) return false;
+  if (section === 'Professional Summary' && replacementReason === 'supported_job_specific_summary_replacement') {
+    return generatedEntries.every((entry) => {
+      const generated = entry.statement;
+      const attachedSelections = (generated.resume_content_selection_ids || []).map((selectionId) => selections.get(selectionId)).filter(Boolean);
+      return !sourceStatement(generated)
+        && entry.section === 'Professional Summary'
+        && attachedSelections.length === (generated.resume_content_selection_ids || []).length
+        && attachedSelections.length > 0
+        && attachedSelections.every((selection) => selection.selection_state === 'include' && selection.permitted_claim_scope.includes('cross_section_summary'));
+    });
+  }
+  if (section === 'Skills' && replacementReason === 'supported_job_specific_skills_replacement') {
+    return generatedEntries.every((entry) => {
+      const generated = entry.statement;
+      const attachedSelections = (generated.resume_content_selection_ids || []).map((selectionId) => selections.get(selectionId)).filter(Boolean);
+      return !sourceStatement(generated)
+        && entry.section === 'Skills'
+        && generated.template === 'skill_name'
+        && attachedSelections.length === (generated.resume_content_selection_ids || []).length
+        && attachedSelections.length > 0
+        && attachedSelections.every((selection) => selection.selection_state === 'include'
+          && selection.recommended_section === 'Skills'
+          && selection.permitted_claim_scope.includes('skill_name'));
+    });
+  }
+  return false;
+}
+
 function validateSourceComposition({ artifact, plan, findings }) {
   const snapshot = plan.source_resume_snapshot;
   if (!snapshot?.sections?.length) return;
@@ -73,20 +103,15 @@ function validateSourceComposition({ artifact, plan, findings }) {
     const generatedEntries = generatedIds.map((generatedId) => visible.get(generatedId)).filter(Boolean);
     let supported = false;
 
-    if (replacement?.reason === 'supported_job_specific_summary_replacement') {
-      supported = section === 'Professional Summary'
-        && generatedIds.length > 0
-        && generatedEntries.length === generatedIds.length
-        && !preserved.has(id)
-        && generatedEntries.every((entry) => {
-          const generated = entry.statement;
-          const attachedSelections = (generated.resume_content_selection_ids || []).map((selectionId) => selections.get(selectionId)).filter(Boolean);
-          return !sourceStatement(generated)
-            && entry.section === 'Professional Summary'
-            && attachedSelections.length === (generated.resume_content_selection_ids || []).length
-            && attachedSelections.length > 0
-            && attachedSelections.every((selection) => selection.selection_state === 'include' && selection.permitted_claim_scope.includes('cross_section_summary'));
-        });
+    if (['supported_job_specific_summary_replacement', 'supported_job_specific_skills_replacement'].includes(replacement?.reason)) {
+      supported = !preserved.has(id) && validateGeneratedSectionReplacement({
+        section,
+        replacementReason: replacement.reason,
+        generatedIds,
+        generatedEntries,
+        selections,
+        preserved,
+      });
     } else {
       supported = Boolean(replacement)
         && replacement.reason === 'supported_tailored_replacement'
