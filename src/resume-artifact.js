@@ -128,30 +128,65 @@ function replacementWithSourceStructure(statement, sourceStatement) {
   };
 }
 
+function explicitSourceOmissions(plan, facts) {
+  const byValue = new Map();
+  for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'omit')) {
+    const fact = facts.get(selection.candidate_fact_id);
+    for (const value of sourceValues(fact)) {
+      const key = normal(value);
+      if (!key) continue;
+      byValue.set(key, [...(byValue.get(key) || []), selection]);
+    }
+  }
+  return byValue;
+}
+
 function composeSections(generatedSections, plan, facts) {
   const source = plan.source_resume_snapshot;
   if (!source?.sections?.length) return {
     sections: generatedSections,
-    composition: { policy_version: composition.POLICY_VERSION, source_resume_snapshot: null, source_statement_count: 0, preserved_source_statement_ids: [], superseded_source_statements: [], generated_statement_count: generatedSections.flatMap((item) => item.statements).length },
+    composition: { policy_version: composition.POLICY_VERSION, source_resume_snapshot: null, source_statement_count: 0, preserved_source_statement_ids: [], superseded_source_statements: [], omitted_source_statements: [], generated_statement_count: generatedSections.flatMap((item) => item.statements).length },
   };
   const generatedBySection = new Map(generatedSections.map((section) => [section.section, section]));
   const sourceBySection = new Map(source.sections.map((section) => [section.section, section]));
+  const explicitOmissions = explicitSourceOmissions(plan, facts);
   const preserved = [];
   const superseded = [];
+  const omittedSourceStatements = [];
   const usedGenerated = new Set();
   const sections = SECTIONS.map((name, index) => {
     const generated = generatedBySection.get(name) || { section: name, position: index + 1, placeholder: null, statements: [] };
     const sourceSection = sourceBySection.get(name) || { statements: [] };
+    const sourceStatements = sourceSection.statements || [];
     const statements = [];
-    for (const sourceStatement of sourceSection.statements || []) {
+    const omissionFor = (sourceStatement) => explicitOmissions.get(normal(sourceStatement.text)) || [];
+    const sourceId = (sourceStatement) => sourceStatement.source_statement_id || sourceStatement.statement_id;
+    const shouldOmitHeading = (sourceStatement) => {
+      const selections = omissionFor(sourceStatement);
+      if (!selections.length || sourceStatement.display_style !== 'heading') return false;
+      const children = sourceStatements.filter((child) => child.parent_source_statement_id === sourceId(sourceStatement));
+      return !children.length || children.every((child) => omissionFor(child).length > 0);
+    };
+    for (const sourceStatement of sourceStatements) {
       const sourceKey = normal(sourceStatement.text);
+      const omittedSelections = omissionFor(sourceStatement);
+      const omit = omittedSelections.length > 0
+        && (sourceStatement.display_style !== 'heading' || shouldOmitHeading(sourceStatement));
+      if (omit) {
+        omittedSourceStatements.push({
+          source_statement_id: sourceId(sourceStatement),
+          resume_content_selection_ids: omittedSelections.map((selection) => selection.id),
+          reason: 'explicit_role_specific_omission',
+        });
+        continue;
+      }
       const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, facts).includes(sourceKey));
       if (replacements.length) {
         replacements.forEach((statement) => { statements.push(replacementWithSourceStructure(statement, sourceStatement)); usedGenerated.add(statement.statement_id); });
-        superseded.push({ source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
+        superseded.push({ source_statement_id: sourceId(sourceStatement), generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
       } else {
-        statements.push({ ...sourceStatement, statement_id: sourceStatement.statement_id || sourceStatement.source_statement_id, source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, resume_content_selection_ids: [] });
-        preserved.push(sourceStatement.source_statement_id || sourceStatement.statement_id);
+        statements.push({ ...sourceStatement, statement_id: sourceStatement.statement_id || sourceStatement.source_statement_id, source_statement_id: sourceId(sourceStatement), resume_content_selection_ids: [] });
+        preserved.push(sourceId(sourceStatement));
       }
     }
     for (const statement of generated.statements) if (!usedGenerated.has(statement.statement_id)) { statements.push(statement); usedGenerated.add(statement.statement_id); }
@@ -170,6 +205,7 @@ function composeSections(generatedSections, plan, facts) {
       source_statement_count: source.sections.flatMap((section) => section.statements || []).length,
       preserved_source_statement_ids: preserved,
       superseded_source_statements: superseded,
+      omitted_source_statements: omittedSourceStatements,
       generated_statement_count: generatedSections.flatMap((section) => section.statements || []).length,
     },
   };
@@ -214,7 +250,7 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       draft_completion_failures: completion.failures,
       dropped_provider_alternatives: completion.droppedAlternatives,
       composition: composed.composition,
-      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim with separate source provenance and never writes Candidate Knowledge.',
+      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; those omissions are recorded in composition metadata and never write Candidate Knowledge.',
     },
     rendered_statement_count: rendered.length,
   };
