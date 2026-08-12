@@ -5,6 +5,7 @@ const artifactGeneration = require('../../src/resume-artifact');
 const humanReview = require('../../src/human-review');
 const applicant = require('../../src/applicant-resume');
 const cleanup = require('../../src/applicant-cleanup');
+const composition = require('../../src/resume-composition');
 
 function sourceSkill(id, text, position) {
   return {
@@ -21,7 +22,7 @@ function sourceSkill(id, text, position) {
   };
 }
 
-test('real source-resume Skills are target-selected for presentation without creating Candidate Knowledge', () => {
+function realSkillFixture() {
   const source = {
     format: 'source-resume-composition/1.0.0',
     policy_version: 'complete-resume-composition-boundary/1.0.0',
@@ -56,7 +57,11 @@ test('real source-resume Skills are target-selected for presentation without cre
       { id: 'req-automation', normalized_name: 'automation process improvement ai enabled solutions', supporting_excerpts: ['Improve workflows, automate manual processes, and apply AI-enabled solutions.'] },
     ],
   };
+  return { source, plan };
+}
 
+test('real source-resume Skills are target-selected for presentation without creating Candidate Knowledge', () => {
+  const { plan } = realSkillFixture();
   const artifact = artifactGeneration.generate(plan);
   const skills = artifact.sections.find((section) => section.section === 'Skills');
   assert.equal(skills.statements.length, 6);
@@ -92,4 +97,26 @@ test('real source-resume Skills are target-selected for presentation without cre
   assert.match(text, /Power BI/);
   assert.match(text, /Workflow Automation/);
   assert.doesNotMatch(text, /Java|C\+\+|CFA Curriculum|Japanese \(Basic\)/);
+});
+
+test('source-skill validation rejects a valid source token attached to an unrelated but real requirement', () => {
+  const { source, plan } = realSkillFixture();
+  const statement = source.sections[0].statements[0];
+  const tampered = {
+    ...statement,
+    presentation: {
+      mode: 'selected_source_skills',
+      label: 'Programming & Data',
+      values: ['Java'],
+      requirement_ids: ['req-dashboard'],
+      source_statement_id: statement.source_statement_id,
+    },
+  };
+  const findings = composition.validateSourceSkillPresentation({
+    artifactRun: {
+      resume_artifacts: [{ artifact_type: 'structured_resume', content: { sections: [{ section: 'Skills', statements: [tampered] }] } }],
+    },
+    plan,
+  });
+  assert.equal(findings.some((item) => item.severity === 'critical' && item.rule === 'source-skill-presentation-exact'), true);
 });
