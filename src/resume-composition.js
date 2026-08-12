@@ -21,7 +21,7 @@ const SOURCE_SKILL_ALIASES = {
   'interactive dashboards': ['dashboard', 'performance tracking'],
   'data storytelling': ['storytelling', 'business story', 'clear business insights'],
   'workflow automation': ['automation', 'automate manual', 'workflow'],
-  'd3 js': ['data visualization', 'visualization'],
+  'd3.js': ['data visualization', 'visualization'],
   'csv data processing': ['preparing data', 'prepare data', 'data preparation'],
   'linear logistic regression': ['machine learning'],
   glms: ['machine learning'],
