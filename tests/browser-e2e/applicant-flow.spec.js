@@ -128,8 +128,9 @@ test('real browser reviews concrete tailoring, regenerates after correction, and
   await expect(page.locator('#preview')).toContainText('Taylor Chen');
   await expect(page.locator('#preview')).toContainText('Experience');
   await expect(page.locator('#preview')).toContainText('Education');
-  await expect(page.locator('#preview .resume-skills')).toBeVisible();
-  expect(await page.locator('#preview .resume-skills li').count()).toBeGreaterThanOrEqual(4);
+  await expect(page.locator('#preview ul.resume-skills')).toBeVisible();
+  expect(await page.locator('#preview ul.resume-skills li').count()).toBeGreaterThanOrEqual(4);
+  await expect(page.locator('#preview .resume-entry-head').first()).toBeVisible();
   await expect(page.locator('#validation')).toContainText(/Ready for your review|Ready for review/);
   await expect(page.locator('#state')).toHaveText(/3 of 5/);
   await expect(page.locator('#career')).toBeHidden();
