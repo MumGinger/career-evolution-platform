@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const applicant = require('../../src/applicant-resume');
 const cleanup = require('../../src/applicant-cleanup');
+const humanReview = require('../../src/human-review');
 
 function source(id, text, style, parent = null) {
   return {
@@ -90,7 +91,7 @@ test('real source container blocks render as one entry shell plus each child exa
   assert.doesNotMatch(html, /ONGOING PROJECTS|>EDUCATION<|>CERTIFICATIONS</);
   assert.doesNotMatch(html, />•</);
 
-  const markdown = applicant.resumeMarkdown(run.section_reviews);
+  const markdown = cleanup.cleanMarkdown(humanReview.markdown(run));
   assert.equal((markdown.match(/Designed and built a full-stack stock pattern labeling platform/g) || []).length, 1);
   assert.doesNotMatch(markdown, /ONGOING PROJECTS|^EDUCATION$|^CERTIFICATIONS$/m);
 });
