@@ -10,7 +10,8 @@
     "test:http-contract": "node scripts/run-test-tier.js http-contract",
     "test:browser-e2e": "node scripts/run-test-tier.js browser-e2e",
     "test:provider-smoke": "node scripts/run-test-tier.js provider-smoke",
-    "test:all": "node scripts/run-test-tier.js all"
+    "test:all": "node scripts/run-test-tier.js all",
+    "pre-beta:gate": "node scripts/check-pre-beta-quality.js"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
