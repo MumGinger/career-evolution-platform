@@ -131,6 +131,54 @@ For critical criteria:
 - material `UNKNOWN` => `NOT BETA READY` until evidence resolves it.
 - only all `PASS` allows a 90+ score to become `BETA READY`.
 
+## Machine-readable scorecard contract
+
+In addition to the human-readable review, every independent review cycle must produce one JSON scorecard for the exact frozen candidate using these keys:
+
+```json
+{
+  "candidate_id": "candidate-v4",
+  "dimensions": {
+    "job_specific_targeting": 9,
+    "content_coherence_prioritization": 9,
+    "concision_duplication_control": 9,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 9,
+    "experience_projects_education_hierarchy": 9,
+    "typography_spacing_density_page_composition": 9,
+    "final_pdf_professional_credibility": 9,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS"
+  }
+}
+```
+
+The deterministic gate validates the required dimensions, required critical criteria, score range, total threshold, and critical states. Missing fields are invalid readiness evidence rather than assumed PASS.
+
+Run it with:
+
+```powershell
+npm run pre-beta:gate -- path\to\scorecard.json
+```
+
+Exit semantics:
+
+- exit `0`: `BETA READY`;
+- exit `1`: valid scorecard but `NEAR READY` or `NOT BETA READY`;
+- exit `2`: malformed/incomplete scorecard or unreadable input.
+
+The deterministic gate does not create the professional judgment. The independent reviewer creates the scores and critical findings from actual artifacts; the gate enforces the threshold consistently so the Lead cannot reinterpret an 89 or average away a critical FAIL.
+
 ## Independent reviewer output
 
 Every review cycle returns:
@@ -143,7 +191,8 @@ Every review cycle returns:
 6. owning specialist for every repair item;
 7. earliest failure boundary for each critical FAIL;
 8. `BETA READY`, `NEAR READY`, or `NOT BETA READY`;
-9. whether another internal loop is required.
+9. whether another internal loop is required;
+10. the machine-readable JSON scorecard matching the contract above.
 
 The reviewer does not repair the candidate during the same independent review run.
 
@@ -175,7 +224,7 @@ freeze candidate v1
   -> still internal; repair remaining issues
   -> freeze candidate v4
   -> reviewer scores 92 + all critical PASS
-  -> BETA READY
+  -> deterministic gate confirms BETA READY
   -> only now begin fresh Beta
 ```
 
