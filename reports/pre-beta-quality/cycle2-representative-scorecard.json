@@ -1,0 +1,84 @@
+{
+  "candidate_id": "cycle2-v3@3677c8661ba69d63b88b171a029fbf84de5f7b4b",
+  "dimensions": {
+    "job_specific_targeting": 9,
+    "content_coherence_prioritization": 9,
+    "concision_duplication_control": 10,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 8,
+    "experience_projects_education_hierarchy": 9,
+    "typography_spacing_density_page_composition": 9,
+    "final_pdf_professional_credibility": 9,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS"
+  },
+  "review": {
+    "total": 91,
+    "verdict": "BETA READY",
+    "requires_internal_loop": false,
+    "scope": "deidentified representative engineering candidate only; a private real-resume/real-job frozen candidate must still pass the same gate before external Beta",
+    "rendered_pdf": "Cycle 2 representative PDF rendered at 200 DPI and visually inspected",
+    "pdf_preflight": "PASS: openable, one page, not encrypted, not scanned, no XFA",
+    "ci_render_evidence": "GitHub Actions run 31625436931 HTTP and representative PDF contract PASS",
+    "deductions": [
+      {
+        "dimension": "job_specific_targeting",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The direction is clearly Data Analytics & AI and broad unrelated skills are removed; the final private real-job run must confirm the provider chooses the strongest exact Zurich wording."
+      },
+      {
+        "dimension": "content_coherence_prioritization",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Representative evidence is well prioritized; real-candidate project/experience proportions still require one private frozen-candidate proof."
+      },
+      {
+        "dimension": "evidence_strength_supported_meaning",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Claims remain bounded and supported; representative wording intentionally avoids invented impact and therefore remains conservative."
+      },
+      {
+        "dimension": "summary_skills_quality",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Skills are now target-specific and scanable, but the representative Summary is deliberately generic and should be judged again on the actual Zurich candidate."
+      },
+      {
+        "dimension": "experience_projects_education_hierarchy",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Hierarchy is credible and conventional; real-content density may still affect page rhythm."
+      },
+      {
+        "dimension": "typography_spacing_density_page_composition",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Rendered typography is clean, consistent, and ATS-friendly; the representative fixture is shorter than a real resume, so full-page density must be rechecked privately."
+      },
+      {
+        "dimension": "final_pdf_professional_credibility",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Representative PDF is professionally credible; final real-content page balance remains the last internal proof."
+      },
+      {
+        "dimension": "review_final_equivalence_decision_preservation",
+        "points_lost": 1,
+        "owner": "Career Frontend Presentation Engineer",
+        "reason": "Representative review and PDF share the same presentation model; private real-candidate equivalence remains required before external Beta."
+      }
+    ]
+  }
+}
