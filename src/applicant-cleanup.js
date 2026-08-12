@@ -175,28 +175,16 @@ function splitCombinedHeader(statements, section) {
   });
 }
 
-function repairLeakedProjectDates(statements, section) {
+function suppressAmbiguousProjectDates(statements, section) {
   if (section !== 'Projects') return statements;
-  const result = statements.map((statement) => ({ ...statement }));
-  let previousHeadingIndex = null;
-  for (let index = 0; index < result.length; index += 1) {
-    const statement = result[index];
-    if (statement.display_style !== 'heading') continue;
+  return statements.map((statement) => {
+    if (statement.display_style !== 'heading' || !statement.text.includes('\n')) return statement;
     const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
-    const dateIndexes = lines.map((line, lineIndex) => DATE_RANGE.test(line) ? lineIndex : -1).filter((lineIndex) => lineIndex >= 0);
-    if (dateIndexes.length > 1 && previousHeadingIndex !== null) {
-      const previous = result[previousHeadingIndex];
-      const previousLines = normalizeVisibleText(previous.text).split('\n').map((line) => line.trim()).filter(Boolean);
-      if (!previousLines.some((line) => DATE_RANGE.test(line))) {
-        previousLines.push(lines[dateIndexes[0]]);
-        previous.text = previousLines.join('\n');
-        lines.splice(dateIndexes[0], 1);
-        statement.text = lines.join('\n');
-      }
-    }
-    previousHeadingIndex = index;
-  }
-  return result;
+    const dateLines = lines.filter((line) => DATE_RANGE.test(line));
+    if (dateLines.length <= 1) return statement;
+    const text = lines.filter((line) => !DATE_RANGE.test(line)).join('\n').trim();
+    return text && text !== statement.text ? { ...statement, text } : statement;
+  });
 }
 
 function removeRepeatedHeadingPrefixes(statements) {
@@ -223,7 +211,7 @@ function cleanVersion(version, section = null) {
     statements = removeEmbeddedBulletLinesFromHeadings(statements);
     statements = compactGeneratedProjectHeadings(statements, section);
     statements = removeRepeatedSectionMarkers(statements, section);
-    statements = repairLeakedProjectDates(statements, section);
+    statements = suppressAmbiguousProjectDates(statements, section);
     statements = splitCombinedHeader(statements, section);
     statements = dedupeAdjacentStatements(statements);
     statements = removeRepeatedHeadingPrefixes(statements);
