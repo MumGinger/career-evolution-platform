@@ -1,0 +1,83 @@
+{
+  "candidate_id": "cycle3-real-input-repair-v5@0f3bd02e1e179749cb7eb2c55505a9bd4a2b5d66",
+  "scope": "deidentified real-input-shaped engineering candidate derived from the actual private failure structure; actual Ya-Ching artifact must still be regenerated after merge",
+  "dimensions": {
+    "job_specific_targeting": 9,
+    "content_coherence_prioritization": 9,
+    "concision_duplication_control": 10,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 9,
+    "experience_projects_education_hierarchy": 9,
+    "typography_spacing_density_page_composition": 9,
+    "final_pdf_professional_credibility": 9,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS"
+  },
+  "review": {
+    "total": 92,
+    "verdict": "BETA READY",
+    "requires_internal_loop": false,
+    "rendered_pdf": "Issue #138 real-input-shaped finalist PDF rendered at 200 DPI and independently inspected",
+    "pdf_preflight": "PASS: openable, one page, not encrypted, not scanned, no XFA",
+    "deductions": [
+      {
+        "dimension": "job_specific_targeting",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The artifact is clearly analytics/automation focused and irrelevant master-resume content is removed; the actual Zurich provider run should still be checked for the strongest exact target wording."
+      },
+      {
+        "dimension": "content_coherence_prioritization",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Three coherent target-selected projects dominate the document; actual private evidence proportions still require one regenerated candidate proof."
+      },
+      {
+        "dimension": "evidence_strength_supported_meaning",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Claims remain bounded and evidence-shaped rather than inflated; the engineering render intentionally avoids invented impact metrics."
+      },
+      {
+        "dimension": "summary_skills_quality",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Skills are target-specific and scanable; the deidentified Summary remains more generic than the final Zurich candidate should be."
+      },
+      {
+        "dimension": "experience_projects_education_hierarchy",
+        "points_lost": 1,
+        "owner": "Career Resume Structure Engineer",
+        "reason": "Project-centric hierarchy is credible for this student candidate shape; the actual regenerated artifact must confirm source-owned experience/coursework is not misclassified."
+      },
+      {
+        "dimension": "typography_spacing_density_page_composition",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "The one-page ATS-friendly layout is clean and stable, but lower-page whitespace and compact education/certification treatment remain utilitarian rather than premium typesetting."
+      },
+      {
+        "dimension": "final_pdf_professional_credibility",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "The rendered PDF is submission-credible with no visible corruption or duplication; actual private content density is the final proof."
+      },
+      {
+        "dimension": "review_final_equivalence_decision_preservation",
+        "points_lost": 1,
+        "owner": "Career Frontend Presentation Engineer",
+        "reason": "The same cleaned Career Review model drives HTML/PDF in regression; actual private output equivalence must be confirmed after regeneration."
+      }
+    ]
+  }
+}

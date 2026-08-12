@@ -59,9 +59,7 @@ function dedupeAdjacentStatements(statements) {
   for (const statement of statements) {
     const previous = result.at(-1);
     if (previous && canonicalStatementText(previous) === canonicalStatementText(statement)) {
-      if (statementPreference(statement) > statementPreference(previous)) {
-        result[result.length - 1] = statement;
-      }
+      if (statementPreference(statement) > statementPreference(previous)) result[result.length - 1] = statement;
       continue;
     }
     result.push(statement);
@@ -70,21 +68,122 @@ function dedupeAdjacentStatements(statements) {
 }
 
 function removeEmbeddedBulletLinesFromHeadings(statements) {
+  const childrenByParent = new Map();
+  for (const statement of statements) {
+    if (statement.parent_source_statement_id && statement.display_style === 'bullet') {
+      childrenByParent.set(statement.parent_source_statement_id, [
+        ...(childrenByParent.get(statement.parent_source_statement_id) || []),
+        statement,
+      ]);
+    }
+  }
+
   return statements.map((statement, index) => {
     if (statement.display_style !== 'heading' || !statement.text.includes('\n')) return statement;
-
-    const followingBullets = new Set();
-    for (let cursor = index + 1; cursor < statements.length; cursor += 1) {
-      const next = statements[cursor];
-      if (next.display_style === 'heading') break;
-      if (next.display_style === 'bullet') followingBullets.add(canonicalStatementText(next));
+    const statementId = statement.source_statement_id || statement.statement_id;
+    const related = childrenByParent.get(statementId) || [];
+    const fallback = [];
+    if (!related.length) {
+      for (let cursor = index + 1; cursor < statements.length; cursor += 1) {
+        const next = statements[cursor];
+        if (next.display_style === 'heading') break;
+        if (next.display_style === 'bullet') fallback.push(next);
+      }
     }
-    if (!followingBullets.size) return statement;
+    const children = related.length ? related : fallback;
+    if (!children.length) return statement;
 
-    const lines = statement.text.split('\n').map((line) => line.trim()).filter(Boolean);
-    const retained = lines.filter((line) => !followingBullets.has(canonicalText(line)));
-    if (!retained.length || retained.length === lines.length) return statement;
-    return { ...statement, text: retained.join('\n') };
+    let text = statement.text;
+    for (const child of children) {
+      const childText = normalizeVisibleText(child.text);
+      if (childText && text.includes(childText)) text = text.split(childText).join('');
+    }
+    text = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !/^[•▪◦-]+$/.test(line))
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return text && text !== statement.text ? { ...statement, text } : statement;
+  });
+}
+
+function compactGeneratedProjectHeadings(statements, section) {
+  if (section !== 'Projects') return statements;
+  return statements.map((statement) => {
+    if (statement.display_style !== 'heading' || statement.content_origin !== 'candidate_knowledge_generated') return statement;
+    const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return statement;
+    const match = lines[0].match(/^(.{3,100}?)\s+[—–-]\s+(?:developed|built|implemented|designed|created|analyzed|analysed|conducted|used|utilized|integrated|engineered)\b/i);
+    if (!match) return statement;
+    lines[0] = match[1].trim();
+    return { ...statement, text: lines.join('\n') };
+  });
+}
+
+function sectionMarker(section, line) {
+  const value = canonicalText(line);
+  if (!value) return false;
+  if (section === 'Skills') return value === 'skills';
+  if (section === 'Education') return value === 'education';
+  if (section === 'Certifications') return value === 'certifications' || value === 'certification';
+  if (section === 'Projects') return /^ongoing projects\b/.test(value) || value === 'research experience';
+  if (section === 'Experience') return value === 'experience' || value === 'work experience';
+  return false;
+}
+
+function removeRepeatedSectionMarkers(statements, section) {
+  return statements.map((statement) => {
+    const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    while (lines.length > 1 && sectionMarker(section, lines[0])) lines.shift();
+    const text = lines.join('\n').trim();
+    return text && text !== statement.text ? { ...statement, text } : statement;
+  });
+}
+
+function applySourceSkillPresentation(statements, section) {
+  if (section !== 'Skills') return statements;
+  const targeted = statements.some((statement) => statement.presentation?.mode === 'selected_source_skills');
+  if (!targeted) return statements;
+  return statements.flatMap((statement) => {
+    const presentation = statement.presentation;
+    if (presentation?.mode !== 'selected_source_skills' || !Array.isArray(presentation.values) || !presentation.values.length) return [];
+    return [{
+      ...statement,
+      text: `${presentation.label}: ${presentation.values.join(', ')}`,
+      display_style: 'inline',
+    }];
+  });
+}
+
+function splitCombinedHeader(statements, section) {
+  if (section !== 'Applicant Header') return statements;
+  return statements.flatMap((statement) => {
+    const parts = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    if (parts.length < 2) return [statement];
+    const [name, ...contact] = parts;
+    return [
+      { ...statement, text: name, display_style: 'line' },
+      {
+        ...statement,
+        statement_id: statement.statement_id ? `${statement.statement_id}:contact` : statement.statement_id,
+        text: contact.join(' | '),
+        display_style: 'line',
+      },
+    ];
+  });
+}
+
+function suppressAmbiguousProjectDates(statements, section) {
+  if (section !== 'Projects') return statements;
+  return statements.map((statement) => {
+    if (statement.display_style !== 'heading' || !statement.text.includes('\n')) return statement;
+    const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    const dateLines = lines.filter((line) => DATE_RANGE.test(line));
+    if (dateLines.length <= 1) return statement;
+    const text = lines.filter((line) => !DATE_RANGE.test(line)).join('\n').trim();
+    return text && text !== statement.text ? { ...statement, text } : statement;
   });
 }
 
@@ -103,12 +202,17 @@ function removeRepeatedHeadingPrefixes(statements) {
   });
 }
 
-function cleanVersion(version) {
+function cleanVersion(version, section = null) {
   if (!version || typeof version !== 'object') return version;
   let statements = version.statements;
   if (Array.isArray(statements)) {
     statements = statements.map(cleanStatement);
+    statements = applySourceSkillPresentation(statements, section);
     statements = removeEmbeddedBulletLinesFromHeadings(statements);
+    statements = compactGeneratedProjectHeadings(statements, section);
+    statements = removeRepeatedSectionMarkers(statements, section);
+    statements = suppressAmbiguousProjectDates(statements, section);
+    statements = splitCombinedHeader(statements, section);
     statements = dedupeAdjacentStatements(statements);
     statements = removeRepeatedHeadingPrefixes(statements);
   }
@@ -122,8 +226,8 @@ function cleanVersion(version) {
 function cleanReview(review) {
   return {
     ...review,
-    ai_version: cleanVersion(review.ai_version),
-    final_version: cleanVersion(review.final_version),
+    ai_version: cleanVersion(review.ai_version, review.section),
+    final_version: cleanVersion(review.final_version, review.section),
     presentation_rationale: Array.isArray(review.presentation_rationale)
       ? review.presentation_rationale.map(cleanApplicantRationale)
       : review.presentation_rationale,
