@@ -117,9 +117,11 @@ function completedProviderSections(providerSections, plan, facts) {
     }
     return { ...section, statements };
   });
-  const rendered = new Set(sections.flatMap((section) => section.statements.flatMap((statement) => statement.resume_content_selection_ids)));
+  const renderedInPrimarySection = new Set(sections.flatMap((section) =>
+    section.statements.flatMap((statement) => (statement.resume_content_selection_ids || []).filter((selectionId) =>
+      selections.get(selectionId)?.recommended_section === section.section))));
   const fallbacks = []; const failures = [];
-  for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'include' && !rendered.has(item.id))) {
+  for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'include' && !renderedInPrimarySection.has(item.id))) {
     const statement = renderStatement(selection, facts.get(selection.candidate_fact_id));
     if (!statement) { failures.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'deterministic_completion_unrenderable' }); continue; }
     const section = sections.find((item) => item.section === selection.recommended_section);
@@ -281,7 +283,7 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       draft_completion_failures: completion.failures,
       dropped_provider_alternatives: completion.droppedAlternatives,
       composition: composed.composition,
-      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary statements replace the broad source Summary and are recorded as superseded source content. These composition decisions never write Candidate Knowledge.',
+      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary statements replace the broad source Summary and are recorded as superseded source content. Cross-section Summary use is supplemental: every included selection still renders in its primary approved section. These composition decisions never write Candidate Knowledge.',
     },
     rendered_statement_count: rendered.length,
   };
