@@ -14,6 +14,22 @@ const SECTION_FOR = {
   certification: 'Certifications',
 };
 
+const SOURCE_SKILL_ALIASES = {
+  'power bi': ['power bi'],
+  python: ['python'],
+  sql: ['sql'],
+  'interactive dashboards': ['dashboard', 'performance tracking'],
+  'data storytelling': ['storytelling', 'business story', 'clear business insights'],
+  'workflow automation': ['automation', 'automate manual', 'workflow'],
+  'd3 js': ['data visualization', 'visualization'],
+  'csv data processing': ['preparing data', 'prepare data', 'data preparation'],
+  'linear logistic regression': ['machine learning'],
+  glms: ['machine learning'],
+  'time series modeling': ['machine learning', 'identifying patterns'],
+  'model evaluation diagnostics': ['machine learning', 'data quality'],
+  'llm apis': ['ai enabled', 'artificial intelligence'],
+};
+
 function normalize(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9@+.-]+/g, ' ').trim().replace(/\s+/g, ' ');
 }
@@ -118,6 +134,167 @@ function latestSourceResumeSnapshot(store, candidateProfileId) {
   const row = store.db.prepare('SELECT id FROM resume_semantic_runs WHERE profile_id = ? ORDER BY created_at DESC, id DESC LIMIT 1').get(candidateProfileId);
   if (!row) return null;
   return composeSourceResume({ profile: store.getProfile(candidateProfileId), semanticRun: store.getResumeSemanticRun(row.id) });
+}
+
+function splitBalancedCsv(value) {
+  const output = [];
+  let current = '';
+  let depth = 0;
+  for (const char of String(value || '')) {
+    if (char === '(') depth += 1;
+    if (char === ')' && depth > 0) depth -= 1;
+    if (char === ',' && depth === 0) {
+      if (current.trim()) output.push(current.trim());
+      current = '';
+    } else current += char;
+  }
+  if (current.trim()) output.push(current.trim());
+  return output;
+}
+
+function parseSourceSkillStatement(statement) {
+  const lines = String(statement?.text || '').replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
+  while (lines.length && normalize(lines[0]) === 'skills') lines.shift();
+  if (lines.length < 2) return null;
+  const label = lines.shift();
+  const values = splitBalancedCsv(lines.join(' '));
+  return label && values.length ? { label, values } : null;
+}
+
+function requirementText(requirement) {
+  const excerpts = Array.isArray(requirement?.supporting_excerpts) ? requirement.supporting_excerpts : [];
+  return normalize([requirement?.normalized_name, ...excerpts].filter(Boolean).join(' '));
+}
+
+function sourceSkillRequirementIds(value, requirements) {
+  const key = normalize(value);
+  const aliases = SOURCE_SKILL_ALIASES[key] || [key];
+  return (requirements || []).filter((requirement) => {
+    const text = requirementText(requirement);
+    return aliases.some((alias) => {
+      const trigger = normalize(alias);
+      return trigger.length >= 3 && text.includes(trigger);
+    });
+  }).map((requirement) => requirement.id).filter(Boolean);
+}
+
+function targetSourceSkills(artifact, plan) {
+  const requirements = Array.isArray(plan?.job_requirements) ? plan.job_requirements : [];
+  if (!requirements.length) return artifact;
+  const section = artifact?.sections?.find((item) => item.section === 'Skills');
+  if (!section?.statements?.length) return artifact;
+  if (section.statements.some((statement) => statement.content_origin === 'candidate_knowledge_generated')) return artifact;
+
+  const targeted = section.statements.map((statement) => {
+    if (statement.content_origin !== 'source_resume_passthrough') return statement;
+    const parsed = parseSourceSkillStatement(statement);
+    if (!parsed) return statement;
+    const selected = parsed.values.map((value) => ({
+      value,
+      requirement_ids: sourceSkillRequirementIds(value, requirements),
+    })).filter((item) => item.requirement_ids.length);
+    return {
+      ...statement,
+      presentation: {
+        mode: 'selected_source_skills',
+        label: parsed.label,
+        values: selected.map((item) => item.value),
+        requirement_ids: [...new Set(selected.flatMap((item) => item.requirement_ids))],
+        source_statement_id: statement.source_statement_id || statement.statement_id,
+      },
+    };
+  });
+  const selectedValues = targeted.flatMap((statement) => statement.presentation?.values || []);
+  if (selectedValues.length < 3) return artifact;
+  return {
+    ...artifact,
+    sections: artifact.sections.map((item) => item.section === 'Skills' ? { ...item, statements: targeted } : item),
+    metadata: {
+      ...artifact.metadata,
+      source_skill_targeting: {
+        mode: 'source_resume_exact_token_selection',
+        selected_value_count: selectedValues.length,
+        source_statement_ids: targeted.filter((statement) => statement.presentation?.mode === 'selected_source_skills').map((statement) => statement.source_statement_id || statement.statement_id),
+      },
+    },
+  };
+}
+
+function factTextValues(fact) {
+  const value = fact?.value || fact?.canonical_value || {};
+  return [...new Set([
+    fact?.display_value,
+    ...Object.values(value),
+  ].filter((item) => typeof item === 'string' && item.trim()).map((item) => item.trim()))];
+}
+
+function sourceSectionForFact(fact, sourceResumeArtifact) {
+  if (!sourceResumeArtifact?.sections?.length) return null;
+  const candidates = sourceResumeArtifact.sections.flatMap((section) => (section.statements || []).map((statement) => ({ section: section.section, statement })));
+  const values = factTextValues(fact).map((text) => ({ raw: text, key: normalize(text) })).filter((item) => item.key.length >= 8);
+  let best = null;
+  for (const candidate of candidates) {
+    const sourceKey = normalize(candidate.statement.text);
+    for (const value of values) {
+      const exact = sourceKey === value.key;
+      const contained = value.key.length >= 20 && sourceKey.includes(value.key);
+      if (!exact && !contained) continue;
+      const score = exact ? 100000 - sourceKey.length : 10000 - sourceKey.length;
+      if (!best || score > best.score) best = { section: candidate.section, score };
+    }
+  }
+  return best?.section || null;
+}
+
+function sourceLinkedTailoring(output, facts, sourceResumeArtifact) {
+  if (!sourceResumeArtifact?.sections?.length || !Array.isArray(output?.selections)) return output;
+  const factMap = new Map((facts || []).map((fact) => [fact.id, fact]));
+  const selections = output.selections.map((selection) => {
+    const fact = factMap.get(selection.candidate_fact_id);
+    if (!fact || !['responsibility', 'achievement'].includes(fact.entity_type)) return selection;
+    const sourceSection = sourceSectionForFact(fact, sourceResumeArtifact);
+    if (!['Experience', 'Projects'].includes(sourceSection) || sourceSection === selection.recommended_section) return selection;
+    return {
+      ...selection,
+      recommended_section: sourceSection,
+      relevance_rationale: `${selection.relevance_rationale} Source-resume parentage keeps this evidence in ${sourceSection}.`,
+    };
+  });
+  const included = selections.filter((selection) => selection.selection_state === 'include');
+  const sectionPlans = [...new Set(included.map((selection) => selection.recommended_section))].map((section, index) => ({
+    section,
+    recommended_order: index + 1,
+    candidate_fact_ids: included.filter((selection) => selection.recommended_section === section).map((selection) => selection.candidate_fact_id),
+  }));
+  return { ...output, selections, sectionPlans };
+}
+
+function validateSourceSkillPresentation({ artifactRun, plan }) {
+  const findings = [];
+  const requirements = new Set((plan?.job_requirements || []).map((requirement) => requirement.id));
+  const artifact = artifactRun?.resume_artifacts?.find((item) => item.artifact_type === 'structured_resume');
+  const skills = artifact?.content?.sections?.find((section) => section.section === 'Skills');
+  for (const statement of skills?.statements || []) {
+    const presentation = statement.presentation;
+    if (!presentation) continue;
+    const invalidBase = statement.content_origin !== 'source_resume_passthrough'
+      || presentation.mode !== 'selected_source_skills'
+      || presentation.source_statement_id !== (statement.source_statement_id || statement.statement_id)
+      || !Array.isArray(presentation.values)
+      || !Array.isArray(presentation.requirement_ids);
+    const parsed = parseSourceSkillStatement(statement);
+    const allowed = new Set(parsed?.values || []);
+    const invalidValues = !parsed || presentation.values.some((value) => !allowed.has(value));
+    const invalidRequirements = presentation.requirement_ids.some((id) => !requirements.has(id));
+    if (invalidBase || invalidValues || invalidRequirements) findings.push({
+      category: 'source_resume_integrity',
+      rule: 'source-skill-presentation-exact',
+      severity: 'critical',
+      message: 'Source-resume skill presentation must select only exact source tokens and requirements from the immutable target-job profile.',
+      references: { statement_id: statement.statement_id },
+    });
+  }
+  return findings;
 }
 
 function expandedReviewTableSql() {
@@ -227,6 +404,34 @@ function installRuntimeBoundaries() {
       Object.defineProperty(Store.prototype, '__completeResumeCompositionBoundary', { value: true });
     }
 
+    const tailoring = require('./resume-tailoring');
+    if (tailoring && !tailoring.__sourceSectionOwnershipBoundary) {
+      const originalPlan = tailoring.plan;
+      tailoring.plan = function sourceLinkedPlan(input) {
+        return sourceLinkedTailoring(originalPlan(input), input.facts, input.sourceResumeArtifact);
+      };
+      Object.defineProperty(tailoring, '__sourceSectionOwnershipBoundary', { value: true });
+    }
+
+    const artifactGeneration = require('./resume-artifact');
+    if (artifactGeneration && !artifactGeneration.__sourceSkillTargetingBoundary) {
+      const originalGenerate = artifactGeneration.generate;
+      artifactGeneration.generate = function sourceTargetedGenerate(plan, ...rest) {
+        return targetSourceSkills(originalGenerate(plan, ...rest), plan);
+      };
+      Object.defineProperty(artifactGeneration, '__sourceSkillTargetingBoundary', { value: true });
+    }
+
+    const validation = require('./resume-validation');
+    if (validation && !validation.__sourceSkillPresentationBoundary) {
+      const originalValidate = validation.validate;
+      validation.validate = function validateWithSourceSkillPresentation(input) {
+        const result = originalValidate(input);
+        return { ...result, findings: [...(result.findings || []), ...validateSourceSkillPresentation(input)] };
+      };
+      Object.defineProperty(validation, '__sourceSkillPresentationBoundary', { value: true });
+    }
+
     const llm = require('./llm-resume-understanding');
     if (llm && !llm.__identityPassthroughBoundary) {
       const align = llm.alignUnderstanding;
@@ -249,5 +454,9 @@ module.exports = {
   ensureExpandedReviewSchema,
   firstPhone,
   deterministicIdentityBlocks,
+  parseSourceSkillStatement,
+  sourceLinkedTailoring,
+  targetSourceSkills,
+  validateSourceSkillPresentation,
   installRuntimeBoundaries,
 };
