@@ -12,7 +12,7 @@ The room is implementation-only. It reviews GitHub work, diagnoses failures, mod
 
 Only interrupt the user for a genuine product, architecture, strategy, private-input, credential, browser, or inaccessible-local-runtime decision.
 
-Do not ask the user to coordinate routine implementation between ChatGPT, Codex, GitHub, or CI.
+Do not ask the user to coordinate routine implementation between ChatGPT, Codex, GitHub, CI, or specialist agents.
 
 ## Direct-execution-first ownership
 
@@ -56,15 +56,16 @@ After Codex returns work, the Engineering Lead remains responsible for inspectin
 
 The Engineering Lead remains the single delivery owner even when specialist agents are used. Specialist agents are bounded contributors, not independent ticket owners, and they do not merge or reinterpret product decisions.
 
-Read `docs/agents/specialist-operating-model.md` before dispatching specialist work.
+Read `docs/agents/specialist-operating-model.md` before dispatching specialist work. For resume work that may become a fresh Beta candidate, also read `docs/agents/pre-beta-quality-scorecard.md`.
 
 Use the project-specific Codex agents when a failure crosses a domain where focused ownership is materially more effective than a single generalist pass:
 
 - **Career Resume Structure Engineer** — source-resume parsing, grouping, entry boundaries, structural composition, duplication, and cross-entry bleed.
-- **Career Resume Content Specialist** — application-specific wording quality, relevance, concision, supported claims, and tailoring value.
+- **Career Resume Content Specialist** — application-specific wording quality, relevance, concision, evidence prioritization, supported claims, and tailoring value.
+- **Career Resume Review UX Designer** — Tailoring Review information architecture, source-entry grouping, comparison clarity, correction flow, and review burden.
 - **Career Resume Visual Designer** — resume information hierarchy, typography, spacing, density, dates, bullets, page composition, and PDF presentation acceptance.
 - **Career Frontend Presentation Engineer** — implementation of approved applicant-facing presentation and review/PDF equivalence.
-- **Career Resume Quality Reviewer** — frozen independent source-to-final acceptance inspection.
+- **Career Resume Quality Reviewer** — frozen independent source-to-final scoring and pre-Beta gatekeeping.
 
 ### Dispatch rules
 
@@ -74,10 +75,51 @@ Use the project-specific Codex agents when a failure crosses a domain where focu
 4. Do not let specialists negotiate architecture directly; the Engineering Lead integrates findings and owns the decision ledger.
 5. Do not use a renderer or UI specialist to mask broken upstream structure.
 6. Do not use a content specialist to rewrite around broken grouping or provenance.
-7. Do not begin independent quality review until the candidate implementation is frozen.
-8. Specialist conclusions are engineering evidence only; Beta acceptance still requires fresh applicant evidence.
+7. Do not begin independent quality scoring until the candidate artifact set is frozen.
+8. Do not let the same independent Quality Reviewer repair findings during the review run that produced the score.
+9. Specialist conclusions and scores are engineering evidence only; Beta acceptance still requires fresh applicant evidence.
 
-For multi-boundary defects, keep one Lead-owned task ledger that records: delegated question, specialist, input boundary, expected output, status, finding, and integration decision.
+For multi-boundary defects, keep one Lead-owned task ledger that records: delegated question, specialist, input boundary, expected output, status, finding, score deduction when applicable, repair owner, and integration decision.
+
+## Mandatory pre-Beta quality loop
+
+Fresh Beta is not the first professional QA pass.
+
+For resume work, the Engineering Lead must keep the candidate inside an internal specialist repair-and-review loop until the latest frozen candidate satisfies the mandatory quality gate in `docs/agents/pre-beta-quality-scorecard.md`.
+
+Required loop:
+
+1. Complete the current implementation slice and relevant engineering verification.
+2. Freeze one representative candidate artifact set, including source resume, target job, tailoring decisions, composed resume, Career Review state, review surface, and final PDF/exports.
+3. Dispatch the frozen candidate to the independent Career Resume Quality Reviewer.
+4. Receive the ten-dimension score `/100`, critical must-pass matrix, concrete deductions, and repair ownership.
+5. If the score is below 90, or any critical criterion is FAIL/materially UNKNOWN, the candidate is **not Beta-ready**.
+6. Route every repair item to the owning specialist and integrate the repairs.
+7. Freeze a new candidate version.
+8. Request a new independent review from scratch. Scores do not carry forward between candidates.
+9. Repeat until the reviewer returns `score >= 90` and every critical must-pass criterion is PASS.
+10. Only then may the Engineering Lead declare `BETA READY` or open/start the next fresh Beta.
+
+Readiness bands are mandatory:
+
+- **0-84:** `NOT BETA READY` — continue the internal loop.
+- **85-89:** `NEAR READY` — still internal; do not start fresh Beta.
+- **90-100 + all critical PASS:** `BETA READY` — eligible for fresh Beta.
+- **Any critical FAIL:** `NOT BETA READY` regardless of numerical score.
+- **Material critical UNKNOWN:** `NOT BETA READY` until resolved.
+
+The Engineering Lead may not substitute any of the following for the mandatory qualifying scorecard:
+
+- green CI;
+- a PDF that merely renders;
+- personal/generalist visual inspection;
+- a previous candidate's score;
+- an average score that hides a critical failure;
+- the argument that an 85-89 candidate is "close enough."
+
+If the same failure class remains after two internal repair cycles, stop incremental patching and investigate the underlying product, architecture, state, or ownership model before another repair attempt.
+
+The purpose of this gate is to keep obvious 60-80 point professional-quality defects inside the internal agent organization. Fresh Beta should test real applicant experience, trust, review burden, time saved, usefulness, willingness to submit, and willingness to use the product again.
 
 ## One-owner delivery loop
 
@@ -93,12 +135,17 @@ Preferred flow:
 6. Run focused validation.
 7. Run the full suite and whitespace checks.
 8. Inspect the actual user-visible behavior or artifact.
-9. Run independent proof.
+9. If the work is a potential resume Beta candidate, enter the mandatory specialist pre-Beta quality loop and repeat repairs/reviews until `>=90 + all critical PASS`.
 10. Update the PR and merge when all engineering gates pass.
+11. Declare Beta-ready only when the latest frozen candidate has a qualifying independent scorecard.
 
 Avoid this fragmented flow:
 
 > Engineering Lead reviews → Codex partially fixes → user relays result → Engineering Lead finds adjacent issue → repeat
+
+Also avoid this premature-Beta flow:
+
+> implementation completes → CI green → one generalist glance at PDF → fresh Beta discovers obvious professional QA defects
 
 A review should examine the complete affected state machine, not only the first visible defect.
 
@@ -151,13 +198,17 @@ Keep these states distinct:
 - **Implemented** — code exists and proportionate engineering tests pass.
 - **Integrated** — the intended end-to-end path is connected.
 - **Proven** — every required engineering acceptance criterion has representative direct evidence.
+- **Near Beta-ready** — latest frozen candidate scores 85-89 with no claim of readiness.
+- **Beta-ready** — latest frozen candidate independently scores at least 90/100 and every critical must-pass criterion is PASS.
 - **Beta Accepted** — a real user completed the workflow and explicitly judged it useful enough for real use.
 
 Passing tests are engineering evidence, not automatic product proof.
 
 A real-provider engineering run does not replace first-time-user Beta acceptance.
 
-Do not repair failures during an independent proof run. Record PASS, FAIL, or UNKNOWN, then return to implementation afterward.
+A 90+ pre-Beta score does not replace first-time-user Beta acceptance; it only establishes that the candidate is professionally credible enough to deserve the user's Beta time.
+
+Do not repair failures during an independent proof/scoring run. Record score, PASS, FAIL, or UNKNOWN, route findings, then return to implementation afterward.
 
 ## Pull-request ownership
 
@@ -176,6 +227,8 @@ The Engineering Lead may merge directly when the implementation satisfies the ag
 
 Do not ask the user to merge, coordinate reviewers, or relay implementation follow-ups.
 
+For work whose purpose is to prepare a new resume Beta candidate, merge completion alone does not authorize Beta. The mandatory pre-Beta quality loop must still produce a qualifying latest-candidate scorecard.
+
 ## User interruption policy
 
 Interrupt the user only when one of these is genuinely required:
@@ -189,6 +242,8 @@ Interrupt the user only when one of these is genuinely required:
 
 When local action is required, provide one precise instruction after all remote work is complete.
 
+Do not ask the user to perform a fresh Beta simply because engineering work has reached a locally plausible state. The user should only be asked for the next Beta after the mandatory internal score loop reaches `>=90 + all critical PASS`.
+
 ## New-conversation startup protocol
 
 When a new Engineering Lead conversation starts:
@@ -197,9 +252,10 @@ When a new Engineering Lead conversation starts:
 2. Read `AGENTS.md` for repository-wide delivery and truth-boundary rules.
 3. Read `docs/current-state.md` and the relevant product/architecture documents.
 4. Read `docs/agents/specialist-operating-model.md` before using specialist agents.
-5. Inspect open issues, pull requests, recent merges, and CI before relying on conversation summaries.
-6. Identify the active ticket and its current delivery state.
-7. Continue directly from repository evidence.
+5. For resume work that can lead to Beta, read `docs/agents/pre-beta-quality-scorecard.md` and enforce its threshold.
+6. Inspect open issues, pull requests, recent merges, and CI before relying on conversation summaries.
+7. Identify the active ticket and its current delivery state.
+8. Continue directly from repository evidence.
 
 The minimal bootstrap message for a new room is:
 
