@@ -69,16 +69,6 @@ jobs:
       - name: Run HTTP and applicant contract tests
         run: npm run test:http-contract
 
-      - name: Generate Issue 138 render evidence
-        run: node scripts/issue138-render-evidence.js reports/quality-evidence/issue138-real-input.pdf
-
-      - name: Upload Issue 138 render evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: issue138-render-evidence
-          path: reports/quality-evidence/issue138-real-input.pdf
-          if-no-files-found: error
-
   browser-e2e:
     name: Real browser shipped flow
     runs-on: ubuntu-latest
