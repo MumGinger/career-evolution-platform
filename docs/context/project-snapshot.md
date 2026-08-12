@@ -1,92 +1,89 @@
 # Project Snapshot
 
-**As of:** 2026-08-07 — Option 2 Tailoring Review implementation merged
+**As of:** 2026-08-12 — Beta #7 layout recovery merged
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
 
 ## State
 
-- The representative evidence-to-export engineering flow remains **Implemented and Integrated** for its specified behavior.
 - Beta #1 / Issue #73: **FAIL**.
 - Beta #2 / Issue #82: **FAIL**.
 - Issue #83 / PR #87: complete-resume composition engineering complete.
 - Beta #3 / Issue #93: **FAIL**.
-- Issues #95 and #97 / PR #99: applicant-readable review/export foundation merged; Issue #97 remains open for product acceptance.
+- Issue #97: applicant-readable review/export acceptance remains **OPEN**.
 - Beta #4 / Issue #100: **FAIL**.
-- Issues #101–#103 / PR #104: recovery merged; PR #105 checkpoint.
 - Beta #5 / Issue #106: **FAIL**.
-- Issues #107/#108 / PR #111: recovery merged; PR #112 checkpoint.
-- Beta #6 / Issue #113: **FAIL at Evidence Review Candidate 1**.
-- PR #116: Beta #6 presentation/export recovery merged at `b0efc92aa390799627e35e9c9d163dab1d6f88d6`.
-- Product Issue #115: **CLOSED / COMPLETED** after explicit approval and implementation of Option 2.
-- PR #118: Option 2 implementation merged at `49b8ae0ac705d7d3bd22c19857aabaaa0c3ae9c5`.
-- Beta Accepted: **NO** pending a fresh Beta.
+- Beta #6 / Issue #113: **FAIL**.
+- Product Issue #115: Option 2 product decision completed; concrete Tailoring Review is the shipped review model.
+- Beta #7 / Issue #121: **FAIL** because final resume layout was not submission-ready and did not save meaningful time.
+- Issue #122: **OPEN**; engineering layout recovery is merged but fresh-user product acceptance is still required.
+- PR #123: layout recovery merged at `2fa1f084f8e06cc8f9ee095d406aa6c0033c95af`.
+- Beta Accepted: **NO**.
 
-Repository and GitHub evidence override stale context.
+Repository and current GitHub evidence override stale context.
 
-## Beta #6 historical result
+## Repository recovery after history rewrite
 
-Beta #6 remains FAIL. The applicant understood the old Evidence Review as Accept = reword for the job, Skip = keep original, with both expected to remain on the resume. Later exploration also judged the final output not professionally submission-ready and not worth reusing.
+On 2026-08-12, Engineering found that authoritative `chore/project-foundation` had been left at the rewritten Beta #5 checkpoint after the repository history rewrite. The rewritten Option 2 checkpoint branch still contained the later implementation and was verified to be a clean fast-forward of primary.
 
-Do not reinterpret Beta #6 after engineering changes.
+Primary was safely fast-forwarded, without force, to rewritten Option 2 checkpoint `b40f8a624289c5986ae7f75f019153211faa65fa` before Beta #7 remediation. PR #123 was then built and merged from that restored state.
 
-## Option 2 product model now shipped
+## Beta #7 product result
 
-The uploaded V1 resume is treated as applicant-provided source material. The applicant is not asked to repeatedly verify resume evidence before tailoring.
+The fresh applicant reached the final artifact but would not submit it. The decisive product failure was visual presentation rather than a blocked workflow:
 
-Applicant-visible review occurs only when the system proposes a concrete material rewrite or interpretation:
+- Skills were too dense and visually concatenated;
+- Summary was visually misplaced under Experience;
+- Education flattened school/date/major/minor/GPA/honors into hard-to-read runs;
+- neighboring fields lacked normal visual boundaries;
+- Project dates appeared after bullets instead of beside the project heading;
+- the final PDF was less credible than the applicant expected from a professional resume;
+- manual tailoring remained preferable, so time saved was **NO**.
 
-- **Original wording**
-- **Proposed tailored wording**
-- **Use tailored version**
-- **Keep original wording**
-- **Needs correction**
+A secondary watch item is that Tailoring Review sometimes appeared to provide only title-level changes, reducing perceived tailoring value.
 
-No material wording change means no wording decision is required.
+## PR #123 engineering result
 
-If the applicant chooses Needs correction, the supplied context flows through the existing acquisition boundary and Candidate Knowledge integration / 003.6. An accepted correction creates a bounded superseding revision, then tailoring, composition, and deterministic validation run again. The applicant returns to Tailoring Review and reviews the regenerated proposal before proceeding.
+PR #123 establishes a dedicated professional resume presentation boundary shared by applicant HTML/review surfaces and PDF export.
 
-AI-only interpretation of a source span is not automatically trusted. Regression coverage explicitly rejects promotion of an unsupported AI-only normalized meaning into Candidate Knowledge.
+Shipped behavior:
 
-## PR #118 engineering proof
+- standalone Professional Summary;
+- category/value Skills groups plus compact flat-skill handling;
+- conventional Experience, Projects, and Education entries;
+- dates in entry-heading positions;
+- Project trailing date recovery into the project header;
+- Education field separation;
+- conservative date parsing so achievement prose is not reclassified as metadata;
+- ATS-friendly single-column hierarchy;
+- Career Review remains readable and populated.
 
-Regression-first RED CI: `31155025138`.
+Regression-only CI `31596052613` demonstrated the expected RED layout state before production changes.
 
-Final merge-candidate CI: `31157897591`:
-
-- Unit: **PASS**
-- Full integration: **PASS**
-- Patch whitespace: **PASS**
-- HTTP / representative PDF: **PASS**
-- Pre-fix Chromium RED proof: **PASS**
-- Current Chromium GREEN proof: **PASS**
-- Review threads: **none**
-- Branch sync at merge gate: **behind 0**
-
-The representative browser flow includes correction → acquisition → 003.6 → regeneration → second Tailoring Review → Draft → Career Review → final PDF/report/Markdown/JSON.
-
-Real-provider smoke is **UNKNOWN / non-blocking** for this checkpoint.
+Final merge-candidate CI `31597221430` passed unit, full integration, whitespace, HTTP/representative-PDF, pre-fix Chromium RED proof, and current Chromium GREEN. Review threads were empty and the branch was behind primary by 0 at merge gate.
 
 ## Protected capability boundary
 
 Preserved:
 
-- 003.6 remains the Candidate Knowledge integration/write authority.
+- 003.6 remains Candidate Knowledge integration/write authority.
 - Source-resume passthrough remains source-linked and cannot create Candidate Knowledge.
-- Source attestation is bounded to source-backed resume material; AI interpretation is not source truth.
+- Source attestation does not make AI interpretation source truth.
 - Generated/materially rewritten claims retain Candidate Knowledge, provenance, and validation requirements.
 - Complete-resume composition/source-passthrough guarantees remain intact.
 - Resume Content Selection and deterministic validation authority remain intact.
 - Career Review / Human Review remains final human authority before export.
 - Manual Career Review edits do not silently update Candidate Knowledge.
 - Provider credentials remain memory-only/private.
-- The unresolved complete-source/no-core-tailoring-selection policy from Issue #95 remains unchanged.
+
+The new layout model is presentation-only and cannot change stored source/knowledge truth.
 
 ## Next cross-room action
 
-1. Merge the Option 2 durable checkpoint.
-2. Create a fresh Beta #7 with initial result **UNKNOWN**.
-3. Begin Beta #7 from Landing/Input with a real resume and real job description.
-4. Test Tailoring Review comprehension without coaching and exercise at least one Needs correction → regeneration loop.
-5. Continue through Draft, Career Review, PDF/report/secondary artifacts, submission judgment, time/value, trust, burden, and reuse intent.
-6. Keep Issue #97 open until fresh-user product acceptance is established.
+1. Merge the Beta #7 layout-recovery durable checkpoint.
+2. Create a fresh Beta #8 with initial result **UNKNOWN**.
+3. Start from Landing/Input with a real resume and job description; do not continue Beta #7.
+4. Primary retest the final PDF against #122: professional credibility, Summary placement, Skills scanability, entry hierarchy, spacing, Education readability, and conventional date placement.
+5. Compare the Draft/Career Review presentation with the final PDF so export cannot be visibly worse than review.
+6. Keep Tailoring Review substantive-value perception as a secondary watch item.
+7. Keep #122 and #97 open until fresh-user acceptance actually passes.
