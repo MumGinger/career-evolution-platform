@@ -97,6 +97,16 @@ function matchableGenerated(statement, facts) {
   return factIds.flatMap((id) => sourceValues(facts.get(id), statement.template)).map(normal).filter(Boolean);
 }
 
+function replacementWithSourceStructure(statement, sourceStatement) {
+  const sourceStatementId = sourceStatement.source_statement_id || sourceStatement.statement_id;
+  return {
+    ...statement,
+    display_style: sourceStatement.display_style || statement.display_style,
+    source_statement_id: sourceStatementId,
+    parent_source_statement_id: sourceStatement.parent_source_statement_id || null,
+  };
+}
+
 function composeSections(generatedSections, plan, facts) {
   const source = plan.source_resume_snapshot;
   if (!source?.sections?.length) return {
@@ -116,7 +126,7 @@ function composeSections(generatedSections, plan, facts) {
       const sourceKey = normal(sourceStatement.text);
       const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, facts).includes(sourceKey));
       if (replacements.length) {
-        replacements.forEach((statement) => { statements.push(statement); usedGenerated.add(statement.statement_id); });
+        replacements.forEach((statement) => { statements.push(replacementWithSourceStructure(statement, sourceStatement)); usedGenerated.add(statement.statement_id); });
         superseded.push({ source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
       } else {
         statements.push({ ...sourceStatement, statement_id: sourceStatement.statement_id || sourceStatement.source_statement_id, source_statement_id: sourceStatement.source_statement_id || sourceStatement.statement_id, resume_content_selection_ids: [] });
