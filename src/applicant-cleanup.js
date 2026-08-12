@@ -129,6 +129,63 @@ function removeRepeatedSectionMarkers(statements, section) {
   });
 }
 
+function applySourceSkillPresentation(statements, section) {
+  if (section !== 'Skills') return statements;
+  const targeted = statements.some((statement) => statement.presentation?.mode === 'selected_source_skills');
+  if (!targeted) return statements;
+  return statements.flatMap((statement) => {
+    const presentation = statement.presentation;
+    if (presentation?.mode !== 'selected_source_skills' || !Array.isArray(presentation.values) || !presentation.values.length) return [];
+    return [{
+      ...statement,
+      text: `${presentation.label}: ${presentation.values.join(', ')}`,
+      display_style: 'inline',
+    }];
+  });
+}
+
+function splitCombinedHeader(statements, section) {
+  if (section !== 'Applicant Header') return statements;
+  return statements.flatMap((statement) => {
+    const parts = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    if (parts.length < 2) return [statement];
+    const [name, ...contact] = parts;
+    return [
+      { ...statement, text: name, display_style: 'line' },
+      {
+        ...statement,
+        statement_id: statement.statement_id ? `${statement.statement_id}:contact` : statement.statement_id,
+        text: contact.join(' | '),
+        display_style: 'line',
+      },
+    ];
+  });
+}
+
+function repairLeakedProjectDates(statements, section) {
+  if (section !== 'Projects') return statements;
+  const result = statements.map((statement) => ({ ...statement }));
+  let previousHeadingIndex = null;
+  for (let index = 0; index < result.length; index += 1) {
+    const statement = result[index];
+    if (statement.display_style !== 'heading') continue;
+    const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    const dateIndexes = lines.map((line, lineIndex) => DATE_RANGE.test(line) ? lineIndex : -1).filter((lineIndex) => lineIndex >= 0);
+    if (dateIndexes.length > 1 && previousHeadingIndex !== null) {
+      const previous = result[previousHeadingIndex];
+      const previousLines = normalizeVisibleText(previous.text).split('\n').map((line) => line.trim()).filter(Boolean);
+      if (!previousLines.some((line) => DATE_RANGE.test(line))) {
+        previousLines.push(lines[dateIndexes[0]]);
+        previous.text = previousLines.join('\n');
+        lines.splice(dateIndexes[0], 1);
+        statement.text = lines.join('\n');
+      }
+    }
+    previousHeadingIndex = index;
+  }
+  return result;
+}
+
 function removeRepeatedHeadingPrefixes(statements) {
   let heading = null;
   return statements.map((statement) => {
@@ -149,8 +206,11 @@ function cleanVersion(version, section = null) {
   let statements = version.statements;
   if (Array.isArray(statements)) {
     statements = statements.map(cleanStatement);
+    statements = applySourceSkillPresentation(statements, section);
     statements = removeEmbeddedBulletLinesFromHeadings(statements);
     statements = removeRepeatedSectionMarkers(statements, section);
+    statements = repairLeakedProjectDates(statements, section);
+    statements = splitCombinedHeader(statements, section);
     statements = dedupeAdjacentStatements(statements);
     statements = removeRepeatedHeadingPrefixes(statements);
   }
