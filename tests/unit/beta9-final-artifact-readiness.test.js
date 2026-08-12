@@ -222,7 +222,7 @@ test('Beta 9 representative composed resume remains coherent through final HTML 
 
   const pdf = applicant.resumePdf(review).toString('latin1');
   for (const required of [
-    'Professional Summary',
+    'PROFESSIONAL SUMMARY',
     'Data Analyst - Example Co.',
     'Gift Recommendation App - analytics-focused recommendation workflow',
     'Stock Pattern Label Platform',
