@@ -1,4 +1,4 @@
-const POLICY_VERSION = 'resume-truth-validation-policy/1.1.0';
+const POLICY_VERSION = 'resume-truth-validation-policy/1.2.0';
 
 function finding(category, rule, severity, message, references = {}) {
   return { category, rule, severity, message, references };
@@ -35,8 +35,10 @@ function validateSourceComposition({ artifact, plan, findings }) {
     return;
   }
   const facts = new Map(plan.candidate_knowledge_snapshot.map((fact) => [fact.id, fact]));
+  const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
   const visible = new Map(visibleStatements(artifact).map(({ section, statement }) => [statement.statement_id, { section: section.section, statement }]));
   const superseded = new Map((metadata.superseded_source_statements || []).map((item) => [item.source_statement_id, item]));
+  const omitted = new Map((metadata.omitted_source_statements || []).map((item) => [item.source_statement_id, item]));
   const preserved = new Set(metadata.preserved_source_statement_ids || []);
   const generatedReplacementUsage = new Set();
   const expected = snapshot.sections.flatMap((section) => (section.statements || []).map((statement) => ({ section: section.section, statement })));
@@ -47,29 +49,65 @@ function validateSourceComposition({ artifact, plan, findings }) {
     if (retainedEntry) {
       const retained = retainedEntry.statement;
       if (!sourceStatement(retained) || retainedEntry.section !== section || retained.text !== statement.text || retained.provenance?.exact_source_text !== statement.text) findings.push(finding('whole_resume_completeness', 'source-statement-verbatim', 'critical', 'A preserved source-resume statement must remain verbatim in its source section with exact source provenance.', { source_statement_id: id, section, actual_section: retainedEntry.section }));
-      if (!preserved.has(id) || superseded.has(id)) findings.push(finding('whole_resume_completeness', 'source-statement-composition-accounting', 'critical', 'Composition metadata must classify a visible source statement as preserved and not superseded.', { source_statement_id: id, section }));
+      if (!preserved.has(id) || superseded.has(id) || omitted.has(id)) findings.push(finding('whole_resume_completeness', 'source-statement-composition-accounting', 'critical', 'Composition metadata must classify a visible source statement as preserved and not superseded or omitted.', { source_statement_id: id, section }));
       continue;
     }
+
+    const omission = omitted.get(id);
+    if (omission) {
+      const omissionSelections = (omission.resume_content_selection_ids || []).map((selectionId) => selections.get(selectionId));
+      const sourceKey = normal(statement.text);
+      const supported = omission.reason === 'explicit_role_specific_omission'
+        && omissionSelections.length > 0
+        && omissionSelections.length === (omission.resume_content_selection_ids || []).length
+        && omissionSelections.every((selection) => selection.selection_state === 'omit'
+          && candidateFactSourceValues(facts.get(selection.candidate_fact_id)).map(normal).includes(sourceKey))
+        && !preserved.has(id)
+        && !superseded.has(id);
+      if (!supported) findings.push(finding('whole_resume_completeness', 'source-statement-explicit-omission', 'critical', 'A source-resume statement may be omitted only when an exact source-linked Resume Content Selection explicitly records a role-specific omit decision.', { source_statement_id: id, section, resume_content_selection_ids: omission.resume_content_selection_ids || [] }));
+      continue;
+    }
+
     const replacement = superseded.get(id);
     const generatedIds = replacement?.generated_statement_ids || [];
     const generatedEntries = generatedIds.map((generatedId) => visible.get(generatedId)).filter(Boolean);
-    let supported = Boolean(replacement)
-      && replacement.reason === 'supported_tailored_replacement'
-      && generatedIds.length > 0
-      && generatedEntries.length === generatedIds.length
-      && !preserved.has(id);
-    for (const entry of generatedEntries) {
-      const generated = entry.statement;
-      const factIds = generated.provenance?.candidate_fact_ids || [];
-      const sourceValues = factIds.flatMap((factId) => candidateFactSourceValues(facts.get(factId), generated.template)).map(normal).filter(Boolean);
-      if (sourceStatement(generated) || entry.section !== section || !sourceValues.includes(normal(statement.text)) || generatedReplacementUsage.has(generated.statement_id)) supported = false;
-      generatedReplacementUsage.add(generated.statement_id);
+    let supported = false;
+
+    if (replacement?.reason === 'supported_job_specific_summary_replacement') {
+      supported = section === 'Professional Summary'
+        && generatedIds.length > 0
+        && generatedEntries.length === generatedIds.length
+        && !preserved.has(id)
+        && generatedEntries.every((entry) => {
+          const generated = entry.statement;
+          const attachedSelections = (generated.resume_content_selection_ids || []).map((selectionId) => selections.get(selectionId)).filter(Boolean);
+          return !sourceStatement(generated)
+            && entry.section === 'Professional Summary'
+            && attachedSelections.length === (generated.resume_content_selection_ids || []).length
+            && attachedSelections.length > 0
+            && attachedSelections.every((selection) => selection.selection_state === 'include' && selection.permitted_claim_scope.includes('cross_section_summary'));
+        });
+    } else {
+      supported = Boolean(replacement)
+        && replacement.reason === 'supported_tailored_replacement'
+        && generatedIds.length > 0
+        && generatedEntries.length === generatedIds.length
+        && !preserved.has(id);
+      for (const entry of generatedEntries) {
+        const generated = entry.statement;
+        const factIds = generated.provenance?.candidate_fact_ids || [];
+        const sourceValues = factIds.flatMap((factId) => candidateFactSourceValues(facts.get(factId), generated.template)).map(normal).filter(Boolean);
+        if (sourceStatement(generated) || entry.section !== section || !sourceValues.includes(normal(statement.text)) || generatedReplacementUsage.has(generated.statement_id)) supported = false;
+        generatedReplacementUsage.add(generated.statement_id);
+      }
     }
-    if (!supported) findings.push(finding('whole_resume_completeness', 'source-statement-preserved-or-supported-replacement', 'critical', 'Every source-resume statement must be preserved verbatim or independently proven to be replaced by matching Candidate Knowledge generated content in the same section.', { source_statement_id: id, section, generated_statement_ids: generatedIds }));
+    if (!supported) findings.push(finding('whole_resume_completeness', 'source-statement-preserved-or-supported-replacement', 'critical', 'Every source-resume statement must be preserved verbatim, explicitly omitted by an exact role-specific selection decision, or independently proven to be replaced by supported Candidate Knowledge generated content.', { source_statement_id: id, section, generated_statement_ids: generatedIds }));
   }
   for (const sourceSection of snapshot.sections.filter((item) => item.statements?.length)) {
-    const represented = (artifact.content.sections || []).find((item) => item.section === sourceSection.section);
-    if (!represented || !represented.statements?.length) findings.push(finding('whole_resume_completeness', 'source-section-preserved', 'critical', 'Every populated source-resume section must remain represented in the complete artifact.', { section: sourceSection.section }));
+    const represented = (artifact.content.sections || []).find((item) => item.section === sourceSection.section && item.statements?.length);
+    const allExplicitlyOmitted = sourceSection.section !== 'Applicant Header'
+      && sourceSection.statements.every((statement) => omitted.has(statement.source_statement_id || statement.statement_id));
+    if (!represented && !allExplicitlyOmitted) findings.push(finding('whole_resume_completeness', 'source-section-preserved', 'critical', 'Every populated source-resume section must remain represented unless every source statement in that section has an auditable explicit role-specific omit decision.', { section: sourceSection.section }));
   }
   const header = snapshot.sections.find((section) => section.section === 'Applicant Header');
   if (header?.statements?.length && !(artifact.content.sections || []).find((section) => section.section === 'Applicant Header')?.statements?.length) findings.push(finding('whole_resume_completeness', 'applicant-header-present', 'critical', 'Applicant identity and contact content from the source resume must be present.'));
