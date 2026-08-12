@@ -19,6 +19,7 @@ function validateFinalVersion(value) {
       if (Object.hasOwn(statement, 'display_style') && !['line', 'heading', 'bullet', 'inline'].includes(statement.display_style)) return `statement ${index + 1} display_style must be line, heading, bullet, or inline`;
       if (Object.hasOwn(statement, 'content_origin') && !['source_resume_passthrough', 'candidate_knowledge_generated'].includes(statement.content_origin)) return `statement ${index + 1} content_origin is unsupported`;
       if (Object.hasOwn(statement, 'provenance') && !plainObject(statement.provenance)) return `statement ${index + 1} provenance must be an object`;
+      if (Object.hasOwn(statement, 'presentation') && !plainObject(statement.presentation)) return `statement ${index + 1} presentation must be an object`;
     }
   }
   return null;
@@ -34,6 +35,7 @@ function reviewStatement(statement) {
     content_origin: statement.content_origin || 'candidate_knowledge_generated',
     resume_content_selection_ids: statement.resume_content_selection_ids || [],
     provenance: statement.provenance,
+    ...(statement.presentation ? { presentation: statement.presentation } : {}),
   };
 }
 
@@ -42,15 +44,18 @@ function sectionDraft(section, strategy) {
   const decisions = (strategy?.presentation_decisions || []).filter((decision) =>
     statements.some((statement) => statement.provenance?.candidate_fact_id === decision.candidate_fact_id));
   const sourceOnly = statements.length > 0 && statements.every((statement) => statement.content_origin === 'source_resume_passthrough');
+  const targetedSource = statements.some((statement) => statement.presentation?.mode === 'selected_source_skills');
   return {
     section: section.section,
     ai_version: { placeholder: section.placeholder || null, statements: statements.map(reviewStatement) },
     supporting_evidence: statements.map((statement) => statement.provenance),
     presentation_rationale: decisions.length
       ? decisions.map((decision) => decision.rationale)
-      : sourceOnly
-        ? ['This section is preserved verbatim from validated source-resume spans. It is not a new Candidate Knowledge claim.']
-        : ['The AI preserved this section as a bounded draft; no unsupported claim was added.'],
+      : targetedSource
+        ? ['This section uses exact source-resume skill wording selected for the target job. The source resume remains unchanged and no new Candidate Knowledge claim is created.']
+        : sourceOnly
+          ? ['This section is preserved verbatim from validated source-resume spans. It is not a new Candidate Knowledge claim.']
+          : ['The AI preserved this section as a bounded draft; no unsupported claim was added.'],
   };
 }
 
