@@ -1,11 +1,11 @@
 # Beta Handoff
 
 **Owner:** Beta Room
-**Checkpoint:** 2026-08-12 — Beta #7 closed FAIL; layout engineering recovered; fresh Beta #8 next
+**Checkpoint:** 2026-08-12 — Beta #9 closed FAIL; no Beta #10 until pre-Beta quality gate passes
 
 ## Start
 
-Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, closed Beta #7 / Issue #121, open Issues #122 and #97, merged PR #123, and current shipped GitHub state.
+Read `PROJECT_CONTEXT.md`, `docs/context/project-snapshot.md`, this file, closed Beta #9 / Issue #133, open Issue #134, and open product gates #126, #122, and #97. Inspect current shipped GitHub state before beginning any new Beta.
 
 Act only as a neutral first-time applicant and Beta Product Tester during a Beta. Do not discuss code, architecture, schemas, prompts, APIs, provider internals, Candidate Knowledge internals, implementation solutions, or engineering test design.
 
@@ -18,124 +18,79 @@ Act only as a neutral first-time applicant and Beta Product Tester during a Beta
 - Beta #5 / Issue #106: **FAIL**.
 - Beta #6 / Issue #113: **FAIL**.
 - Beta #7 / Issue #121: **FAIL**.
+- Beta #8 / Issue #125: **FAIL**.
+- Beta #9 / Issue #133: **FAIL**.
 - Beta Accepted: **NO**.
 
-## Beta #7 historical result
+## Beta #9 historical result
 
-Beta #7 reached final resume review but the applicant would not submit the generated PDF.
+Beta #9 was a fresh run against the post-Beta-#8 recovery candidate. The applicant inspected the actual `final-resume.pdf`.
 
-Fresh applicant judgment:
+The applicant judged the overall layout materially improved from Beta #8. After the initial reaction, they clarified that the broad layout was generally acceptable and the remaining visual work was more about refinement/typography than the entire document being unusable.
 
-- content might be usable, but formatting/layout was far too poor;
-- Skills were dense;
-- Summary was visually misplaced under Experience;
-- Education was compressed and difficult to scan;
-- text boundaries visually ran together;
-- Project dates appeared after bullets;
-- final PDF looked worse than a credible professional resume;
-- time saved versus manual tailoring: **NO**;
-- the applicant would wait for the next product update rather than use the current output again.
+Visible final-artifact problems remained:
 
-A secondary finding was that Tailoring Review sometimes appeared to change mainly titles rather than deliver obvious substantive tailoring value.
+- Professional Summary content appeared under the `SKILLS` heading, mixing Summary and Skills;
+- Skills were still dense and not sufficiently polished/scannable;
+- typography/style needed refinement;
+- final submission readiness was not established.
 
-Do not reinterpret or continue Beta #7 after engineering changes.
+Review burden was explicitly **UNKNOWN** because the applicant had not seriously compared the total review effort.
 
-## Engineering recovery after Beta #7
+At the applicant's request, the supplied final PDF content was independently reviewed. The candidate's raw material was strong, but the assembled resume content was judged roughly **5.5/10** because the result still lacked sufficient application-specific targeting, prioritization, concision, and final editing.
 
-PR #123 merged at `2fa1f084f8e06cc8f9ee095d406aa6c0033c95af`.
+Observed content-quality findings:
 
-Engineering proof now exists for a shared professional resume presentation model across Draft/review and final PDF:
+- summary targets finance, data analytics, quant, and software engineering simultaneously;
+- Skills is an over-expanded inventory;
+- workflow-automation content is duplicated across `ONGOING PROJECTS` and a named project;
+- Time Series learning/coursework content is repeated;
+- Gift Recommendation App is disproportionately long and includes lower-value roadmap-style wording;
+- several bullets describe learning/activity rather than strongest evidence or outcome;
+- the final artifact reads closer to a broad master resume than a tightly selected application resume.
 
-- standalone Professional Summary;
-- categorized Skills shown as readable label/value groups;
-- flat skills remain separate scan-friendly items;
-- conventional Experience, Projects, and Education entry hierarchy;
-- dates placed with the corresponding entry heading;
-- trailing Project dates moved into the project header position;
-- Education fields separated into readable school/date/degree/detail hierarchy;
-- date-like achievement prose remains body text;
-- Career Review section copy remains populated;
-- source content and approved wording remain intact at the presentation boundary.
+The run did not complete every planned Beta #9 stage. Unobserved judgments remain **UNKNOWN**. Submission/value acceptance was not established, so Issue #133 is closed **FAIL**.
 
-Regression-only CI `31596052613` proved the prior renderer failed the new layout contract. Final merge-candidate CI `31597221430` passed unit, full integration, whitespace, HTTP/representative PDF, pre-fix browser RED proof, and current browser GREEN.
+## Decisive process finding
 
-This is engineering readiness evidence only. It does not establish applicant submission acceptance.
+The applicant does not want to repeatedly spend fresh Beta cycles discovering obvious professional-quality defects in approximately "60-point" candidate artifacts.
 
-## Issue state for the next Beta
+The repository already contains specialist roles for Resume Content, Resume Visual Design, Review UX, Frontend Presentation, and independent Resume Quality Review. Beta #9 showed that the missing outcome is not another specialist name; it is a hard pre-Beta collaboration and quality gate.
 
-Issue #122 remains **OPEN** because its acceptance criteria explicitly require fresh-user judgment that the final PDF is submission-ready and saves meaningful time.
+Issue #134 is now the next required gate:
 
-Issue #97 also remains **OPEN** for the broader applicant-readable review/export/value acceptance gate.
+- a dedicated design owner must inspect the real rendered document;
+- content quality must be reviewed for targeting, concision, duplication, proportion, and low-value wording;
+- an independent reviewer must score the frozen candidate and record critical must-pass criteria;
+- the reviewer must be separate from the specialist that designed/implemented the candidate;
+- a high average score cannot hide a critical failure such as broken section identity, duplication, poor professional credibility, or an unsubmitable PDF;
+- failures return to the owning specialist instead of opening another Beta.
 
-## Fresh Beta #8 primary retest
+Fresh Beta remains necessary after that gate, but only for judgments that genuinely require a real applicant: trust, review burden, time saved, usefulness, submission intent, and willingness to use the product again.
 
-After the durable checkpoint is merged and the Beta #8 issue is created, begin from Landing/Input with a real resume and real job description. Treat the applicant as fresh to this shipped version and do not coach around the repaired layout.
+## Issue state
 
-The primary retest is the actual applicant-facing resume presentation, especially `final-resume.pdf`:
+- Issue #133 / Beta #9: **CLOSED — FAIL**.
+- Issue #134: **OPEN — next pre-Beta gate**.
+- Issue #126: **OPEN** — grouped/coherent final-resume content acceptance.
+- Issue #122: **OPEN** — professional final-PDF acceptance.
+- Issue #97: **OPEN** — broader applicant-readable review/export/value acceptance.
+- Beta Accepted: **NO**.
 
-- Is Professional Summary clearly separate and appropriately placed?
-- Are Skills easy to scan rather than dense or concatenated?
-- Do Experience entries have normal title/company/location/date/bullet hierarchy?
-- Do Projects have normal heading/date/bullet hierarchy, with dates beside the heading rather than after bullets?
-- Is Education readable with school, dates, degree/major/minor/GPA/honors clearly separated?
-- Do section and field boundaries look intentional rather than concatenated?
-- Is the final PDF at least as readable and credible as the Draft/Career Review surface?
-- Does all expected source/approved content remain present without duplication?
-- Would the applicant seriously consider submitting the PDF without rebuilding it elsewhere?
+## Conditions before Beta #10
 
-## Secondary watch item
+Do not create or start Beta #10 merely because engineering checks are green.
 
-Continue to observe Tailoring Review without coaching:
+Before another fresh Beta:
 
-- does the proposed wording feel materially useful for the job rather than mostly title-level edits?
-- can the applicant tell what actually changed and why?
+1. Issue #134 must produce a frozen representative real-resume/real-job candidate.
+2. Existing specialist roles must collaborate on content and design quality.
+3. Independent review must record both an overall quality score and critical must-pass judgments.
+4. At minimum review job targeting, content coherence/prioritization, concision/duplication, supported meaning, section/entry integrity, Summary separation, Skills scanability, Experience/Projects/Education hierarchy, typography/spacing/density/page composition, final-PDF professional credibility, and review-surface/PDF equivalence.
+5. No critical criterion may remain FAIL when a new Beta is opened.
 
-This is secondary to the #122 final-layout acceptance gate unless it independently becomes a credible blocker.
-
-## Required visible stages
-
-A fresh Beta #8 should still cover:
-
-1. Landing / Input
-2. Processing summary / understanding
-3. every materially changed Tailoring Review proposal
-4. correction/regeneration if a genuine correction is needed
-5. Draft and applicant-readable validation
-6. Career Review — every populated section
-7. `final-resume.pdf`
-8. `career-review-report.html`
-9. `final-resume.md`
-10. `final-resume.json` as secondary artifact
-11. final real-submission decision
-12. time/value decision
-13. review-burden and trust decision
-14. whether the applicant would use the product again
-
-Do not invent false information solely to exercise a correction path.
-
-## Required final judgments
-
-Record as PASS, FAIL, or UNKNOWN using the applicant's own evidence:
-
-- final PDF professional credibility;
-- Summary placement/readability;
-- Skills scanability;
-- Experience hierarchy;
-- Projects hierarchy/date placement;
-- Education hierarchy;
-- section/field boundary clarity;
-- complete resume confidence;
-- Tailoring Review usefulness;
-- Career Review usefulness/burden;
-- trust/transparency;
-- submission readiness;
-- would submit `final-resume.pdf`;
-- time saved versus manual tailoring;
-- practical value;
-- would use the product again.
-
-Beta Accepted still requires fresh applicant evidence. Green engineering checks are not sufficient.
+Only then create a fresh Beta with initial result **UNKNOWN**. Do not reuse Beta #9 judgments as evidence for the next run.
 
 ## Room state
 
-Beta #7 is complete and closed as **FAIL**. Beta Accepted is **NO**. Once the Beta #7 layout-recovery checkpoint merges, a fresh Beta #8 may be created with initial result **UNKNOWN**. Do not reuse Beta #7 judgments as Beta #8 evidence.
+Beta #9 is complete and closed as **FAIL**. Beta Accepted is **NO**. The next work belongs outside the Beta Room under Issue #134. No Beta #10 should start until the pre-Beta quality gate produces a credible submission candidate.
