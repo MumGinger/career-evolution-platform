@@ -74,6 +74,7 @@ test('real source-resume Skills are target-selected for presentation without cre
   assert.ok(visibleValues.includes('Python'));
   assert.ok(visibleValues.includes('SQL'));
   assert.ok(visibleValues.includes('Power BI'));
+  assert.ok(visibleValues.includes('D3.js'));
   assert.ok(visibleValues.includes('Workflow Automation'));
   assert.equal(visibleValues.includes('Java'), false);
   assert.equal(visibleValues.includes('C++'), false);
@@ -95,6 +96,7 @@ test('real source-resume Skills are target-selected for presentation without cre
   assert.match(text, /Python/);
   assert.match(text, /SQL/);
   assert.match(text, /Power BI/);
+  assert.match(text, /D3\.js/);
   assert.match(text, /Workflow Automation/);
   assert.doesNotMatch(text, /Java|C\+\+|CFA Curriculum|Japanese \(Basic\)/);
 });
