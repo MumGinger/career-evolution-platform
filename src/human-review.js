@@ -39,23 +39,52 @@ function reviewStatement(statement) {
   };
 }
 
+function targetProjectStatements(section, statements) {
+  if (section !== 'Projects') return { statements, omittedEntryCount: 0 };
+  const groups = [];
+  let current = null;
+  for (const statement of statements) {
+    if (statement.display_style === 'heading') {
+      current = { statements: [statement] };
+      groups.push(current);
+    } else if (current) current.statements.push(statement);
+    else {
+      current = { statements: [statement] };
+      groups.push(current);
+    }
+  }
+  const selected = groups.map((group) => ({
+    ...group,
+    selected: group.statements.some((statement) =>
+      statement.content_origin === 'candidate_knowledge_generated'
+      || (statement.resume_content_selection_ids || []).length > 0),
+  }));
+  const selectedCount = selected.filter((group) => group.selected).length;
+  if (selectedCount < 3) return { statements, omittedEntryCount: 0 };
+  const kept = selected.filter((group) => group.selected);
+  return {
+    statements: kept.flatMap((group) => group.statements),
+    omittedEntryCount: selected.length - kept.length,
+  };
+}
+
 function sectionDraft(section, strategy) {
-  const statements = section.statements || [];
+  const targetedProjects = targetProjectStatements(section.section, section.statements || []);
+  const statements = targetedProjects.statements;
   const decisions = (strategy?.presentation_decisions || []).filter((decision) =>
     statements.some((statement) => statement.provenance?.candidate_fact_id === decision.candidate_fact_id));
   const sourceOnly = statements.length > 0 && statements.every((statement) => statement.content_origin === 'source_resume_passthrough');
   const targetedSource = statements.some((statement) => statement.presentation?.mode === 'selected_source_skills');
+  const rationale = decisions.map((decision) => decision.rationale);
+  if (targetedProjects.omittedEntryCount > 0) rationale.push(`${targetedProjects.omittedEntryCount} source-only project entries remain in the uploaded resume but are not part of this target-specific application artifact because at least three other project entries were explicitly selected by the tailoring plan.`);
+  if (targetedSource) rationale.push('This section uses exact source-resume skill wording selected for the target job. The source resume remains unchanged and no new Candidate Knowledge claim is created.');
+  if (!rationale.length && sourceOnly) rationale.push('This section is preserved verbatim from validated source-resume spans. It is not a new Candidate Knowledge claim.');
+  if (!rationale.length) rationale.push('The AI preserved this section as a bounded draft; no unsupported claim was added.');
   return {
     section: section.section,
     ai_version: { placeholder: section.placeholder || null, statements: statements.map(reviewStatement) },
     supporting_evidence: statements.map((statement) => statement.provenance),
-    presentation_rationale: decisions.length
-      ? decisions.map((decision) => decision.rationale)
-      : targetedSource
-        ? ['This section uses exact source-resume skill wording selected for the target job. The source resume remains unchanged and no new Candidate Knowledge claim is created.']
-        : sourceOnly
-          ? ['This section is preserved verbatim from validated source-resume spans. It is not a new Candidate Knowledge claim.']
-          : ['The AI preserved this section as a bounded draft; no unsupported claim was added.'],
+    presentation_rationale: rationale,
   };
 }
 
@@ -90,4 +119,4 @@ function markdown(run) {
   }).filter(Boolean).join('\n\n');
 }
 
-module.exports = { POLICY_VERSION, REQUIRED_SECTIONS, createDraft, complete, finalSection, markdown, validateFinalVersion, reviewStatement };
+module.exports = { POLICY_VERSION, REQUIRED_SECTIONS, createDraft, complete, finalSection, markdown, validateFinalVersion, reviewStatement, targetProjectStatements };
