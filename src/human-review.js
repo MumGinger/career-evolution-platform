@@ -13,6 +13,8 @@ function validateFinalVersion(value) {
     for (const [index, statement] of value.statements.entries()) {
       if (!plainObject(statement) || typeof statement.text !== 'string' || !statement.text.trim()) return `statement ${index + 1} must be an object with non-empty text`;
       if (Object.hasOwn(statement, 'statement_id') && typeof statement.statement_id !== 'string') return `statement ${index + 1} statement_id must be a string`;
+      if (Object.hasOwn(statement, 'source_statement_id') && typeof statement.source_statement_id !== 'string') return `statement ${index + 1} source_statement_id must be a string`;
+      if (Object.hasOwn(statement, 'parent_source_statement_id') && statement.parent_source_statement_id !== null && typeof statement.parent_source_statement_id !== 'string') return `statement ${index + 1} parent_source_statement_id must be null or a string`;
       if (Object.hasOwn(statement, 'template') && typeof statement.template !== 'string') return `statement ${index + 1} template must be a string`;
       if (Object.hasOwn(statement, 'display_style') && !['line', 'heading', 'bullet', 'inline'].includes(statement.display_style)) return `statement ${index + 1} display_style must be line, heading, bullet, or inline`;
       if (Object.hasOwn(statement, 'content_origin') && !['source_resume_passthrough', 'candidate_knowledge_generated'].includes(statement.content_origin)) return `statement ${index + 1} content_origin is unsupported`;
@@ -25,6 +27,8 @@ function validateFinalVersion(value) {
 function reviewStatement(statement) {
   return {
     statement_id: statement.statement_id,
+    ...(statement.source_statement_id ? { source_statement_id: statement.source_statement_id } : {}),
+    ...(Object.hasOwn(statement, 'parent_source_statement_id') ? { parent_source_statement_id: statement.parent_source_statement_id } : {}),
     text: statement.text,
     display_style: statement.display_style || 'bullet',
     content_origin: statement.content_origin || 'candidate_knowledge_generated',
