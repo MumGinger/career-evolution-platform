@@ -177,23 +177,44 @@ function parseHeadingMetadata(value) {
   return { title, date, meta };
 }
 
+const SKILL_GROUP_LABEL = /^(?:programming(?:\s*&\s*data)?|data(?:\s*&\s*analytics|\s+visualization(?:\s*&\s*bi)?)|statistical(?:\s*&\s*machine learning)?|machine learning|finance(?:\s*&\s*markets)?|tools?(?:\s*&\s*(?:workflow|frameworks?))?|frameworks?|languages?)$/i;
+
+function normalizedSkillValues(value) {
+  return normalizeVisibleText(value)
+    .replace(/\s*(?:[;•|]|\n)\s*/g, ', ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/(?:,\s*){2,}/g, ', ')
+    .replace(/^,\s*|,\s*$/g, '')
+    .trim();
+}
+
 function parseSkillPresentation(statements) {
-  const chunks = statements.flatMap((statement) => splitSkillItems(statement.text));
+  const texts = (statements || []).map((statement) => normalizeVisibleText(statement.text)).filter(Boolean);
   const groups = [];
   const items = [];
-  for (const chunk of chunks) {
-    const colon = chunk.indexOf(':');
-    if (colon > 0 && colon < 36) {
-      const label = chunk.slice(0, colon).trim();
-      const values = chunk.slice(colon + 1).trim();
+
+  for (let index = 0; index < texts.length; index += 1) {
+    const text = texts[index];
+    const colon = text.indexOf(':');
+    if (colon > 0 && colon < 40) {
+      const label = text.slice(0, colon).trim();
+      const values = normalizedSkillValues(text.slice(colon + 1));
       if (label && values) {
         groups.push({ label, values });
         continue;
       }
     }
-    if (chunk.includes(',')) items.push(...chunk.split(/\s*,\s*/).filter(Boolean));
-    else if (chunk) items.push(chunk);
+
+    const next = texts[index + 1];
+    if (SKILL_GROUP_LABEL.test(text) && next && !SKILL_GROUP_LABEL.test(next)) {
+      groups.push({ label: text, values: normalizedSkillValues(next) });
+      index += 1;
+      continue;
+    }
+
+    items.push(...splitSkillItems(text));
   }
+
   return { groups, items };
 }
 
@@ -381,10 +402,10 @@ body{margin:0;padding:32px}
 ul{margin:2px 0 4px;padding-left:16px}
 li{font-size:9.7pt;line-height:1.31;margin:1.5px 0;padding-left:1px}
 .resume-skill-groups{display:block;margin:0}
-.resume-skill-group{display:flex;gap:7px;align-items:flex-start;margin:1px 0;font-size:9.55pt;line-height:1.28}
-.resume-skill-label{font-weight:700;min-width:96px;flex:0 0 96px}
-.resume-skill-values{flex:1}
-.resume-skills-section>.resume-skills{display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:0}
+.resume-skill-group{display:flex;gap:8px;align-items:flex-start;margin:1.5px 0;font-size:9.4pt;line-height:1.29}
+.resume-skill-label{font-weight:700;min-width:150px;flex:0 0 150px}
+.resume-skill-values{flex:1;min-width:0}
+.resume-skills-section>.resume-skills{display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:3px 0 0}
 .resume-skills-section>.resume-skills li{margin:0}
 .resume-education-section .resume-entry{margin-bottom:7px}
 .resume-education-section .resume-line{margin:1px 0}
@@ -527,18 +548,18 @@ function resumePdf(reviews) {
     if (model.kind === 'skills') {
       for (const group of model.groups) {
         ensureSpace(13);
-        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.5 });
-        const labelWidth = Math.max(86, Math.min(120, (pdfAscii(group.label).length + 2) * 9.5 * 0.52 + 10));
+        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.4 });
+        const labelWidth = Math.max(108, Math.min(170, (pdfAscii(group.label).length + 2) * 9.4 * 0.52 + 10));
         const valueX = left + labelWidth;
-        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.5 * 0.52)));
+        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.4 * 0.52)));
         const lines = wrapText(group.values, valueWidth);
         lines.forEach((line, index) => {
-          if (index > 0) y -= 11.8;
-          textCommand(line, valueX, y, { size: 9.5 });
+          if (index > 0) y -= 11.7;
+          textCommand(line, valueX, y, { size: 9.4 });
         });
         y -= 12.2;
       }
-      if (model.items.length) addText(model.items.join(' | '), { size: 9.5, leading: 12.2 });
+      if (model.items.length) addText(model.items.join(' | '), { size: 9.4, leading: 12.2 });
       y -= 1;
       continue;
     }

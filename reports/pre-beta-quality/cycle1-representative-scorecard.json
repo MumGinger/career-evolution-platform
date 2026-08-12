@@ -1,0 +1,88 @@
+{
+  "candidate_id": "cycle1-v2@2ebd7fb466a4bfd6e860d26d9525c0b9573f5055",
+  "dimensions": {
+    "job_specific_targeting": 8,
+    "content_coherence_prioritization": 8,
+    "concision_duplication_control": 9,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 8,
+    "experience_projects_education_hierarchy": 9,
+    "typography_spacing_density_page_composition": 8,
+    "final_pdf_professional_credibility": 8,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS"
+  },
+  "review": {
+    "total": 86,
+    "verdict": "NEAR READY",
+    "requires_internal_loop": true,
+    "rendered_pdf": "deidentified representative Cycle 1 candidate rendered from src/applicant-resume.js and inspected at 200 DPI",
+    "ci_evidence": "GitHub Actions run 31623988536 HTTP and representative PDF contract PASS",
+    "deductions": [
+      {
+        "dimension": "job_specific_targeting",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The candidate is clearly data-analytics oriented, but the Skills inventory remains broader than the target role and includes lower-priority technologies that dilute emphasis."
+      },
+      {
+        "dimension": "content_coherence_prioritization",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The selected Experience and Projects are coherent, but skill-level prioritization is still source-preserving rather than target-selective."
+      },
+      {
+        "dimension": "concision_duplication_control",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Major duplication is resolved; the remaining opportunity is trimming lower-value skill inventory rather than fixing repeated resume entries."
+      },
+      {
+        "dimension": "evidence_strength_supported_meaning",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Claims are supported and bounded, but the representative Summary is still generic and could communicate stronger target-specific evidence without inventing impact."
+      },
+      {
+        "dimension": "summary_skills_quality",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist / Career Resume Visual Designer",
+        "reason": "Summary is now correctly separated and Skills are scanable, but the Summary is generic and Skills are still dense/broad for a target-specific resume."
+      },
+      {
+        "dimension": "experience_projects_education_hierarchy",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Hierarchy is credible; entry metadata and bullet rhythm can still be polished."
+      },
+      {
+        "dimension": "typography_spacing_density_page_composition",
+        "points_lost": 2,
+        "owner": "Career Resume Visual Designer",
+        "reason": "The one-column layout is readable and ATS-friendly, but typography and spacing still look utilitarian rather than deliberately typeset."
+      },
+      {
+        "dimension": "final_pdf_professional_credibility",
+        "points_lost": 2,
+        "owner": "Career Resume Visual Designer",
+        "reason": "The rendered PDF is usable and coherent, but not yet polished enough to justify a 9/10 professional-document score."
+      },
+      {
+        "dimension": "review_final_equivalence_decision_preservation",
+        "points_lost": 1,
+        "owner": "Career Frontend Presentation Engineer",
+        "reason": "Representative HTML/PDF are generated from the same review model and regressions pass, but a final private real-candidate equivalence proof remains required before external Beta."
+      }
+    ]
+  }
+}
