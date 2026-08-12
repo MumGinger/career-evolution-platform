@@ -109,6 +109,19 @@ function removeEmbeddedBulletLinesFromHeadings(statements) {
   });
 }
 
+function compactGeneratedProjectHeadings(statements, section) {
+  if (section !== 'Projects') return statements;
+  return statements.map((statement) => {
+    if (statement.display_style !== 'heading' || statement.content_origin !== 'candidate_knowledge_generated') return statement;
+    const lines = normalizeVisibleText(statement.text).split('\n').map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return statement;
+    const match = lines[0].match(/^(.{3,100}?)\s+[—–-]\s+(?:developed|built|implemented|designed|created|analyzed|analysed|conducted|used|utilized|integrated|engineered)\b/i);
+    if (!match) return statement;
+    lines[0] = match[1].trim();
+    return { ...statement, text: lines.join('\n') };
+  });
+}
+
 function sectionMarker(section, line) {
   const value = canonicalText(line);
   if (!value) return false;
@@ -208,6 +221,7 @@ function cleanVersion(version, section = null) {
     statements = statements.map(cleanStatement);
     statements = applySourceSkillPresentation(statements, section);
     statements = removeEmbeddedBulletLinesFromHeadings(statements);
+    statements = compactGeneratedProjectHeadings(statements, section);
     statements = removeRepeatedSectionMarkers(statements, section);
     statements = repairLeakedProjectDates(statements, section);
     statements = splitCombinedHeader(statements, section);
