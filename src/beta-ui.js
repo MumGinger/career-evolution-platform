@@ -6,6 +6,7 @@ const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const option2 = require('./option2-tailoring-review');
+const tailoringEntry = require('./tailoring-review-entry-context');
 const { providerFromConfig: draftProviderFromConfig } = require('./resume-draft');
 const { APPLICANT_PAGE } = require('./applicant-option2-page');
 
@@ -74,12 +75,13 @@ function proxyRequest({ coreAddress, req, url, body }) {
   });
 }
 
-function normalizeApplicantResponse(value) {
+function normalizeApplicantResponse(value, session = null) {
   if (!value || typeof value !== 'object') return value;
   if (typeof value.resumeMarkdown === 'string') value.resumeMarkdown = cleanup.cleanMarkdown(value.resumeMarkdown);
   if (Array.isArray(value.tailoringReview)) {
-    value.tailoringReview = value.tailoringReview.map((item) => ({
+    value.tailoringReview = tailoringEntry.annotateTailoringReview(session, value.tailoringReview).map((item) => ({
       ...item,
+      entryLabel: applicant.normalizeVisibleText(item.entryLabel),
       originalText: cleanup.cleanEvidenceSourceText(item.originalText),
       tailoredText: cleanup.cleanStatement({ text: item.tailoredText, display_style: 'bullet' }).text,
       whyTailored: (item.whyTailored || []).map(applicant.normalizeVisibleText),
@@ -222,14 +224,14 @@ function createBetaUiServer(options = {}) {
 
       if (req.method === 'POST' && /\/confirm$/.test(url.pathname) && session && ['tailoring-review', 'draft-blocked'].includes(session.stage)) {
         const result = await legacyConfirmAsTailoring(session, parseJson(requestBody));
-        return send(res, 200, normalizeApplicantResponse(result));
+        return send(res, 200, normalizeApplicantResponse(result, session));
       }
 
       if (req.method === 'POST' && /\/tailoring-review$/.test(url.pathname)) {
         if (!session) return send(res, 404, { error: 'This local session has expired.' });
         const input = parseJson(requestBody);
         const result = await option2.apply(session, input.decisions || []);
-        return send(res, 200, normalizeApplicantResponse(result));
+        return send(res, 200, normalizeApplicantResponse(result, session));
       }
 
       let bodyForCore = requestBody;
@@ -253,11 +255,13 @@ function createBetaUiServer(options = {}) {
       try { value = proxied.body.length ? JSON.parse(proxied.body.toString('utf8')) : {}; }
       catch { return send(res, proxied.status, proxied.body, proxied.contentType); }
 
+      let responseSession = session;
       const isLlmStart = req.method === 'POST' && url.pathname === '/api/llm-first/start';
       if (proxied.status < 300 && isLlmStart) {
         const current = coreApp.sessions.get(value.sessionId);
         const prepared = await option2.prepare(current);
         value = { ...value, ...prepared, stage: prepared.stage };
+        responseSession = current;
         delete value.evidence;
       }
 
@@ -265,7 +269,7 @@ function createBetaUiServer(options = {}) {
         value = cleanAndWriteApplicantOutputs(session, value);
       }
 
-      return send(res, proxied.status, normalizeApplicantResponse(value));
+      return send(res, proxied.status, normalizeApplicantResponse(value, responseSession));
     } catch (error) {
       return send(res, 400, { error: error.message });
     }
