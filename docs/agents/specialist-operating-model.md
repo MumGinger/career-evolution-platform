@@ -28,14 +28,60 @@ Default topology:
           |                    |            Frontend Presentation
           +--------------------+--------------------+
                                |
+                    freeze candidate artifact
+                               |
                     Resume Quality Reviewer
                                |
-                         Engineering proof
+                        score + findings
                                |
-                            Fresh Beta
+              +----------------+----------------+
+              |                                 |
+      below 90 / critical FAIL            90+ / all critical PASS
+              |                                 |
+      route back to specialists                Beta-ready
+              |                                 |
+        repair + re-freeze                   Fresh Beta
+              |
+        independent re-review
 ```
 
 The Lead may run independent specialist analysis in parallel when the tasks do not mutate the same state or depend on each other's output.
+
+## Mandatory pre-Beta quality loop
+
+Fresh Beta is not the first professional QA pass.
+
+Before the Engineering Lead may call a resume candidate `Beta-ready`, the candidate must complete the score-driven internal loop defined in `docs/agents/pre-beta-quality-scorecard.md`.
+
+The required loop is:
+
+```text
+freeze candidate
+  -> independent Quality Reviewer scores the exact frozen artifact set
+  -> if score < 90 or any critical criterion FAIL/materially UNKNOWN:
+       route every finding to the owning specialist
+       repair
+       freeze a new candidate
+       run a new independent review from scratch
+  -> repeat until score >= 90 and every critical criterion PASS
+  -> only then declare Beta-ready
+```
+
+Rules:
+
+- below `85/100` is clearly not Beta-ready;
+- `85-89/100` is near-ready only and remains internal;
+- `90-100/100` is eligible for Beta only when every critical must-pass criterion is PASS;
+- any critical FAIL blocks Beta regardless of average score;
+- material critical UNKNOWN blocks Beta until evidence resolves it;
+- scores are per frozen candidate and are never cumulative across repair cycles;
+- the reviewer does not repair the artifact during the same independent review run;
+- the Engineering Lead cannot substitute personal inspection, CI green status, or a previous score for the mandatory independent review;
+- the Engineering Lead cannot create or start the next fresh Beta while the latest frozen candidate lacks a qualifying `BETA READY` verdict.
+
+The purpose is to keep 60-80 point professional-quality defects inside the engineering organization and reserve fresh Beta for real user learning: trust, review burden, time saved, usefulness, submission willingness, and repeat-use intent.
+
+If the same failure class survives two internal repair cycles, stop incremental patching and apply the repository repeated-failure rule: investigate the underlying product, architecture, state, or ownership model before another repair attempt.
 
 ## Specialist roster
 
@@ -153,23 +199,27 @@ Primary proof:
 
 ### Career Resume Quality Reviewer
 
-Owns independent final inspection after implementation.
+Owns independent final inspection after implementation and is the pre-Beta gatekeeper.
 
 Checks the complete path:
 
 ```text
 source resume
+  -> target job
   -> parsed/grouped source structure
   -> tailoring decisions
   -> composed draft
   -> Career Review
+  -> applicant review surface
   -> final PDF / HTML / Markdown / JSON
 ```
 
 Must not repair findings during the same independent review run.
 
-Records each applicable criterion as `PASS`, `FAIL`, or `UNKNOWN`, including:
+The reviewer uses `docs/agents/pre-beta-quality-scorecard.md` and records:
 
+- ten dimension scores, total `/100`;
+- every critical must-pass criterion as `PASS`, `FAIL`, or `UNKNOWN`;
 - source section preservation;
 - entry grouping integrity;
 - no cross-entry bleed;
@@ -178,28 +228,41 @@ Records each applicable criterion as `PASS`, `FAIL`, or `UNKNOWN`, including:
 - applicant decisions applied to the intended entry;
 - content expansion remains proportionate and supported;
 - Tailoring Review groups changes by recognizable source entry;
-- professional visual hierarchy;
+- job-specific targeting and content prioritization;
+- professional visual hierarchy and final PDF credibility;
 - PDF/review-surface equivalence;
-- truth/provenance/validation boundaries preserved.
+- truth/provenance/validation boundaries preserved;
+- point deductions and the owning specialist for every repair item.
 
-A reviewer PASS is engineering evidence only. It does not replace fresh-user Beta acceptance.
+Readiness verdicts:
+
+- `<85`: `NOT BETA READY`;
+- `85-89`: `NEAR READY`, still internal;
+- `>=90` + all critical PASS: `BETA READY`;
+- any critical FAIL or material critical UNKNOWN: `NOT BETA READY` regardless of score.
+
+A reviewer `BETA READY` verdict is engineering evidence only. It does not replace fresh-user Beta acceptance.
 
 ## Dispatch rules
 
-The Engineering Lead should dispatch by failure type instead of asking every agent to inspect everything.
+The Engineering Lead dispatches by failure type instead of asking every agent to inspect everything.
 
 | Failure signal | First specialist | Secondary specialist |
 | --- | --- | --- |
 | Project/job/education boundaries wrong | Resume Structure Engineer | Quality Reviewer |
 | Duplicate source + rewritten content | Resume Structure Engineer | Content Specialist |
 | Tailoring too long, cosmetic, or low-value | Resume Content Specialist | Quality Reviewer |
+| Broad or weak job targeting / low-value evidence selection | Resume Content Specialist | Quality Reviewer |
 | One resume entry becomes many confusing review cards | Resume Review UX Designer | Structure Engineer |
 | Review choices are clear technically but burdensome or contextless | Resume Review UX Designer | Quality Reviewer |
 | Skills wall, bad spacing, misplaced Summary, bad dates | Resume Visual Designer | Frontend Presentation Engineer |
+| Typography/density/page composition scores below professional standard | Resume Visual Designer | Quality Reviewer |
 | Review UI and PDF disagree | Frontend Presentation Engineer | Visual Designer |
 | Final output looks correct technically but not trustworthy | Resume Quality Reviewer | Relevant owning specialist |
 
 If one defect clearly crosses two boundaries, the Lead creates one task ledger with separate specialist questions and a single integration decision. Specialists do not negotiate architecture directly with each other.
+
+Every Quality Reviewer deduction below 9/10 must be assigned to an owner or explicitly marked as an evidence gap. The Lead routes the repair ledger, freezes a new candidate, and requests a new independent review.
 
 ## Parallelism rules
 
@@ -210,7 +273,7 @@ Good parallel work:
 - Structure Engineer traces grouping while Visual Designer defines final resume presentation criteria.
 - Content Specialist reviews tailoring expansion while Review UX Designer inspects applicant decision burden.
 - Frontend Presentation Engineer can implement a frozen Review UX or Visual Designer contract while the other independent branch is already settled.
-- Quality Reviewer prepares an acceptance matrix while implementation is still underway, but does not issue the independent verdict until implementation is frozen.
+- Quality Reviewer may prepare the scorecard structure while implementation is underway, but may not score or issue the independent verdict until the candidate is frozen.
 
 Do not parallelize:
 
@@ -218,7 +281,8 @@ Do not parallelize:
 - visual work that depends on unresolved entry grouping;
 - review-UX work that depends on unresolved source-entry identity;
 - content rewrite decisions that depend on unresolved source/provenance status;
-- independent proof before the candidate implementation is frozen.
+- independent scoring before the candidate implementation/artifact set is frozen;
+- repairs during the same review run that produced the score.
 
 ## Protected boundaries
 
@@ -237,7 +301,7 @@ A specialist must stop and return a boundary conflict instead of making a local 
 
 ## Issue #126 first trial
 
-Issue #126 is the first trial of this operating model.
+Issue #126 was the first trial of this operating model.
 
 The Lead initially used bounded specialist investigations to separate four failure classes:
 
@@ -246,7 +310,7 @@ The Lead initially used bounded specialist investigations to separate four failu
 3. **Resume Review UX Designer** — group multiple material changes from the same source Project or Experience into one applicant-recognizable review unit without collapsing independent wording decisions.
 4. **Resume Visual Designer** — verify the existing final-resume presentation contract only after structure is trustworthy rather than masking upstream corruption with CSS.
 
-After the structural cause is known, the Lead decides the smallest coherent implementation slice. The Frontend Presentation Engineer implements only presentation changes that remain after structure is trustworthy. The Resume Quality Reviewer then performs a frozen complete-path draft/PDF comparison before another Beta.
+Issue #134 turns that roster into a mandatory iterative quality system. A candidate is no longer sent to fresh Beta after one implementation/review pass; it stays inside the specialist loop until the frozen artifact scores at least 90/100 with every critical criterion PASS.
 
 ## Codex integration
 
