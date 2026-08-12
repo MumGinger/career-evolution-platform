@@ -193,6 +193,7 @@ function targetSourceSkills(artifact, plan) {
       value,
       requirement_ids: sourceSkillRequirementIds(value, requirements),
     })).filter((item) => item.requirement_ids.length);
+    if (!selected.length) return statement;
     return {
       ...statement,
       presentation: {
@@ -271,7 +272,8 @@ function sourceLinkedTailoring(output, facts, sourceResumeArtifact) {
 
 function validateSourceSkillPresentation({ artifactRun, plan }) {
   const findings = [];
-  const requirements = new Set((plan?.job_requirements || []).map((requirement) => requirement.id));
+  const jobRequirements = Array.isArray(plan?.job_requirements) ? plan.job_requirements : [];
+  const requirementIds = new Set(jobRequirements.map((requirement) => requirement.id));
   const artifact = artifactRun?.resume_artifacts?.find((item) => item.artifact_type === 'structured_resume');
   const skills = artifact?.content?.sections?.find((section) => section.section === 'Skills');
   for (const statement of skills?.statements || []) {
@@ -281,16 +283,22 @@ function validateSourceSkillPresentation({ artifactRun, plan }) {
       || presentation.mode !== 'selected_source_skills'
       || presentation.source_statement_id !== (statement.source_statement_id || statement.statement_id)
       || !Array.isArray(presentation.values)
-      || !Array.isArray(presentation.requirement_ids);
+      || !presentation.values.length
+      || !Array.isArray(presentation.requirement_ids)
+      || !presentation.requirement_ids.length;
     const parsed = parseSourceSkillStatement(statement);
     const allowed = new Set(parsed?.values || []);
     const invalidValues = !parsed || presentation.values.some((value) => !allowed.has(value));
-    const invalidRequirements = presentation.requirement_ids.some((id) => !requirements.has(id));
-    if (invalidBase || invalidValues || invalidRequirements) findings.push({
+    const invalidRequirements = presentation.requirement_ids.some((id) => !requirementIds.has(id));
+    const recomputedByValue = presentation.values.map((value) => sourceSkillRequirementIds(value, jobRequirements));
+    const recomputedRequirementIds = new Set(recomputedByValue.flat());
+    const invalidMapping = recomputedByValue.some((ids) => !ids.length || !ids.some((id) => presentation.requirement_ids.includes(id)))
+      || presentation.requirement_ids.some((id) => !recomputedRequirementIds.has(id));
+    if (invalidBase || invalidValues || invalidRequirements || invalidMapping) findings.push({
       category: 'source_resume_integrity',
       rule: 'source-skill-presentation-exact',
       severity: 'critical',
-      message: 'Source-resume skill presentation must select only exact source tokens and requirements from the immutable target-job profile.',
+      message: 'Source-resume skill presentation must select only exact source tokens with recomputable mappings to immutable target-job requirements.',
       references: { statement_id: statement.statement_id },
     });
   }
