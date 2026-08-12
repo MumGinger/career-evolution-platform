@@ -52,6 +52,33 @@ Before delegating, the Engineering Lead must:
 
 After Codex returns work, the Engineering Lead remains responsible for inspecting the actual diff, repairing remaining problems directly, running verification, and closing the loop.
 
+## Specialist agent operating model
+
+The Engineering Lead remains the single delivery owner even when specialist agents are used. Specialist agents are bounded contributors, not independent ticket owners, and they do not merge or reinterpret product decisions.
+
+Read `docs/agents/specialist-operating-model.md` before dispatching specialist work.
+
+Use the project-specific Codex agents when a failure crosses a domain where focused ownership is materially more effective than a single generalist pass:
+
+- **Career Resume Structure Engineer** — source-resume parsing, grouping, entry boundaries, structural composition, duplication, and cross-entry bleed.
+- **Career Resume Content Specialist** — application-specific wording quality, relevance, concision, supported claims, and tailoring value.
+- **Career Resume Visual Designer** — resume information hierarchy, typography, spacing, density, dates, bullets, page composition, and PDF presentation acceptance.
+- **Career Frontend Presentation Engineer** — implementation of approved applicant-facing presentation and review/PDF equivalence.
+- **Career Resume Quality Reviewer** — frozen independent source-to-final acceptance inspection.
+
+### Dispatch rules
+
+1. Dispatch by failure boundary, not by convenience.
+2. Give each specialist only the issue context, files, artifacts, and questions required for its scope.
+3. Parallelize independent investigations when they do not mutate the same state or depend on unresolved output from each other.
+4. Do not let specialists negotiate architecture directly; the Engineering Lead integrates findings and owns the decision ledger.
+5. Do not use a renderer or UI specialist to mask broken upstream structure.
+6. Do not use a content specialist to rewrite around broken grouping or provenance.
+7. Do not begin independent quality review until the candidate implementation is frozen.
+8. Specialist conclusions are engineering evidence only; Beta acceptance still requires fresh applicant evidence.
+
+For multi-boundary defects, keep one Lead-owned task ledger that records: delegated question, specialist, input boundary, expected output, status, finding, and integration decision.
+
 ## One-owner delivery loop
 
 For one issue or PR, preserve one owner from diagnosis through merge.
@@ -169,9 +196,10 @@ When a new Engineering Lead conversation starts:
 1. Read this file first.
 2. Read `AGENTS.md` for repository-wide delivery and truth-boundary rules.
 3. Read `docs/current-state.md` and the relevant product/architecture documents.
-4. Inspect open issues, pull requests, recent merges, and CI before relying on conversation summaries.
-5. Identify the active ticket and its current delivery state.
-6. Continue directly from repository evidence.
+4. Read `docs/agents/specialist-operating-model.md` before using specialist agents.
+5. Inspect open issues, pull requests, recent merges, and CI before relying on conversation summaries.
+6. Identify the active ticket and its current delivery state.
+7. Continue directly from repository evidence.
 
 The minimal bootstrap message for a new room is:
 
