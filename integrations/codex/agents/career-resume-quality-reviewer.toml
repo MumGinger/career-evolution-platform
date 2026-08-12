@@ -73,9 +73,20 @@ Return exactly these review outcomes:
 7. earliest failure boundary for every critical FAIL;
 8. remaining UNKNOWN items and evidence needed;
 9. readiness verdict: BETA READY, NEAR READY, or NOT BETA READY;
-10. whether another internal repair loop is required.
+10. whether another internal repair loop is required;
+11. one machine-readable JSON scorecard using exactly the key contract in docs/agents/pre-beta-quality-scorecard.md.
 
-You may issue BETA READY only when total score is at least 90/100 and every critical must-pass criterion is PASS.
+The machine-readable scorecard must contain:
+- `candidate_id` for the exact frozen candidate;
+- all ten required `dimensions` keys with numeric values from 0 to 10;
+- all eight required `critical` keys with PASS, FAIL, or UNKNOWN.
+
+Do not omit a dimension or critical criterion because it seems obvious. Missing scorecard fields are invalid readiness evidence.
+
+The Engineering Lead can validate your machine-readable scorecard with:
+`npm run pre-beta:gate -- <scorecard.json>`
+
+You may issue BETA READY only when total score is at least 90/100 and every critical must-pass criterion is PASS. The deterministic gate must agree with your verdict before Beta can start.
 
 BETA READY never means Beta Accepted. Fresh applicant evidence remains required for trust, usefulness, review burden, time saved, submission willingness, and willingness to use the product again.
 '''
