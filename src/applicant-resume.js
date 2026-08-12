@@ -14,6 +14,16 @@ const MOJIBAKE = new Map([
   ['Â', ''],
 ]);
 
+const PRESENTATION_SECTION_ORDER = [
+  'Applicant Header',
+  'Professional Summary',
+  'Skills',
+  'Experience',
+  'Projects',
+  'Education',
+  'Certifications',
+];
+
 function normalizeVisibleText(value) {
   let text = String(value ?? '').replace(/\r\n?/g, '\n');
   for (const [broken, fixed] of MOJIBAKE) text = text.split(broken).join(fixed);
@@ -137,36 +147,211 @@ function splitSkillItems(value) {
   return items.length ? items : [text];
 }
 
-function renderStatementHtml(statement) {
-  const text = escapeHtml(statement.text);
-  if (statement.display_style === 'heading') return `<h3 class="resume-entry-heading">${text}</h3>`;
-  if (statement.display_style === 'line' || statement.display_style === 'inline') return `<p class="resume-line">${text}</p>`;
-  return `<li>${text}</li>`;
+function isStandaloneDateRange(value) {
+  const text = normalizeVisibleText(value).replace(/\s+/g, ' ').trim();
+  if (!text || text.length > 48) return false;
+  const month = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+  const season = '(?:Spring|Summer|Fall|Autumn|Winter)';
+  const year = '(?:19|20)\\d{2}';
+  const point = `(?:(?:${month}|${season})\\s+)?${year}`;
+  const end = `(?:${point}|Present|Current)`;
+  return new RegExp(`^${point}\\s*(?:[-–—]|to)\\s*${end}$`, 'i').test(text);
+}
+
+function metadataParts(value) {
+  return normalizeVisibleText(value)
+    .split(/\n|\s+\|\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function parseHeadingMetadata(value) {
+  const parts = metadataParts(value);
+  const title = parts.shift() || '';
+  let date = null;
+  const meta = [];
+  for (const part of parts) {
+    if (!date && isStandaloneDateRange(part)) date = part;
+    else meta.push(part);
+  }
+  return { title, date, meta };
+}
+
+function parseSkillPresentation(statements) {
+  const chunks = statements.flatMap((statement) => splitSkillItems(statement.text));
+  const groups = [];
+  const items = [];
+  for (const chunk of chunks) {
+    const colon = chunk.indexOf(':');
+    if (colon > 0 && colon < 36) {
+      const label = chunk.slice(0, colon).trim();
+      const values = chunk.slice(colon + 1).trim();
+      if (label && values) {
+        groups.push({ label, values });
+        continue;
+      }
+    }
+    if (chunk.includes(',')) items.push(...chunk.split(/\s*,\s*/).filter(Boolean));
+    else if (chunk) items.push(chunk);
+  }
+  return { groups, items };
+}
+
+function embeddedSummary(statements) {
+  const markerIndex = statements.findIndex((statement) =>
+    /^(?:professional\s+summary|summary)$/i.test(normalizeVisibleText(statement.text)),
+  );
+  if (markerIndex < 0) return { summary: [], remaining: statements };
+  let end = markerIndex + 1;
+  while (end < statements.length && statements[end].display_style !== 'heading') end += 1;
+  const summary = statements.slice(markerIndex + 1, end).filter((statement) => normalizeVisibleText(statement.text));
+  const remaining = [...statements.slice(0, markerIndex), ...statements.slice(end)];
+  return { summary, remaining };
+}
+
+function structuredEntries(section, statements) {
+  if (section === 'Education') {
+    return statements.map((statement) => {
+      const parts = metadataParts(statement.text);
+      const title = parts.shift() || statement.text;
+      let date = null;
+      const body = [];
+      for (const part of parts) {
+        if (!date && isStandaloneDateRange(part)) date = part;
+        else body.push({ ...statement, text: part, display_style: 'line' });
+      }
+      return { title, date, meta: [], body, source_statements: [statement] };
+    });
+  }
+
+  const entries = [];
+  let current = null;
+  function ensureEntry() {
+    if (!current) {
+      current = { title: '', date: null, meta: [], body: [], source_statements: [] };
+      entries.push(current);
+    }
+    return current;
+  }
+
+  for (const statement of statements) {
+    if (statement.display_style === 'heading') {
+      const parsed = parseHeadingMetadata(statement.text);
+      current = {
+        title: parsed.title,
+        date: parsed.date,
+        meta: parsed.meta,
+        body: [],
+        source_statements: [statement],
+      };
+      entries.push(current);
+      continue;
+    }
+    const entry = ensureEntry();
+    entry.source_statements.push(statement);
+    if (!entry.date && statement.display_style !== 'bullet' && isStandaloneDateRange(statement.text)) {
+      entry.date = normalizeVisibleText(statement.text);
+    } else {
+      entry.body.push(statement);
+    }
+  }
+  return entries;
+}
+
+function presentationSection(section, statements) {
+  if (section === 'Applicant Header') {
+    return { section, kind: 'header', entries: [{ title: null, date: null, meta: [], body: statements }] };
+  }
+  if (section === 'Professional Summary') {
+    return { section, kind: 'summary', entries: [{ title: null, date: null, meta: [], body: statements }] };
+  }
+  if (section === 'Skills') {
+    const skills = parseSkillPresentation(statements);
+    return { section, kind: 'skills', entries: [], ...skills };
+  }
+  if (['Experience', 'Projects', 'Education'].includes(section)) {
+    return { section, kind: 'entries', entries: structuredEntries(section, statements) };
+  }
+  return {
+    section,
+    kind: 'generic',
+    entries: [{ title: null, date: null, meta: [], body: statements }],
+  };
+}
+
+function resumePresentationModel(reviews) {
+  const raw = (reviews || []).map((review) => ({ section: review.section, statements: sectionStatements(review) }));
+  const directSummary = raw.some((item) => item.section === 'Professional Summary');
+  const promoted = [];
+  const normalized = raw.map((item) => {
+    if (item.section !== 'Experience') return item;
+    const split = embeddedSummary(item.statements);
+    if (!directSummary && split.summary.length) promoted.push(...split.summary);
+    return { ...item, statements: split.remaining };
+  }).filter((item) => item.statements.length);
+  if (promoted.length) normalized.push({ section: 'Professional Summary', statements: promoted });
+
+  return normalized
+    .map((item) => presentationSection(item.section, item.statements))
+    .sort((left, right) => {
+      const a = PRESENTATION_SECTION_ORDER.indexOf(left.section);
+      const b = PRESENTATION_SECTION_ORDER.indexOf(right.section);
+      return (a < 0 ? 999 : a) - (b < 0 ? 999 : b);
+    });
+}
+
+function renderBodyHtml(body, { linesOnly = false } = {}) {
+  const blocks = [];
+  let bullets = [];
+  function flushBullets() {
+    if (!bullets.length) return;
+    blocks.push(`<ul>${bullets.join('')}</ul>`);
+    bullets = [];
+  }
+  for (const statement of body || []) {
+    const text = escapeHtml(statement.text);
+    if (!linesOnly && statement.display_style === 'bullet') bullets.push(`<li>${text}</li>`);
+    else {
+      flushBullets();
+      blocks.push(`<p class="resume-line">${text}</p>`);
+    }
+  }
+  flushBullets();
+  return blocks.join('');
+}
+
+function renderPresentationSectionHtml(model) {
+  if (model.kind === 'header') {
+    const body = model.entries[0]?.body || [];
+    return `<header class="resume-header">${body.map((statement, index) => `<p class="resume-line${index === 0 ? ' resume-name' : ' resume-contact'}">${escapeHtml(statement.text)}</p>`).join('')}</header>`;
+  }
+  if (model.kind === 'summary') {
+    return `<section class="resume-section resume-summary-section"><h2>${escapeHtml(model.section)}</h2>${renderBodyHtml(model.entries[0]?.body || [], { linesOnly: true })}</section>`;
+  }
+  if (model.kind === 'skills') {
+    const grouped = model.groups.map((group) => `<div class="resume-skill-group"><span class="resume-skill-label">${escapeHtml(group.label)}</span><span class="resume-skill-values">${escapeHtml(group.values)}</span></div>`).join('');
+    const flat = model.items.length ? `<ul class="resume-skills">${model.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
+    return `<section class="resume-section resume-skills-section"><h2>${escapeHtml(model.section)}</h2><div class="resume-skills resume-skill-groups">${grouped}</div>${flat}</section>`;
+  }
+  if (model.kind === 'entries') {
+    const entries = model.entries.map((entry) => {
+      const heading = entry.title || entry.date || entry.meta.length
+        ? `<div class="resume-entry-head"><div class="resume-entry-primary">${entry.title ? `<h3 class="resume-entry-heading">${escapeHtml(entry.title)}</h3>` : ''}${entry.meta.length ? `<p class="resume-entry-meta">${entry.meta.map(escapeHtml).join(' · ')}</p>` : ''}</div>${entry.date ? `<span class="resume-entry-date">${escapeHtml(entry.date)}</span>` : ''}</div>`
+        : '';
+      return `<div class="resume-entry">${heading}${renderBodyHtml(entry.body, { linesOnly: model.section === 'Education' })}</div>`;
+    }).join('');
+    return `<section class="resume-section resume-${model.section.toLowerCase()}-section"><h2>${escapeHtml(model.section)}</h2>${entries}</section>`;
+  }
+  return `<section class="resume-section"><h2>${escapeHtml(model.section)}</h2>${renderBodyHtml(model.entries[0]?.body || [])}</section>`;
 }
 
 function renderResumeSectionHtml(sectionName, statements) {
-  if (String(sectionName).toLowerCase() === 'skills') {
-    const skills = statements.flatMap((statement) => splitSkillItems(statement.text));
-    return `<section class="resume-section resume-skills-section"><h2>${escapeHtml(sectionName)}</h2><ul class="resume-skills">${skills.map((skill) => `<li>${escapeHtml(skill)}</li>`).join('')}</ul></section>`;
-  }
-
-  const rendered = statements.map(renderStatementHtml);
-  const bullets = [];
-  const blocks = [];
-  for (const item of rendered) {
-    if (item.startsWith('<li>')) bullets.push(item);
-    else {
-      if (bullets.length) blocks.push(`<ul>${bullets.splice(0).join('')}</ul>`);
-      blocks.push(item);
-    }
-  }
-  if (bullets.length) blocks.push(`<ul>${bullets.join('')}</ul>`);
-  if (sectionName === 'Applicant Header') return `<header class="resume-header">${blocks.join('')}</header>`;
-  return `<section class="resume-section"><h2>${escapeHtml(sectionName)}</h2>${blocks.join('')}</section>`;
+  const models = resumePresentationModel([{ section: sectionName, final_version: { placeholder: null, statements } }]);
+  return models.map(renderPresentationSectionHtml).join('');
 }
 
 function resumeHtml(reviews, { title = 'Approved Resume', standalone = true } = {}) {
-  const body = (reviews || []).map((review) => renderResumeSectionHtml(review.section, sectionStatements(review))).join('');
+  const body = resumePresentationModel(reviews).map(renderPresentationSectionHtml).join('');
   const content = `<article class="resume-paper" aria-label="${escapeHtml(title)}">${body}</article>`;
   if (!standalone) return content;
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${resumeCss()}</style></head><body>${content}</body></html>`;
@@ -174,23 +359,37 @@ function resumeHtml(reviews, { title = 'Approved Resume', standalone = true } = 
 
 function resumeCss() {
   return `
-:root{font-family:Inter,"Segoe UI",Arial,Helvetica,sans-serif;color:#172033;background:#eef1f5}
+:root{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;color:#171a21;background:#eef1f5}
 *{box-sizing:border-box}
 body{margin:0;padding:32px}
-.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.5in .6in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.36;color:#172033}
-.resume-header{text-align:center;border-bottom:1.5px solid #253858;padding-bottom:10px;margin-bottom:15px}
-.resume-header .resume-line:first-child{font-size:27px;font-weight:750;letter-spacing:.01em;margin:0 0 4px}
-.resume-header .resume-line:not(:first-child){font-size:9.6pt;color:#36445a}
-.resume-line{margin:3px 0;font-size:10pt;white-space:pre-line}
-.resume-section{margin:13px 0 0;break-inside:avoid}
-.resume-section>h2{margin:0 0 6px;border-bottom:1px solid #a8b2c1;padding-bottom:2px;font-size:11.5pt;letter-spacing:.055em;text-transform:uppercase;color:#253858}
-.resume-entry-heading{font-size:10.7pt;line-height:1.3;margin:8px 0 2px;font-weight:700;white-space:pre-line}
-ul{margin:3px 0 6px;padding-left:18px}
-li{font-size:10pt;line-height:1.36;margin:2px 0}
-.resume-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:26px;row-gap:1px;margin-top:2px}
-.resume-skills li{margin:1px 0}
-@media(max-width:650px){.resume-skills{grid-template-columns:1fr}}
-@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.44in .56in}@page{size:Letter;margin:0}}
+.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.46in .56in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.28;color:#171a21}
+.resume-header{text-align:center;padding-bottom:9px;margin-bottom:12px;border-bottom:1.25px solid #353b45}
+.resume-header .resume-line{margin:0}
+.resume-header .resume-name{font-size:23px;font-weight:700;letter-spacing:.012em;margin-bottom:4px}
+.resume-header .resume-contact{font-size:9.3pt;color:#3f4650;line-height:1.3}
+.resume-section{margin:11px 0 0;break-inside:auto}
+.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #8d949e;padding-bottom:2px;font-size:11pt;letter-spacing:.065em;text-transform:uppercase;color:#20252c}
+.resume-summary-section{margin-top:9px}
+.resume-summary-section .resume-line{margin:0;font-size:9.8pt;line-height:1.34}
+.resume-entry{margin:0 0 8px;break-inside:avoid}
+.resume-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:0 0 2px}
+.resume-entry-primary{min-width:0;flex:1}
+.resume-entry-heading{font-size:10.3pt;line-height:1.24;margin:0;font-weight:700}
+.resume-entry-date{font-size:9.4pt;line-height:1.24;font-weight:600;white-space:nowrap;text-align:right;color:#303640}
+.resume-entry-meta{font-size:9.3pt;line-height:1.24;margin:1px 0 0;color:#424953}
+.resume-line{margin:2px 0;font-size:9.7pt;line-height:1.31;white-space:pre-line}
+ul{margin:2px 0 4px;padding-left:16px}
+li{font-size:9.7pt;line-height:1.31;margin:1.5px 0;padding-left:1px}
+.resume-skill-groups{display:block;margin:0}
+.resume-skill-group{display:flex;gap:7px;align-items:flex-start;margin:1px 0;font-size:9.55pt;line-height:1.28}
+.resume-skill-label{font-weight:700;min-width:96px;flex:0 0 96px}
+.resume-skill-values{flex:1}
+.resume-skills-section>.resume-skills:not(.resume-skill-groups){display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:0}
+.resume-skills-section>.resume-skills:not(.resume-skill-groups) li{margin:0}
+.resume-education-section .resume-entry{margin-bottom:7px}
+.resume-education-section .resume-line{margin:1px 0}
+@media(max-width:650px){.resume-entry-head{display:block}.resume-entry-date{display:block;text-align:left;margin-top:1px}.resume-skill-group{display:block}.resume-skill-label{display:block;min-width:0}.resume-paper{padding:24px}}
+@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.38in .48in}@page{size:Letter;margin:0}}
 `;
 }
 
@@ -238,43 +437,13 @@ function pdfEscape(value) {
   return pdfAscii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 }
 
-function pdfLines(reviews) {
-  const lines = [];
-  for (const review of reviews || []) {
-    const statements = sectionStatements(review);
-    if (review.section === 'Applicant Header') {
-      statements.forEach((statement, index) => lines.push({
-        text: statement.text,
-        style: index === 0 ? 'name' : 'contact',
-      }));
-      lines.push({ style: 'header-rule' });
-      continue;
-    }
-    lines.push({ text: review.section, style: 'section' });
-    if (String(review.section).toLowerCase() === 'skills') {
-      statements.flatMap((statement) => splitSkillItems(statement.text)).forEach((skill) => {
-        lines.push({ text: `- ${skill}`, style: 'bullet' });
-      });
-      lines.push({ style: 'space' });
-      continue;
-    }
-    for (const statement of statements) {
-      if (statement.display_style === 'heading') lines.push({ text: statement.text, style: 'heading' });
-      else if (statement.display_style === 'line' || statement.display_style === 'inline') lines.push({ text: statement.text, style: 'line' });
-      else lines.push({ text: `- ${statement.text}`, style: 'bullet' });
-    }
-    lines.push({ style: 'space' });
-  }
-  return lines;
-}
-
 function resumePdf(reviews) {
   const pageWidth = 612;
   const pageHeight = 792;
-  const left = 50;
-  const right = 50;
-  const top = 42;
-  const bottom = 42;
+  const left = 46;
+  const right = 46;
+  const top = 38;
+  const bottom = 38;
   const pages = [];
   let commands = [];
   let y = pageHeight - top;
@@ -284,35 +453,104 @@ function resumePdf(reviews) {
     commands = [];
     y = pageHeight - top;
   }
-  function addText(text, { font = 'F1', size = 10, leading = 13, indent = 0, align = 'left' } = {}) {
-    const width = Math.max(32, Math.floor((pageWidth - left - right - indent) / (size * 0.52)));
+  function ensureSpace(amount) {
+    if (y - amount < bottom) nextPage();
+  }
+  function textCommand(text, x, baseline, { font = 'F1', size = 10 } = {}) {
+    commands.push(`BT /${font} ${size} Tf 1 0 0 1 ${x.toFixed(2)} ${baseline.toFixed(2)} Tm (${pdfEscape(text)}) Tj ET`);
+  }
+  function addText(text, { font = 'F1', size = 9.7, leading = 12.6, indent = 0, align = 'left', widthChars = null } = {}) {
+    const width = widthChars || Math.max(32, Math.floor((pageWidth - left - right - indent) / (size * 0.52)));
     for (const line of wrapText(text, width)) {
-      if (y - leading < bottom) nextPage();
-      const estimate = line.length * size * 0.52;
+      ensureSpace(leading);
+      const estimate = pdfAscii(line).length * size * 0.52;
       const x = align === 'center' ? Math.max(left, (pageWidth - estimate) / 2) : left + indent;
-      commands.push(`BT /${font} ${size} Tf 1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm (${pdfEscape(line)}) Tj ET`);
+      textCommand(line, x, y, { font, size });
       y -= leading;
     }
   }
+  function addSectionTitle(title) {
+    ensureSpace(28);
+    y -= 3;
+    textCommand(title.toUpperCase(), left, y, { font: 'F2', size: 12 });
+    y -= 4;
+    commands.push(`0.42 G ${left} ${y} m ${pageWidth - right} ${y} l S`);
+    y -= 8;
+  }
+  function addEntry(entry, section) {
+    ensureSpace(34);
+    if (entry.title || entry.date) {
+      const titleLines = entry.title ? wrapText(entry.title, entry.date ? 58 : 88) : [''];
+      const first = titleLines.shift() || '';
+      if (first) textCommand(first, left, y, { font: 'F2', size: 10.3 });
+      if (entry.date) {
+        const dateText = pdfAscii(entry.date);
+        const dateSize = 9.4;
+        const x = pageWidth - right - (dateText.length * dateSize * 0.52);
+        textCommand(dateText, x, y, { font: 'F1', size: dateSize });
+      }
+      y -= 12.5;
+      for (const line of titleLines) {
+        textCommand(line, left, y, { font: 'F2', size: 10.3 });
+        y -= 12.5;
+      }
+    }
+    for (const meta of entry.meta || []) addText(meta, { size: 9.2, leading: 11.5 });
+    for (const statement of entry.body || []) {
+      if (statement.display_style === 'bullet' && section !== 'Education') addText(`- ${statement.text}`, { size: 9.6, leading: 12.4, indent: 10 });
+      else addText(statement.text, { size: 9.6, leading: 12.4 });
+    }
+    y -= 3;
+  }
 
-  for (const item of pdfLines(reviews)) {
-    if (item.style === 'space') { y -= 4; continue; }
-    if (item.style === 'header-rule') {
+  for (const model of resumePresentationModel(reviews)) {
+    if (model.kind === 'header') {
+      const body = model.entries[0]?.body || [];
+      body.forEach((statement, index) => addText(statement.text, {
+        font: index === 0 ? 'F2' : 'F1',
+        size: index === 0 ? 20 : 9.3,
+        leading: index === 0 ? 23 : 11.5,
+        align: 'center',
+      }));
       y -= 2;
-      commands.push(`0.18 0.25 0.38 RG ${left} ${y} m ${pageWidth - right} ${y} l S`);
-      y -= 10;
+      commands.push(`0.22 G ${left} ${y} m ${pageWidth - right} ${y} l S`);
+      y -= 9;
       continue;
     }
-    if (item.style === 'name') addText(item.text, { font: 'F2', size: 20, leading: 24, align: 'center' });
-    else if (item.style === 'contact') addText(item.text, { size: 9.5, leading: 12, align: 'center' });
-    else if (item.style === 'section') {
-      if (y - 30 < bottom) nextPage();
-      y -= 3;
-      commands.push(`0.18 0.25 0.38 RG ${left} ${y - 2} m ${pageWidth - right} ${y - 2} l S`);
-      addText(item.text.toUpperCase(), { font: 'F2', size: 12, leading: 17 });
-    } else if (item.style === 'heading') addText(item.text, { font: 'F2', size: 10.7, leading: 14 });
-    else if (item.style === 'bullet') addText(item.text, { size: 10, leading: 13.5, indent: 11 });
-    else addText(item.text, { size: 10, leading: 13.5 });
+
+    addSectionTitle(model.section);
+    if (model.kind === 'summary') {
+      for (const statement of model.entries[0]?.body || []) addText(statement.text, { size: 9.7, leading: 12.7 });
+      y -= 2;
+      continue;
+    }
+    if (model.kind === 'skills') {
+      for (const group of model.groups) {
+        ensureSpace(13);
+        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.5 });
+        const labelWidth = Math.max(86, Math.min(120, (pdfAscii(group.label).length + 2) * 9.5 * 0.52 + 10));
+        const valueX = left + labelWidth;
+        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.5 * 0.52)));
+        const lines = wrapText(group.values, valueWidth);
+        lines.forEach((line, index) => {
+          if (index > 0) y -= 11.8;
+          textCommand(line, valueX, y, { size: 9.5 });
+        });
+        y -= 12.2;
+      }
+      if (model.items.length) addText(model.items.join(' | '), { size: 9.5, leading: 12.2 });
+      y -= 1;
+      continue;
+    }
+    if (model.kind === 'entries') {
+      for (const entry of model.entries) addEntry(entry, model.section);
+      continue;
+    }
+    for (const statement of model.entries[0]?.body || []) {
+      if (statement.display_style === 'bullet') addText(`- ${statement.text}`, { indent: 10 });
+      else addText(statement.text);
+    }
+    y -= 2;
   }
   if (commands.length || !pages.length) pages.push(commands.join('\n'));
 
@@ -359,10 +597,12 @@ module.exports = {
   careerReviewHtml,
   evidenceAcceptExplanation,
   escapeHtml,
+  isStandaloneDateRange,
   normalizeVisibleText,
   resumeCss,
   resumeHtml,
   resumePdf,
+  resumePresentationModel,
   sectionOriginExplanation,
   sectionStatements,
   splitSkillItems,
