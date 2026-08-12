@@ -3,6 +3,7 @@ const POLICY_VERSION = 'complete-resume-composition-boundary/1.0.0';
 const SECTION_ORDER = ['Applicant Header', 'Professional Summary', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications'];
 const SECTION_FOR = {
   identity: 'Applicant Header',
+  summary: 'Professional Summary',
   skill: 'Skills',
   tool: 'Skills',
   experience: 'Experience',
