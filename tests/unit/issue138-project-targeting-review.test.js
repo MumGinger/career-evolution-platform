@@ -18,7 +18,7 @@ function statement(id, text, origin, parent = null, selectionIds = []) {
   };
 }
 
-test('Human Review focuses Projects on three target-selected entries while leaving source-only projects outside this application artifact', () => {
+test('Human Review focuses Projects on three target-selected entries and names source-only exclusions', () => {
   const projects = [
     statement('source:stock', 'Stock Pattern Label Platform', 'source_resume_passthrough'),
     statement('source:stock:1', 'Studied intraday price and volume patterns.', 'source_resume_passthrough', 'source:stock'),
@@ -51,5 +51,11 @@ test('Human Review focuses Projects on three target-selected entries while leavi
   assert.match(text, /Global AI Job Salaries/);
   assert.match(text, /Data Analysis and Model Building/);
   assert.doesNotMatch(text, /Gift Recommendation App|Stock Pattern Label Platform|PageRank/);
-  assert.equal(projectReview.presentation_rationale.some((reason) => /source-only project entries remain/i.test(reason)), true);
+
+  const rationale = projectReview.presentation_rationale.join('\n');
+  assert.match(rationale, /Stock Pattern Label Platform/);
+  assert.match(rationale, /Gift Recommendation App/);
+  assert.match(rationale, /Research Project on PageRank/);
+  assert.match(rationale, /remain unchanged in the uploaded resume/i);
+  assert.match(rationale, /restored during Career Review/i);
 });
