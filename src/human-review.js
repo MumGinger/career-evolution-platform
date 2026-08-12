@@ -39,8 +39,15 @@ function reviewStatement(statement) {
   };
 }
 
+function projectEntryLabel(group) {
+  const heading = group.statements.find((statement) => statement.display_style === 'heading') || group.statements[0];
+  const lines = String(heading?.text || '').replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
+  const meaningful = lines.filter((line) => !/^[•▪◦-]+$/.test(line) && !/^ongoing projects\b/i.test(line) && !/^research experience$/i.test(line));
+  return meaningful[0] || 'Unnamed source project';
+}
+
 function targetProjectStatements(section, statements) {
-  if (section !== 'Projects') return { statements, omittedEntryCount: 0 };
+  if (section !== 'Projects') return { statements, omittedEntryCount: 0, omittedEntryLabels: [] };
   const groups = [];
   let current = null;
   for (const statement of statements) {
@@ -60,11 +67,13 @@ function targetProjectStatements(section, statements) {
       || (statement.resume_content_selection_ids || []).length > 0),
   }));
   const selectedCount = selected.filter((group) => group.selected).length;
-  if (selectedCount < 3) return { statements, omittedEntryCount: 0 };
+  if (selectedCount < 3) return { statements, omittedEntryCount: 0, omittedEntryLabels: [] };
   const kept = selected.filter((group) => group.selected);
+  const omitted = selected.filter((group) => !group.selected);
   return {
     statements: kept.flatMap((group) => group.statements),
-    omittedEntryCount: selected.length - kept.length,
+    omittedEntryCount: omitted.length,
+    omittedEntryLabels: omitted.map(projectEntryLabel),
   };
 }
 
@@ -76,7 +85,7 @@ function sectionDraft(section, strategy) {
   const sourceOnly = statements.length > 0 && statements.every((statement) => statement.content_origin === 'source_resume_passthrough');
   const targetedSource = statements.some((statement) => statement.presentation?.mode === 'selected_source_skills');
   const rationale = decisions.map((decision) => decision.rationale);
-  if (targetedProjects.omittedEntryCount > 0) rationale.push(`${targetedProjects.omittedEntryCount} source-only project entries remain in the uploaded resume but are not part of this target-specific application artifact because at least three other project entries were explicitly selected by the tailoring plan.`);
+  if (targetedProjects.omittedEntryCount > 0) rationale.push(`Source-only project entries not selected for this application: ${targetedProjects.omittedEntryLabels.join('; ')}. They remain unchanged in the uploaded resume and can be restored during Career Review.`);
   if (targetedSource) rationale.push('This section uses exact source-resume skill wording selected for the target job. The source resume remains unchanged and no new Candidate Knowledge claim is created.');
   if (!rationale.length && sourceOnly) rationale.push('This section is preserved verbatim from validated source-resume spans. It is not a new Candidate Knowledge claim.');
   if (!rationale.length) rationale.push('The AI preserved this section as a bounded draft; no unsupported claim was added.');
