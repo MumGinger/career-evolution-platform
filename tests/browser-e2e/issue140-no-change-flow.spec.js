@@ -103,7 +103,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('observed valid required-core + zero-change state never dead-ends before Career Review', async ({ page }) => {
+test('observed valid required-core + zero-change state completes the shipped flow through export', async ({ page, request }) => {
   await page.goto(baseURL);
   await page.locator('#p').selectOption('mock');
   await page.getByRole('button', { name: 'Check connection' }).click();
@@ -149,6 +149,27 @@ test('observed valid required-core + zero-change state never dead-ends before Ca
   await expect(page.getByRole('button', { name: 'Continue to Career Review' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Continue to Career Review' }).click();
+  await expect(page.locator('#draft')).toBeHidden();
   await expect(page.locator('#career')).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/4 of 5/);
+
+  const reviewCards = page.locator('#reviews .review-card');
+  expect(await reviewCards.count()).toBeGreaterThan(0);
+  for (let index = 0; index < await reviewCards.count(); index += 1) {
+    await page.locator(`input[data-review-action="${index}"][value="approve"]`).check();
+  }
+  await expect(page.getByRole('button', { name: 'Finish review and export resume' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Finish review and export resume' }).click();
+
+  await expect(page.locator('#output')).toBeVisible();
+  await expect(page.locator('#state')).toHaveText(/5 of 5/);
+  const pdfHref = await page.getByRole('link', { name: 'Open submission-ready PDF' }).getAttribute('href');
+  expect(pdfHref).toBeTruthy();
+  const pdf = await request.get(`${baseURL}${pdfHref}`);
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()['content-type']).toContain('application/pdf');
+  const pdfBody = await pdf.body();
+  expect(pdfBody.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
+  expect(pdfBody.toString('latin1')).toContain('Taylor Chen');
+  expect(session.stage).toBe('complete');
 });
