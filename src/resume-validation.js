@@ -21,6 +21,11 @@ function candidateFactSourceValues(fact, template = null) {
   return [...new Set([fact?.display_value, value.name, value.title, value.text, value.credential, value.degree, value.program, factDisplayValue(fact)].filter((item) => scalar(item)).map(String))];
 }
 function sameUniqueSet(left, right) { return Array.isArray(left) && Array.isArray(right) && new Set(left).size === left.length && new Set(right).size === right.length && left.length === right.length && left.every((item) => right.includes(item)); }
+function mappedRequirementSubset(cited, allowed) {
+  if (!Array.isArray(cited) || !Array.isArray(allowed) || new Set(cited).size !== cited.length) return false;
+  if (allowed.length === 0) return cited.length === 0;
+  return cited.length > 0 && cited.every((item) => allowed.includes(item));
+}
 function visibleStatements(artifact) {
   return (artifact.content.sections || []).flatMap((section) => (section.statements || []).map((statement) => ({ section, statement })));
 }
@@ -185,7 +190,7 @@ function validate({ artifactRun, plan, integrity }) {
       const attachedFactIds = attachedSelections.map((item) => item.candidate_fact_id);
       const attachedRequirementIds = [...new Set(attachedSelections.flatMap((item) => item.mapped_requirement_ids || []))];
       if (artifact.metadata?.draft_provider?.provider !== 'deterministic-fallback' && !sameUniqueSet(citedFacts, attachedFactIds)) findings.push(finding('provenance_integrity', 'draft-fact-citation-set', 'critical', 'Draft statement fact citations must exactly match its attached included selections.', { statement_id: statement.statement_id, cited_candidate_fact_ids: citedFacts, attached_candidate_fact_ids: attachedFactIds }));
-      if (artifact.metadata?.draft_provider?.provider !== 'deterministic-fallback' && !sameUniqueSet(citedRequirements, attachedRequirementIds)) findings.push(finding('provenance_integrity', 'draft-requirement-citation-set', 'critical', 'Draft statement requirement citations must exactly match requirements mapped by its attached selections.', { statement_id: statement.statement_id, cited_job_requirement_ids: citedRequirements, attached_job_requirement_ids: attachedRequirementIds }));
+      if (artifact.metadata?.draft_provider?.provider !== 'deterministic-fallback' && !mappedRequirementSubset(citedRequirements, attachedRequirementIds)) findings.push(finding('provenance_integrity', 'draft-requirement-citation-set', 'critical', 'Draft statement requirement citations must be a non-empty subset of requirements mapped by its attached selections (or empty only when no mapped requirement exists).', { statement_id: statement.statement_id, cited_job_requirement_ids: citedRequirements, attached_job_requirement_ids: attachedRequirementIds }));
       if (section.section !== selection.recommended_section && !(section.section === 'Professional Summary' && artifact.metadata?.draft_provider)) findings.push(finding('plan_compliance', 'section-placement', 'warning', 'Generated statement placement differs from the approved plan.', { statement_id: statement.statement_id, expected: selection.recommended_section, actual: section.section }));
       for (const requirementId of selection.mapped_requirement_ids) if (coverage.get(requirementId)?.coverage_status === 'uncovered') findings.push(finding('coverage_integrity', 'uncovered-requirement-claim', 'error', 'An uncovered requirement cannot appear as a supported generated claim.', { requirement_id: requirementId, selection_id: selectionId }));
       if (!selection.permitted_claim_scope.includes(statement.template)) findings.push(finding('claim_scope_compliance', 'template-permission', 'error', 'Rendered template is outside the selection permitted claim scope.', { statement_id: statement.statement_id, template: statement.template }));
