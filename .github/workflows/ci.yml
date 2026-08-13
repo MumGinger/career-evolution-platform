@@ -73,6 +73,8 @@ jobs:
     name: Real browser shipped flow
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      CEP_RUNTIME_EVIDENCE_PATH: ${{ runner.temp }}/issue140-natural-shipped-flow-evidence.json
 
     steps:
       - name: Check out repository
@@ -119,4 +121,10 @@ jobs:
           echo "Pre-fix browser regression failed as expected; green proof follows on the pull-request head."
 
       - name: Run real browser end-to-end test
-        run: npm run test:browser-e2e
+        shell: bash
+        run: |
+          rm -f "$CEP_RUNTIME_EVIDENCE_PATH"
+          npm run test:browser-e2e
+
+      - name: Validate machine-bound natural shipped-flow evidence
+        run: node scripts/validate-shipped-flow-evidence.js "$CEP_RUNTIME_EVIDENCE_PATH"
