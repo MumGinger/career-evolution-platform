@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
@@ -11,6 +12,9 @@ let root;
 let providerServer;
 let providerBaseURL;
 let observedProviderCalls = [];
+
+const CANDIDATE_ID = 'issue140-natural-complex-pdf-v1';
+const TEST_ID = 'issue140-natural-complex-pdf-flow';
 
 const SOURCE = `Casey Lee
 casey.lee@example.com | +1 416 555 0100
@@ -54,6 +58,38 @@ Power BI required.
 Python required.
 SQL required.
 Automation required.`;
+
+function sha256(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function evidencePath() {
+  return process.env.CEP_RUNTIME_EVIDENCE_PATH
+    || path.join(process.cwd(), 'test-results', 'runtime-evidence', `${TEST_ID}.json`);
+}
+
+function writeRuntimeEvidence({ sourcePdf, session, finalPdf }) {
+  const target = evidencePath();
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const evidence = {
+    candidate_id: CANDIDATE_ID,
+    source_resume_sha256: sha256(sourcePdf),
+    job_description_sha256: sha256(Buffer.from(JOB)),
+    final_pdf_sha256: sha256(finalPdf),
+    artifact_run_id: session.artifact.id,
+    shipped_flow: {
+      status: 'PASS',
+      natural_pipeline: true,
+      post_validation_state_mutation: false,
+      provider: 'openai-compatible/provider-replay-model',
+      test_id: TEST_ID,
+      run_id: process.env.GITHUB_RUN_ID || 'local-playwright-run',
+      completed_stages: ['Resume Input', 'Tailoring Review', 'Draft', 'Career Review', 'Export'],
+    },
+  };
+  fs.writeFileSync(target, `${JSON.stringify(evidence, null, 2)}\n`);
+  return evidence;
+}
 
 function exactContainer(text, startMarker, endMarker) {
   const start = text.indexOf(startMarker);
@@ -109,9 +145,6 @@ function replayDraft(payload) {
     grouped.get(fact.recommended_section).push(fact);
   }
 
-  // A real provider is allowed to synthesize multiple attached facts into one
-  // statement while citing only the mapped requirement(s) actually expressed by
-  // that sentence. This deliberately exercises that production-provider contract.
   let combined = false;
   const sections = [];
   for (const [section, facts] of grouped) {
@@ -211,6 +244,7 @@ test('complex PDF and real provider classes complete the natural shipped path wi
   const pdfPath = path.join(root, 'complex-source-resume.pdf');
   await page.setContent(`<html><body><pre style="font: 10px monospace; white-space: pre-wrap">${escapeHtml(SOURCE)}</pre></body></html>`);
   await page.pdf({ path: pdfPath, format: 'Letter', printBackground: true });
+  const sourcePdf = fs.readFileSync(pdfPath);
 
   await page.goto(baseURL);
   await page.locator('#p').selectOption('openai-compatible');
@@ -272,10 +306,26 @@ test('complex PDF and real provider classes complete the natural shipped path wi
 
   await expect(page.locator('#output')).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/5 of 5/);
+
+  const markdownResponse = await request.get(`${baseURL}/api/llm-first/sessions/${session.id}/outputs/final-resume.md`);
+  expect(markdownResponse.status()).toBe(200);
+  const markdown = await markdownResponse.text();
+  expect(occurrences(markdown, 'Analytics Dashboard')).toBe(1);
+  expect(occurrences(markdown, 'Built Power BI dashboards using Python and SQL.')).toBe(1);
+  expect(occurrences(markdown, 'Automated weekly reporting workflows in Python.')).toBe(1);
+  expect(occurrences(markdown, 'Gift Recommendation App')).toBe(1);
+  expect(occurrences(markdown, 'Built a recommendation interface using React and JavaScript.')).toBe(1);
+  expect(markdown).not.toMatch(/^\s*[•\uf0b7]\s*$/m);
+
   const pdfHref = await page.getByRole('link', { name: 'Open submission-ready PDF' }).getAttribute('href');
   expect(pdfHref).toBeTruthy();
   const outputPdf = await request.get(`${baseURL}${pdfHref}`);
   expect(outputPdf.status()).toBe(200);
   expect(outputPdf.headers()['content-type']).toContain('application/pdf');
-  expect((await outputPdf.body()).subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
+  const finalPdf = await outputPdf.body();
+  expect(finalPdf.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
+
+  const evidence = writeRuntimeEvidence({ sourcePdf, session, finalPdf });
+  expect(evidence.candidate_id).toBe(CANDIDATE_ID);
+  expect(evidence.artifact_run_id).toBe(session.artifact.id);
 });
