@@ -36,17 +36,16 @@ const reviewDecision = {
 
 const reviewRun = { id: 'review-run' };
 
-test('source-attested Project uses the source-backed project title, not the whole parent container, as project identity', () => {
+test('source-attested Project stores only source-backed project identity; child responsibility stays in its child fact', () => {
   const proposal = sourceAttestedProposal(source(), reviewDecision, reviewRun);
   assert.ok(proposal);
-  assert.equal(proposal.value.name, 'Analytics Dashboard');
-  assert.equal(proposal.value.text, 'Built Power BI dashboards and automation workflows using Python and SQL.');
-  assert.equal(
-    proposal.displayValue,
-    'Analytics Dashboard: Built Power BI dashboards and automation workflows using Python and SQL.',
-  );
-  assert.equal(proposal.value.name.includes('May 2025'), false);
-  assert.equal(proposal.value.name.includes('Built Power BI dashboards'), false);
+  assert.deepEqual(proposal.value, {
+    name: 'Analytics Dashboard',
+    source_reference: 'span-child',
+  });
+  assert.equal(proposal.displayValue, 'Analytics Dashboard');
+  assert.equal(JSON.stringify(proposal.value).includes('May 2025'), false);
+  assert.equal(JSON.stringify(proposal.value).includes('Built Power BI dashboards'), false);
 });
 
 test('Project title must be source-backed before it can become Candidate Knowledge', () => {
