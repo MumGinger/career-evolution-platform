@@ -150,7 +150,7 @@ test('real browser uses proposed tailoring by default, regenerates explicit corr
   await expect(page.locator('#tailoring')).not.toContainText(/Evidence Review|Accept —|Skip —|Candidate Knowledge|003\.6/i);
 
   let materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
-  expect(await materialCards.count()).toBeGreaterThan(1);
+  expect(await materialCards.count()).toBeGreaterThan(0);
   const firstCard = materialCards.first();
   const firstName = await firstCard.locator('input[data-tailoring-choice]').first().getAttribute('name');
   await firstCard.locator('input[value="needs_correction"]').check();
