@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer } = require('../../src/beta-ui');
+const { requiredCoreSelections } = require('../../src/no-change-draft-recovery');
 
 let app;
 let baseURL;
@@ -16,7 +17,7 @@ Python, SQL, Power BI
 
 Projects
 Analytics Dashboard
-- Built reporting views for business metrics.
+- Built Power BI reporting views and used Python and SQL to prepare business metrics.
 
 Education
 B.Sc. Statistics — Example University`;
@@ -41,7 +42,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('valid reviewable source evidence with zero material wording changes never dead-ends at Draft blocked', async ({ page }) => {
+test('source-equivalent required Project evidence with zero material wording changes never dead-ends at Draft blocked', async ({ page }) => {
   await page.goto(baseURL);
   await page.locator('#p').selectOption('mock');
   await page.getByRole('button', { name: 'Check connection' }).click();
@@ -66,9 +67,11 @@ test('valid reviewable source evidence with zero material wording changes never 
 
   const session = [...app.sessions.values()][0];
   expect(session.queue.flatMap((group) => group.candidates).length).toBeGreaterThan(0);
+  expect(requiredCoreSelections(session.tailoring).length).toBeGreaterThan(0);
   expect(session.stage).toBe('tailoring-review');
   expect(session.draftValidation.validation_status).toMatch(/^passed/);
   expect((session.tailoringReview || []).filter((item) => item.materialRewrite)).toHaveLength(0);
+  expect(session.option2PreparedResult.recovery.reason).toBe('valid_source_equivalent_core_evidence_with_no_material_wording_changes');
 
   await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
   await page.getByRole('button', { name: 'Apply my wording choices' }).click();
@@ -76,6 +79,7 @@ test('valid reviewable source evidence with zero material wording changes never 
   await expect(page.locator('#draft')).toBeVisible();
   await expect(page.locator('#preview')).toContainText('Taylor Chen');
   await expect(page.locator('#preview')).toContainText('Analytics Dashboard');
+  await expect(page.locator('#preview')).toContainText('Built Power BI reporting views');
   await expect(page.locator('#validation')).toContainText(/Ready for your review|Ready for review/);
   await expect(page.getByRole('button', { name: 'Continue to Career Review' })).toBeVisible();
 
