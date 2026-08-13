@@ -180,7 +180,7 @@ function canonicalResumeErrors(document) {
   return [...new Set(errors)];
 }
 
-function projectSourceResumeSnapshot(snapshot, semanticRun) {
+function projectSourceResumeSnapshot(snapshot, semanticRun, { strict = true } = {}) {
   if (!snapshot?.sections?.length || !semanticRun?.entities?.length) return snapshot;
   const entityBySpan = new Map((semanticRun.entities || []).map((entity) => [entity.evidence_span_id, entity]));
   const projectedSections = snapshot.sections.map((section) => {
@@ -214,19 +214,24 @@ function projectSourceResumeSnapshot(snapshot, semanticRun) {
   };
   const canonicalDocument = buildCanonicalResumeDocument(projected);
   const structuralErrors = canonicalResumeErrors(canonicalDocument);
-  if (structuralErrors.length) throw new Error(`Canonical resume structure invalid: ${structuralErrors.join('; ')}`);
-  return { ...projected, canonical_document: canonicalDocument };
+  if (strict && structuralErrors.length) throw new Error(`Canonical resume structure invalid: ${structuralErrors.join('; ')}`);
+  return {
+    ...projected,
+    canonical_document: canonicalDocument,
+    canonical_structure_errors: structuralErrors,
+  };
 }
 
 function installSourceStructureBoundary() {
   if (Store.prototype.__sourceStructureProjectionBoundary) return;
   const createPlan = Store.prototype.createResumeTailoringPlanRun;
   Store.prototype.createResumeTailoringPlanRun = function createStructurallyProjectedPlan(input) {
+    const explicitSourceBoundary = Boolean(input.sourceResumeArtifact);
     let sourceResumeArtifact = input.sourceResumeArtifact || null;
     if (!sourceResumeArtifact) sourceResumeArtifact = latestSourceResumeSnapshot(this, input.candidateProfileId);
     if (sourceResumeArtifact?.resume_semantic_run_id) {
       const semanticRun = this.getResumeSemanticRun(sourceResumeArtifact.resume_semantic_run_id);
-      sourceResumeArtifact = projectSourceResumeSnapshot(sourceResumeArtifact, semanticRun);
+      sourceResumeArtifact = projectSourceResumeSnapshot(sourceResumeArtifact, semanticRun, { strict: explicitSourceBoundary });
     }
     return createPlan.call(this, { ...input, ...(sourceResumeArtifact ? { sourceResumeArtifact } : {}) });
   };
