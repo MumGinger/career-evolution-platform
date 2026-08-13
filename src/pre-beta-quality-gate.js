@@ -42,6 +42,12 @@ function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
   for (const key of ['source_resume_sha256', 'job_description_sha256', 'final_pdf_sha256']) {
     if (!SHA256.test(String(runtimeEvidence[key] || ''))) errors.push(`${key} must be a SHA-256 digest`);
   }
+  const reviewedFinalPdf = String(scorecard.reviewed_final_pdf_sha256 || '');
+  if (!SHA256.test(reviewedFinalPdf)) {
+    errors.push('scorecard reviewed_final_pdf_sha256 must identify the final PDF independently reviewed for this score');
+  } else if (reviewedFinalPdf.toLowerCase() !== String(runtimeEvidence.final_pdf_sha256 || '').toLowerCase()) {
+    errors.push('reviewed final PDF SHA-256 must match runtime evidence final_pdf_sha256');
+  }
   if (!String(runtimeEvidence.artifact_run_id || '').trim()) errors.push('artifact_run_id is required');
   const flow = runtimeEvidence.shipped_flow;
   if (!flow || typeof flow !== 'object' || Array.isArray(flow)) return [...errors, 'shipped_flow runtime evidence is required'];
