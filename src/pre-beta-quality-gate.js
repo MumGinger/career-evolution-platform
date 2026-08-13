@@ -27,7 +27,7 @@ const CRITICAL_STATES = new Set(['PASS', 'FAIL', 'UNKNOWN']);
 const REQUIRED_SHIPPED_STAGES = ['Resume Input', 'Tailoring Review', 'Draft', 'Career Review', 'Export'];
 const SHA256 = /^[0-9a-f]{64}$/i;
 const QUALITY_TARGET = 90;
-const OVERRIDE_FLOOR = 85;
+const OVERRIDE_FLOOR = 88;
 const OVERRIDE_VISUAL_FLOOR = 8;
 
 function assertObject(value, label) {
