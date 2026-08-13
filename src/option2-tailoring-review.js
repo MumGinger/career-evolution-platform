@@ -10,6 +10,18 @@ function cleanSourceClaim(value) {
   return String(value || '').replace(/^\s*[-*•▪◦]+\s*/, '').trim();
 }
 
+function atomicSourceSkill(value) {
+  const lines = String(value || '')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map(cleanSourceClaim)
+    .filter(Boolean);
+  if (lines.length !== 1) return null;
+  const skill = lines[0];
+  if (/[;,|]/.test(skill)) return null;
+  return skill;
+}
+
 function validationExportSafe(run) {
   return ['passed', 'passed_with_warnings'].includes(run?.validation_status);
 }
@@ -157,8 +169,12 @@ function sourceAttestedProposal(source, reviewDecision, reviewRun) {
   const entityType = source.entity_type;
   let value;
   let displayValue = exact;
-  if (entityType === 'skill') value = { name: exact };
-  else if (['responsibility', 'achievement', 'domain_knowledge'].includes(entityType)) value = { text: exact };
+  if (entityType === 'skill') {
+    const name = atomicSourceSkill(exactRaw);
+    if (!name) return null;
+    value = { name };
+    displayValue = name;
+  } else if (['responsibility', 'achievement', 'domain_knowledge'].includes(entityType)) value = { text: exact };
   else if (entityType === 'credential') value = { name: exact };
   else if (entityType === 'project') {
     const name = sourceBackedProjectTitle(candidate, exact);
