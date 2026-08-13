@@ -19,7 +19,7 @@ function fixture() {
     recommended_section: 'Projects',
     emphasis_level: 'high',
     priority_score: 100 - index,
-    permitted_claim_scope: ['bounded_responsibility'],
+    permitted_claim_scope: ['bounded_project_responsibilities'],
     blocked_claim_scopes: [],
     limitations: [],
   }));
