@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      CEP_RUNTIME_EVIDENCE_PATH: ${{ runner.temp }}/issue140-natural-shipped-flow-evidence.json
+      CEP_RUNTIME_EVIDENCE_PATH: /tmp/issue140-natural-shipped-flow-evidence.json
 
     steps:
       - name: Check out repository
