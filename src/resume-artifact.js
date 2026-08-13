@@ -137,6 +137,16 @@ function matchableGenerated(statement, facts) {
   return factIds.flatMap((id) => sourceValues(facts.get(id), statement.template)).map(normal).filter(Boolean);
 }
 
+function replacementSelectionIds(statement, sourceKey, selections, facts, consumed) {
+  return (statement.resume_content_selection_ids || []).filter((selectionId) => {
+    if (consumed.has(selectionId)) return false;
+    const selection = selections.get(selectionId);
+    const fact = facts.get(selection?.candidate_fact_id);
+    if (!selection || !fact) return false;
+    return sourceValues(fact, templateFor(selection, fact)).map(normal).includes(sourceKey);
+  });
+}
+
 function replacementWithSourceStructure(statement, sourceStatement) {
   const sourceStatementId = sourceStatement.source_statement_id || sourceStatement.statement_id;
   return {
@@ -169,10 +179,12 @@ function composeSections(generatedSections, plan, facts) {
   const generatedBySection = new Map(generatedSections.map((section) => [section.section, section]));
   const sourceBySection = new Map(source.sections.map((section) => [section.section, section]));
   const explicitOmissions = explicitSourceOmissions(plan, facts);
+  const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
   const preserved = [];
   const superseded = [];
   const omittedSourceStatements = [];
   const usedGenerated = new Set();
+  const consumedReplacementSelections = new Map();
   const sections = SECTIONS.map((name, index) => {
     const generated = generatedBySection.get(name) || { section: name, position: index + 1, placeholder: null, statements: [] };
     const sourceSection = sourceBySection.get(name) || { statements: [] };
@@ -208,8 +220,8 @@ function composeSections(generatedSections, plan, facts) {
     const omissionFor = (sourceStatement) => explicitOmissions.get(normal(sourceStatement.text)) || [];
     const sourceId = (sourceStatement) => sourceStatement.source_statement_id || sourceStatement.statement_id;
     const shouldOmitHeading = (sourceStatement) => {
-      const selections = omissionFor(sourceStatement);
-      if (!selections.length || sourceStatement.display_style !== 'heading') return false;
+      const sourceSelections = omissionFor(sourceStatement);
+      if (!sourceSelections.length || sourceStatement.display_style !== 'heading') return false;
       const children = sourceStatements.filter((child) => child.parent_source_statement_id === sourceId(sourceStatement));
       return !children.length || children.every((child) => omissionFor(child).length > 0);
     };
@@ -226,10 +238,28 @@ function composeSections(generatedSections, plan, facts) {
         });
         continue;
       }
-      const replacements = generated.statements.filter((statement) => !usedGenerated.has(statement.statement_id) && matchableGenerated(statement, facts).includes(sourceKey));
+      const replacements = generated.statements.map((statement) => {
+        const consumed = consumedReplacementSelections.get(statement.statement_id) || new Set();
+        const matchingSelectionIds = replacementSelectionIds(statement, sourceKey, selections, facts, consumed);
+        return matchingSelectionIds.length ? { statement, matchingSelectionIds } : null;
+      }).filter(Boolean);
       if (replacements.length) {
-        replacements.forEach((statement) => { statements.push(replacementWithSourceStructure(statement, sourceStatement)); usedGenerated.add(statement.statement_id); });
-        superseded.push({ source_statement_id: sourceId(sourceStatement), generated_statement_ids: replacements.map((statement) => statement.statement_id), reason: 'supported_tailored_replacement' });
+        for (const replacement of replacements) {
+          const { statement, matchingSelectionIds } = replacement;
+          if (!usedGenerated.has(statement.statement_id)) {
+            statements.push(replacementWithSourceStructure(statement, sourceStatement));
+            usedGenerated.add(statement.statement_id);
+          }
+          const consumed = consumedReplacementSelections.get(statement.statement_id) || new Set();
+          matchingSelectionIds.forEach((selectionId) => consumed.add(selectionId));
+          consumedReplacementSelections.set(statement.statement_id, consumed);
+        }
+        superseded.push({
+          source_statement_id: sourceId(sourceStatement),
+          generated_statement_ids: replacements.map(({ statement }) => statement.statement_id),
+          resume_content_selection_ids: [...new Set(replacements.flatMap(({ matchingSelectionIds }) => matchingSelectionIds))],
+          reason: 'supported_tailored_replacement',
+        });
       } else {
         statements.push({ ...sourceStatement, statement_id: sourceStatement.statement_id || sourceStatement.source_statement_id, source_statement_id: sourceId(sourceStatement), resume_content_selection_ids: [] });
         preserved.push(sourceId(sourceStatement));

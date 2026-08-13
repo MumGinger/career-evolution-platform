@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer, APPLICANT_PAGE } = require('../../src/beta-ui');
@@ -15,13 +16,14 @@ async function withServer(run, options = {}) {
   finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
 }
 
-function input() {
+function input(overrides = {}) {
   const resume = `Candidate Example\nSkills\nPower BI, Python, SQL\nProjects\nCustomer Analytics Dashboard\n- Built Power BI dashboards and automation workflows using Python and SQL.\nExperience\nData Analyst\n- Delivered business insights and data analysis reporting for stakeholders.`;
   const jobText = `Company: Example\nRole Title: Data Analytics Analyst\n\nRequired Qualifications:\nPower BI required.\nPython required.\nSQL required.\nData analysis required.`;
   return {
     resume: { name: 'synthetic-resume.txt', data: Buffer.from(resume).toString('base64') },
     jobText,
     provider: 'mock',
+    ...overrides,
   };
 }
 
@@ -32,6 +34,49 @@ async function json(url, body) {
     body: JSON.stringify(body),
   });
   return { response, value: await response.json() };
+}
+
+function replayUnderstandingProvider() {
+  return {
+    name: 'provider-replay-understanding',
+    model: 'source-bound-test-fixture',
+    async checkConnection() { return true; },
+    async understand({ text }) {
+      return { provider: this.name, model: this.model, understanding: llmUnderstanding.mockUnderstand({ text }) };
+    },
+  };
+}
+
+function startMaterialDraftServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      let raw = '';
+      req.setEncoding('utf8');
+      req.on('data', (chunk) => { raw += chunk; });
+      req.on('end', () => {
+        try {
+          const body = JSON.parse(raw || '{}');
+          const payload = JSON.parse(body.messages?.at(-1)?.content || '{}');
+          const bySection = new Map();
+          for (const fact of payload.committed_facts || []) {
+            const statement = {
+              text: `Tailored wording: ${fact.value}`,
+              candidate_fact_ids: [fact.candidate_fact_id],
+              job_requirement_ids: [...(fact.mapped_job_requirement_ids || [])],
+            };
+            bySection.set(fact.recommended_section, [...(bySection.get(fact.recommended_section) || []), statement]);
+          }
+          const draft = { sections: [...bySection].map(([section, statements]) => ({ section, statements })) };
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(draft) } }] }));
+        } catch (error) {
+          res.writeHead(500, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(error.message || error) }));
+        }
+      });
+    });
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
 }
 
 test('applicant surface reviews concrete tailoring instead of re-verifying uploaded resume evidence', () => {
@@ -84,49 +129,63 @@ test('source attestation never promotes an AI-only normalized meaning into Candi
   }, { resumeUnderstandingProviderFromConfig: () => provider });
 });
 
-test('needs-correction flows through acquisition and 003.6, regenerates, and requires a second tailoring decision', async () => withServer(async ({ app, base }) => {
-  const started = await json(`${base}/api/llm-first/start`, input());
-  assert.equal(started.response.status, 201, JSON.stringify(started.value));
-  const material = started.value.tailoringReview.filter((item) => item.materialRewrite);
-  assert.ok(material.length > 0, JSON.stringify(started.value.tailoringReview));
-  const target = material.find((item) => ['Experience', 'Projects'].includes(item.section)) || material[0];
-  const session = app.sessions.get(started.value.sessionId);
-  const before = session.store.getCommittedCandidateKnowledge(session.profileId);
-  const prior = before.find((fact) => fact.id === target.candidateFactId);
-  assert.ok(prior, JSON.stringify({ target, before }));
+test('needs-correction flows through acquisition and 003.6, regenerates, and requires a second tailoring decision', async () => {
+  const draftServer = await startMaterialDraftServer();
+  const address = draftServer.address();
+  const baseUrl = `http://127.0.0.1:${address.port}/v1`;
+  try {
+    await withServer(async ({ app, base }) => {
+      const started = await json(`${base}/api/llm-first/start`, input({
+        provider: 'openai-compatible',
+        model: 'material-rewrite-test-provider',
+        apiKey: 'test-only-key',
+        baseUrl,
+      }));
+      assert.equal(started.response.status, 201, JSON.stringify(started.value));
+      const material = started.value.tailoringReview.filter((item) => item.materialRewrite);
+      assert.ok(material.length > 0, JSON.stringify(started.value.tailoringReview));
+      const target = material.find((item) => ['Experience', 'Projects'].includes(item.section)) || material[0];
+      const session = app.sessions.get(started.value.sessionId);
+      const before = session.store.getCommittedCandidateKnowledge(session.profileId);
+      const prior = before.find((fact) => fact.id === target.candidateFactId);
+      assert.ok(prior, JSON.stringify({ target, before }));
 
-  const correction = 'The dashboard reported FX exposure, not portfolio risk.';
-  const corrected = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
-    decisions: material.map((item) => item.id === target.id
-      ? { id: item.id, action: 'needs_correction', correction }
-      : { id: item.id, action: 'use_tailored' }),
-  });
-  assert.equal(corrected.response.status, 200, JSON.stringify(corrected.value));
-  assert.equal(corrected.value.stage, 'Tailoring Review');
-  assert.equal(corrected.value.regenerated, true);
-  assert.ok(corrected.value.corrections.some((item) => item.id === target.id && item.status === 'integrated_and_regenerated'));
-  assert.ok(Array.isArray(corrected.value.tailoringReview));
-  assert.ok(corrected.value.tailoringReview.length > 0);
+      const correction = 'The dashboard reported FX exposure, not portfolio risk.';
+      const corrected = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
+        decisions: material.map((item) => item.id === target.id
+          ? { id: item.id, action: 'needs_correction', correction }
+          : { id: item.id, action: 'use_tailored' }),
+      });
+      assert.equal(corrected.response.status, 200, JSON.stringify(corrected.value));
+      assert.equal(corrected.value.stage, 'Tailoring Review');
+      assert.equal(corrected.value.regenerated, true);
+      assert.ok(corrected.value.corrections.some((item) => item.id === target.id && item.status === 'integrated_and_regenerated'));
+      assert.ok(Array.isArray(corrected.value.tailoringReview));
+      assert.ok(corrected.value.tailoringReview.length > 0);
 
-  assert.equal(session.correctionIntegrations.length, 1);
-  const correctionRun = session.correctionIntegrations[0];
-  assert.ok(correctionRun.acquisition.id);
-  assert.ok(correctionRun.integration.id);
-  assert.ok(correctionRun.integration.applied_facts.length > 0);
-  assert.ok(correctionRun.integration.integration_decisions.every((decision) => decision.policy_version.includes('candidate-knowledge-integration-policy')));
+      assert.equal(session.correctionIntegrations.length, 1);
+      const correctionRun = session.correctionIntegrations[0];
+      assert.ok(correctionRun.acquisition.id);
+      assert.ok(correctionRun.integration.id);
+      assert.ok(correctionRun.integration.applied_facts.length > 0);
+      assert.ok(correctionRun.integration.integration_decisions.every((decision) => decision.policy_version.includes('candidate-knowledge-integration-policy')));
 
-  const after = session.store.getCommittedCandidateKnowledge(session.profileId);
-  assert.ok(after.some((fact) => JSON.stringify(fact).includes('FX exposure')), JSON.stringify(after));
-  assert.ok(!after.some((fact) => fact.id === prior.id), 'superseded fact must not remain in effective Candidate Knowledge');
-  const revisions = session.store.db.prepare('SELECT * FROM candidate_fact_revisions WHERE prior_fact_id = ?').all(prior.id);
-  assert.ok(revisions.some((revision) => revision.relation === 'supersedes'));
+      const after = session.store.getCommittedCandidateKnowledge(session.profileId);
+      assert.ok(after.some((fact) => JSON.stringify(fact).includes('FX exposure')), JSON.stringify(after));
+      assert.ok(!after.some((fact) => fact.id === prior.id), 'superseded fact must not remain in effective Candidate Knowledge');
+      const revisions = session.store.db.prepare('SELECT * FROM candidate_fact_revisions WHERE prior_fact_id = ?').all(prior.id);
+      assert.ok(revisions.some((revision) => revision.relation === 'supersedes'));
 
-  const secondMaterial = corrected.value.tailoringReview.filter((item) => item.materialRewrite);
-  const reviewed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
-    decisions: secondMaterial.map((item) => ({ id: item.id, action: 'use_tailored' })),
-  });
-  assert.equal(reviewed.response.status, 200, JSON.stringify(reviewed.value));
-  assert.equal(reviewed.value.stage, 'Career Review');
-  assert.ok(Array.isArray(reviewed.value.careerReview));
-  assert.ok(reviewed.value.careerReview.length > 0);
-}));
+      const secondMaterial = corrected.value.tailoringReview.filter((item) => item.materialRewrite);
+      const reviewed = await json(`${base}/api/llm-first/sessions/${started.value.sessionId}/tailoring-review`, {
+        decisions: secondMaterial.map((item) => ({ id: item.id, action: 'use_tailored' })),
+      });
+      assert.equal(reviewed.response.status, 200, JSON.stringify(reviewed.value));
+      assert.equal(reviewed.value.stage, 'Career Review');
+      assert.ok(Array.isArray(reviewed.value.careerReview));
+      assert.ok(reviewed.value.careerReview.length > 0);
+    }, { resumeUnderstandingProviderFromConfig: () => replayUnderstandingProvider() });
+  } finally {
+    await new Promise((resolve) => draftServer.close(resolve));
+  }
+});

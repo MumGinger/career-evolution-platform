@@ -130,28 +130,46 @@ function sourceAttestationDecisions(session) {
   })));
 }
 
+function sourceBackedProjectTitle(candidate, exact) {
+  const semantic = candidate.provenance?.semantic || {};
+  const proposed = cleanSourceClaim(semantic.attributes?.title || '');
+  const raw = String(semantic.raw_text || '');
+  const lines = raw.split(/\r?\n/).map(cleanSourceClaim).filter(Boolean);
+  if (proposed) {
+    const matched = lines.find((line) => normal(line) === normal(proposed));
+    if (matched) return matched;
+    if (normal(exact) === normal(proposed)) return exact;
+    return null;
+  }
+  if (lines.length === 1 && normal(lines[0]) === normal(exact)) return exact;
+  return null;
+}
+
 function sourceAttestedProposal(source, reviewDecision, reviewRun) {
   const candidate = source.candidate;
   const exactRaw = String(candidate.provenance?.exact_source_text || candidate.supporting_text || '').trim();
   const exact = cleanSourceClaim(exactRaw);
   if (!exact) return null;
-  const sourceReference = candidate.provenance?.evidence_span_id || candidate.source_reference;
+  const sourceReference = candidate.provenance?.contextual_match?.parent_evidence_span_id
+    || candidate.provenance?.semantic?.evidence_span_id
+    || candidate.provenance?.evidence_span_id
+    || candidate.source_reference;
   const entityType = source.entity_type;
   let value;
+  let displayValue = exact;
   if (entityType === 'skill') value = { name: exact };
   else if (['responsibility', 'achievement', 'domain_knowledge'].includes(entityType)) value = { text: exact };
   else if (entityType === 'credential') value = { name: exact };
   else if (entityType === 'project') {
-    const parentRaw = cleanSourceClaim(candidate.provenance?.semantic?.raw_text || '');
-    const contextualText = cleanSourceClaim(candidate.provenance?.contextual_match?.matched_source_text || '');
-    const name = parentRaw || exact;
+    const name = sourceBackedProjectTitle(candidate, exact);
+    if (!name) return null;
     value = { name, source_reference: sourceReference };
-    if (contextualText && normal(contextualText) !== normal(name)) value.text = contextualText;
+    displayValue = name;
   } else return null;
   return {
     entityType,
     value,
-    displayValue: entityType === 'project' && value.text ? `${value.name}: ${value.text}` : exact,
+    displayValue,
     confirmationStatus: 'confirmed',
     confidenceLevel: candidate.confidence_level,
     sourceEvidenceRefs: reviewDecision.source_evidence_refs,

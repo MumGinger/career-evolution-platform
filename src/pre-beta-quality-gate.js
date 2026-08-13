@@ -24,6 +24,8 @@ const CRITICAL = [
 ];
 
 const CRITICAL_STATES = new Set(['PASS', 'FAIL', 'UNKNOWN']);
+const REQUIRED_SHIPPED_STAGES = ['Resume Input', 'Tailoring Review', 'Draft', 'Career Review', 'Export'];
+const SHA256 = /^[0-9a-f]{64}$/i;
 
 function assertObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -31,7 +33,31 @@ function assertObject(value, label) {
   }
 }
 
-function evaluateScorecard(scorecard) {
+function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
+  const errors = [];
+  if (!runtimeEvidence || typeof runtimeEvidence !== 'object' || Array.isArray(runtimeEvidence)) {
+    return ['runtime evidence is required when shipped_flow_completion is claimed PASS'];
+  }
+  if (runtimeEvidence.candidate_id !== scorecard.candidate_id) errors.push('runtime evidence candidate_id must match the scorecard candidate_id');
+  for (const key of ['source_resume_sha256', 'job_description_sha256', 'final_pdf_sha256']) {
+    if (!SHA256.test(String(runtimeEvidence[key] || ''))) errors.push(`${key} must be a SHA-256 digest`);
+  }
+  if (!String(runtimeEvidence.artifact_run_id || '').trim()) errors.push('artifact_run_id is required');
+  const flow = runtimeEvidence.shipped_flow;
+  if (!flow || typeof flow !== 'object' || Array.isArray(flow)) return [...errors, 'shipped_flow runtime evidence is required'];
+  if (flow.status !== 'PASS') errors.push('shipped_flow.status must be PASS');
+  if (flow.natural_pipeline !== true) errors.push('shipped_flow.natural_pipeline must be true');
+  if (flow.post_validation_state_mutation !== false) errors.push('shipped_flow.post_validation_state_mutation must be false');
+  if (!String(flow.provider || '').trim()) errors.push('shipped_flow.provider is required');
+  if (!String(flow.test_id || '').trim()) errors.push('shipped_flow.test_id is required');
+  if (!String(flow.run_id || '').trim()) errors.push('shipped_flow.run_id is required');
+  if (!Array.isArray(flow.completed_stages) || REQUIRED_SHIPPED_STAGES.some((stage) => !flow.completed_stages.includes(stage))) {
+    errors.push(`shipped_flow.completed_stages must include ${REQUIRED_SHIPPED_STAGES.join(' -> ')}`);
+  }
+  return errors;
+}
+
+function evaluateScorecard(scorecard, runtimeEvidence = null) {
   assertObject(scorecard, 'scorecard');
   if (!scorecard.candidate_id || typeof scorecard.candidate_id !== 'string') {
     throw new Error('scorecard.candidate_id must identify the frozen candidate.');
@@ -57,6 +83,13 @@ function evaluateScorecard(scorecard) {
     critical[key] = value;
   }
 
+  const runtimeEvidenceErrors = critical.shipped_flow_completion === 'PASS'
+    ? shippedFlowEvidenceErrors(scorecard, runtimeEvidence)
+    : [];
+  if (critical.shipped_flow_completion === 'PASS' && runtimeEvidenceErrors.length) {
+    critical.shipped_flow_completion = 'UNKNOWN';
+  }
+
   const total = DIMENSIONS.reduce((sum, key) => sum + dimensionScores[key], 0);
   const failedCritical = CRITICAL.filter((key) => critical[key] === 'FAIL');
   const unknownCritical = CRITICAL.filter((key) => critical[key] === 'UNKNOWN');
@@ -75,6 +108,8 @@ function evaluateScorecard(scorecard) {
     beta_ready: verdict === 'BETA READY',
     failed_critical: failedCritical,
     unknown_critical: unknownCritical,
+    runtime_evidence_valid: runtimeEvidenceErrors.length === 0 && critical.shipped_flow_completion === 'PASS',
+    runtime_evidence_errors: runtimeEvidenceErrors,
     requires_internal_loop: verdict !== 'BETA READY',
   };
 }
@@ -82,5 +117,7 @@ function evaluateScorecard(scorecard) {
 module.exports = {
   CRITICAL,
   DIMENSIONS,
+  REQUIRED_SHIPPED_STAGES,
   evaluateScorecard,
+  shippedFlowEvidenceErrors,
 };

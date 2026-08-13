@@ -3,24 +3,30 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { evaluateScorecard } = require('../src/pre-beta-quality-gate');
 
+function readJson(input, label) {
+  if (!input) return null;
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(input), 'utf8'));
+  } catch (error) {
+    console.error(`Could not read ${label}: ${error.message}`);
+    process.exit(2);
+  }
+}
+
 function main() {
-  const input = process.argv[2];
-  if (!input) {
-    console.error('Usage: node scripts/check-pre-beta-quality.js <scorecard.json>');
+  const scorecardPath = process.argv[2];
+  const runtimeEvidencePath = process.argv[3];
+  if (!scorecardPath) {
+    console.error('Usage: node scripts/check-pre-beta-quality.js <scorecard.json> [runtime-evidence.json]');
     process.exit(2);
   }
 
-  let scorecard;
-  try {
-    scorecard = JSON.parse(fs.readFileSync(path.resolve(input), 'utf8'));
-  } catch (error) {
-    console.error(`Could not read scorecard: ${error.message}`);
-    process.exit(2);
-  }
+  const scorecard = readJson(scorecardPath, 'scorecard');
+  const runtimeEvidence = readJson(runtimeEvidencePath, 'runtime evidence');
 
   let result;
   try {
-    result = evaluateScorecard(scorecard);
+    result = evaluateScorecard(scorecard, runtimeEvidence);
   } catch (error) {
     console.error(`Invalid scorecard: ${error.message}`);
     process.exit(2);

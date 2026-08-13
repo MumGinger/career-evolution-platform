@@ -1,3 +1,7 @@
+const { installSourceStructureBoundary } = require('./source-structure-projection');
+
+installSourceStructureBoundary();
+
 const VALIDATION_SAFE = new Set(['passed', 'passed_with_warnings']);
 
 function normalize(value) {
