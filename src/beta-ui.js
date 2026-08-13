@@ -7,6 +7,7 @@ const core = require('./beta-ui-core');
 const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const option2 = require('./option2-tailoring-review');
+const resumeTailoring = require('./resume-tailoring');
 const tailoringEntry = require('./tailoring-review-entry-context');
 const { recoverNoChangeBlock } = require('./no-change-draft-recovery');
 const { providerFromConfig: draftProviderFromConfig } = require('./resume-draft');
@@ -158,6 +159,10 @@ function cleanAndWriteApplicantOutputs(session, value) {
   const presentationExport = {
     ...session.exported,
     markdown: cleanup.cleanMarkdown(session.exported.markdown),
+    document_operations: resumeTailoring.documentOperations({
+      tailoringPlan: session.tailoring,
+      artifactRun: session.artifact,
+    }),
   };
   session.exported = applicant.writeApplicantOutputs({
     directory: session.dir,
@@ -188,6 +193,21 @@ function validateLegacyConfirm(session, input) {
     || decisions.some((decision) => !['accept', 'skip'].includes(decision.action))) {
     throw new Error('Accept or Skip exactly once for every reviewable evidence candidate.');
   }
+}
+
+function defaultTailoringDecisions(session, supplied = []) {
+  const explicit = new Map();
+  for (const decision of supplied || []) {
+    if (!decision?.id || explicit.has(decision.id)) throw new Error('Tailoring Review contains an unknown or duplicate decision.');
+    explicit.set(decision.id, decision);
+  }
+  const reviewable = (session?.tailoringReview || []).filter((item) => item.materialRewrite);
+  const allowed = new Set(reviewable.map((item) => item.id));
+  for (const id of explicit.keys()) if (!allowed.has(id)) throw new Error('Tailoring Review contains an unknown or duplicate decision.');
+  return reviewable.map((item) => explicit.get(item.id) || {
+    id: item.id,
+    action: 'use_tailored',
+  });
 }
 
 async function legacyProviderValidation(session) {
@@ -283,7 +303,8 @@ function createBetaUiServer(options = {}) {
       if (req.method === 'POST' && /\/tailoring-review$/.test(url.pathname)) {
         if (!session) return send(res, 404, { error: 'This local session has expired.' });
         const input = parseJson(requestBody);
-        const result = await option2.apply(session, input.decisions || []);
+        const decisions = defaultTailoringDecisions(session, input.decisions || []);
+        const result = await option2.apply(session, decisions);
         return send(res, 200, normalizeApplicantResponse(result, session));
       }
 
@@ -352,6 +373,7 @@ module.exports = {
   createBetaUiServer,
   BETA_PAGE: core.BETA_PAGE,
   APPLICANT_PAGE: SHIPPED_PAGE,
+  defaultTailoringDecisions,
   qualityReady: core.qualityReady,
   recordRuntimeEvidenceSeed,
   runtimeEvidenceForSession,
