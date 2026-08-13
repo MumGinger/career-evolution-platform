@@ -101,7 +101,7 @@ test('final PDF uses the stronger applicant-facing typography contract', () => {
     ]),
   ]).toString('latin1');
 
-  assert.match(pdf, /\/F2 20 Tf/);
-  assert.match(pdf, /\/F2 12 Tf/);
+  assert.match(pdf, /\/F2 21 Tf/);
+  assert.match(pdf, /\/F2 11\.6 Tf/);
   assert.match(pdf, /Senior Analyst - Northstar Insurance/);
 });

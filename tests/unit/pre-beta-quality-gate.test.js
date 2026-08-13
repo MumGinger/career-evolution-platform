@@ -32,11 +32,20 @@ function runtimeEvidence(overrides = {}) {
   };
 }
 
+function engineeringOverride(reason = 'Remaining deductions are non-material and do not affect PDF credibility or hard blockers.') {
+  return {
+    approved: true,
+    approved_by: 'Engineering Lead',
+    reason,
+  };
+}
+
 test('90/100 with all critical PASS and exact natural shipped-flow evidence is BETA READY', () => {
   const result = evaluateScorecard(scorecard(), runtimeEvidence());
   assert.equal(result.total, 90);
   assert.equal(result.verdict, 'BETA READY');
   assert.equal(result.beta_ready, true);
+  assert.equal(result.beta_ready_with_override, false);
   assert.equal(result.runtime_evidence_valid, true);
   assert.equal(result.requires_internal_loop, false);
 });
@@ -69,25 +78,53 @@ test('runtime evidence for a different final PDF cannot authorize a reviewed sco
   assert.match(result.runtime_evidence_errors.join(' '), /reviewed final pdf/i);
 });
 
-test('85-89 remains NEAR READY when machine evidence is valid', () => {
+test('85-89 remains NEAR READY by default when machine evidence is valid', () => {
   const candidate = scorecard();
   candidate.dimensions.job_specific_targeting = 8;
   const result = evaluateScorecard(candidate, runtimeEvidence());
   assert.equal(result.total, 89);
   assert.equal(result.verdict, 'NEAR READY');
   assert.equal(result.beta_ready, false);
+  assert.equal(result.engineering_override_applied, false);
   assert.equal(result.requires_internal_loop, true);
 });
 
-test('below 85 remains NOT BETA READY', () => {
-  const result = evaluateScorecard(scorecard({ score: 8 }), runtimeEvidence());
+test('85-89 may become BETA READY only with a documented Engineering Lead override and strong visual scores', () => {
+  const candidate = scorecard({ overrides: { engineering_override: engineeringOverride() } });
+  candidate.dimensions.job_specific_targeting = 8;
+  const result = evaluateScorecard(candidate, runtimeEvidence());
+  assert.equal(result.total, 89);
+  assert.equal(result.verdict, 'BETA READY');
+  assert.equal(result.beta_ready, true);
+  assert.equal(result.beta_ready_with_override, true);
+  assert.equal(result.engineering_override_applied, true);
+  assert.equal(result.requires_internal_loop, false);
+});
+
+test('an override cannot excuse weak Milestone 1 PDF design', () => {
+  const candidate = scorecard({ overrides: { engineering_override: engineeringOverride() } });
+  candidate.dimensions.typography_spacing_density_page_composition = 7;
+  candidate.dimensions.job_specific_targeting = 10;
+  const result = evaluateScorecard(candidate, runtimeEvidence());
+  assert.equal(result.total, 89);
+  assert.equal(result.verdict, 'NEAR READY');
+  assert.equal(result.beta_ready, false);
+  assert.equal(result.engineering_override_applied, false);
+});
+
+test('below 85 remains NOT BETA READY even with an override', () => {
+  const result = evaluateScorecard(
+    scorecard({ score: 8, overrides: { engineering_override: engineeringOverride() } }),
+    runtimeEvidence(),
+  );
   assert.equal(result.total, 80);
   assert.equal(result.verdict, 'NOT BETA READY');
   assert.equal(result.beta_ready, false);
+  assert.equal(result.engineering_override_applied, false);
 });
 
-test('critical FAIL blocks a high numerical score', () => {
-  const candidate = scorecard({ score: 10 });
+test('critical FAIL blocks a high numerical score and cannot be overridden', () => {
+  const candidate = scorecard({ score: 10, overrides: { engineering_override: engineeringOverride() } });
   candidate.critical.section_identity = 'FAIL';
   const result = evaluateScorecard(candidate, runtimeEvidence());
   assert.equal(result.total, 100);

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { composeSourceResume } = require('../../src/resume-composition');
-const { projectSourceResumeSnapshot } = require('../../src/source-structure-projection');
+const { CANONICAL_RESUME_VERSION, canonicalResumeErrors, projectSourceResumeSnapshot } = require('../../src/source-structure-projection');
 
 function semanticRun() {
   return {
@@ -69,4 +69,17 @@ test('source structure boundary projects raw parent evidence into one heading, m
   assert.equal(projects[4].parent_source_statement_id, projects[0].source_statement_id);
   assert.equal(projects[0].provenance.raw_container_exact_source_text.includes('May 2025 - Present'), true);
   assert.equal(artifact.structure_projection.raw_evidence_authority, 'resume_semantic_run');
+
+  const canonical = artifact.canonical_document;
+  assert.equal(canonical.schema, CANONICAL_RESUME_VERSION);
+  assert.deepEqual(canonicalResumeErrors(canonical), []);
+  assert.equal(artifact.structure_projection.structural_authority, CANONICAL_RESUME_VERSION);
+  const projectSection = canonical.sections.find((section) => section.section === 'Projects');
+  assert.equal(projectSection.entries.length, 1);
+  assert.equal(projectSection.entries[0].title, 'Analytics Dashboard');
+  assert.deepEqual(projectSection.entries[0].metadata.map((item) => item.text), ['(Python, SQL, Power BI)', 'May 2025 - Present']);
+  assert.deepEqual(projectSection.entries[0].body.map((item) => item.text), [
+    'Built Power BI dashboards using Python and SQL.',
+    'Automated weekly reporting workflows in Python.',
+  ]);
 });

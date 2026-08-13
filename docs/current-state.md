@@ -1,108 +1,127 @@
 # Current State
 
-**Phase:** Version 1 post-Beta #7 layout recovery — fresh Beta #8 next
-**Last updated:** 2026-08-12
+**Phase:** Milestone 1 — Reliable Resume Tailoring
+**Last updated:** 2026-08-13
+**Milestone 1 Accepted:** **NO / NOT YET**
 **Beta Accepted:** **NO / NOT YET**
 
-Repository and GitHub evidence are authoritative if this document becomes stale.
+Repository and current GitHub evidence are authoritative if this document becomes stale.
 
-## Latest product result
+Read `MILESTONE_1.md` before acting on resume product work.
 
-Beta #7 / Issue #121 is complete and closed as **FAIL**.
+## Product reset
 
-The fresh applicant reached the final resume and judged:
+The project is intentionally narrowing back to the basic resume vertical slice.
 
-- would submit `final-resume.pdf`: **NO**;
-- time saved versus manual tailoring: **NO**;
-- content might be acceptable, but the formatting/layout was not credible enough for a serious application;
-- the next-use decision was to wait for a product update rather than use the current output again.
+Milestone 1 exists to prove one simple product outcome:
 
-The decisive blocker is Issue #122: **Make final resume layout submission-ready**. The secondary Beta #7 watch item is that Tailoring Review often felt like title-level changes with limited perceived substantive tailoring value.
+> real resume PDF + real job description -> understandable correction/review workflow -> professional, job-relevant, normal 1–2 page final resume PDF that the applicant can reasonably submit.
 
-No subsequent engineering work reinterprets Beta #7 as PASS. Beta Accepted remains **NO**.
+The project must not advance broader career-platform scope while this basic outcome is still unreliable.
 
-## Repository recovery on 2026-08-12
+## Current evidence
 
-After the repository history rewrite, authoritative `chore/project-foundation` had regressed to the Beta #5 checkpoint even though the rewritten Option 2 implementation/checkpoint branches still existed.
+Beta #1 through Beta #9 are historical **FAIL** results. They repeatedly exposed basic workflow, structure, duplication, review, content-selection, and final-PDF quality failures.
 
-Engineering verified that `docs/option2-tailoring-review-checkpoint` was a clean fast-forward of primary and restored `chore/project-foundation` to rewritten Option 2 checkpoint commit `b40f8a624289c5986ae7f75f019153211faa65fa` with no force and no loss of primary commits before addressing Beta #7.
+PR #144 (`Pre-Beta complex golden shipped-flow gate`) merged on 2026-08-13. It establishes a useful engineering floor:
 
-## Beta #7 layout engineering recovery
+- a complex deidentified master-resume-shaped candidate completes the natural shipped browser flow;
+- real PDF intake, provider boundaries, targeting, validation, Draft, Career Review, and export are exercised;
+- the frozen candidate produces a one-page PDF without known clipping, blank bullets, parent/child duplication, or structural corruption;
+- current CI passed on the merged head;
+- the representative frozen candidate scored 91/100.
 
-PR #123 — `Recover Beta 7 professional resume layout` — merged to `chore/project-foundation` at `2fa1f084f8e06cc8f9ee095d406aa6c0033c95af`.
+This proof is **not Milestone 1 acceptance and not Beta acceptance**. The scorecard itself still recorded a broad Summary, utilitarian typography, unused lower-page whitespace, and room for visual refinement.
 
-Applicant-visible recovery:
+## New priority order
 
-- browser/review and final PDF use one shared professional presentation model;
-- Professional Summary is presented independently from Experience;
-- categorized Skills render as readable label/value groups and flat skills remain scan-friendly items;
-- Experience, Projects, and Education render with conventional entry hierarchy;
-- entry dates render in the heading/date position instead of trailing after content;
-- Project trailing dates are associated with the corresponding project heading before bullets;
-- Education school/date/degree/detail runs are separated into readable hierarchy;
-- conservative date detection prevents date-like achievement prose from being incorrectly moved into metadata;
-- Career Review section copy remains populated and applicant-readable.
+For Milestone 1, prioritize:
 
-The renderer uses a restrained ATS-friendly single-column presentation rather than decorative multi-column/template complexity.
+1. natural end-to-end completion;
+2. final PDF structural correctness;
+3. professional typography/layout/page composition;
+4. no duplication or malformed resume content;
+5. applicant correction persistence;
+6. credible JD relevance and content prioritization;
+7. deeper career-content intelligence only after the basic product is stable.
 
-## Regression-first proof for PR #123
+The final PDF is the primary product artifact.
 
-Regression-only commit: `211069fab6665b10d4e9563d5b17eca09961143d`.
+## Hard blockers before Beta
 
-Regression-only CI `31596052613` proved the new Beta #7 layout unit contract was **RED as expected** against the prior shipped renderer. That run also surfaced an unrelated stale legacy `/api/start` discovery-ranking assumption; the authoritative Option 2 complete-source and representative-PDF contracts remained the relevant source-preservation authority.
+Do not start a fresh Beta while any of these are present:
 
-Final merge-candidate CI `31597221430`:
+- natural E2E cannot complete;
+- PDF export fails;
+- blank or orphan bullets;
+- wrong section identity;
+- wrong entry ownership or cross-entry bleed;
+- title/body or parent/child duplication;
+- obvious repeated source/tailored content;
+- broken wrapping, glyphs, clipping, spacing, or pagination;
+- user corrections not reflected in later review/export;
+- unsupported/invented claims;
+- final PDF visibly incomplete or not recognizable as a normal professional resume.
 
-- unit: **PASS**;
-- full integration: **PASS**;
-- patch whitespace: **PASS**;
-- HTTP / representative PDF contract: **PASS**;
-- pre-fix Chromium RED proof: **PASS**;
-- current Chromium GREEN proof: **PASS**;
-- review threads: **none**;
-- branch sync at merge gate: **behind 0**.
+The internal quality score target remains about 90/100, but it is a professional QA target rather than an inflexible mathematical law. Hard blockers are absolute.
 
-## Issue state
+## Architecture direction
 
-- Issue #121 — Beta #7: **CLOSED / historical FAIL**.
-- Issue #122 — final resume layout submission-ready: **OPEN / engineering recovery merged, fresh-user acceptance pending**.
-- Issue #97 — applicant-readable review/export acceptance: **OPEN / fresh-user submission and value acceptance pending**.
+Substantial restructuring is allowed if it simplifies and stabilizes the basic resume product.
 
-Issue #122 must not be closed from engineering proof alone because its acceptance criteria require a fresh applicant to judge the PDF submission-ready and meaningfully time-saving.
+Preferred long-lived Milestone 1 boundary:
 
-## Protected truth and authority boundaries
+```text
+Source Resume PDF + Job Description
+  -> Resume Parser
+  -> Canonical Resume Document
+  -> Targeting / Edit Operations
+  -> Reviewed Resume Document
+  -> Professional Renderer
+  -> Final PDF
+```
 
-Preserved:
+The canonical resume document should own artifact structure. Source evidence should own factual support. Candidate Knowledge and persistent long-term career memory are not Milestone 1 blocking requirements.
 
-- 003.6 remains the sole Candidate Knowledge integration/write path.
-- Uploaded source-resume evidence may be source-attested for V1, but AI interpretation of source text is not automatically truth.
-- Source-resume passthrough remains source-linked and cannot create Candidate Knowledge.
-- Generated/materially rewritten claims remain Candidate-Knowledge-backed and provenance-linked.
-- Issue #83 complete-resume composition/source-passthrough guarantees remain intact.
-- Resume Content Selection, provenance inheritance, claim scope, coverage, completeness, duplication, and deterministic validation authority remain intact.
-- Career Review / Human Review remains the final explicit human authority before export.
-- Manual Career Review edits do not silently rewrite Candidate Knowledge.
-- Provider credentials remain memory-only/private.
-- The unresolved complete-source/no-core-tailoring-selection policy from Issue #95 remains unchanged.
+Do not preserve a fragmented architecture merely because code already exists. If the same failure class survives two repair cycles, stop patching and repair/restructure the earliest broken boundary.
 
-The Beta #7 recovery is a presentation boundary. It does not rewrite source evidence or knowledge authority.
+## Development proof
 
-## Product acceptance history
+Primary development golden: Ya-Ching master-resume shape + Zurich Data Analytics & AI job-description shape, deidentified where committed fixtures are required.
 
-- Beta #1 / Issue #73: **FAIL**.
-- Beta #2 / Issue #82: **FAIL**.
-- Beta #3 / Issue #93: **FAIL**.
-- Beta #4 / Issue #100: **FAIL**.
-- Beta #5 / Issue #106: **FAIL**.
-- Beta #6 / Issue #113: **FAIL**.
-- Beta #7 / Issue #121: **FAIL**.
-- Beta Accepted: **NO**.
+Milestone exit requires at least three materially different resume shapes to complete the natural shipped E2E flow and produce professional 1–2 page PDFs without structural breakage.
 
-## Current focus
+Only after the internal artifact is credible should the real applicant run the next fresh Beta.
 
-1. Merge the durable Beta #7 layout-recovery checkpoint.
-2. Create fresh Beta #8 with initial result **UNKNOWN**.
-3. Begin Beta #8 from Landing/Input using a real resume and real job description.
-4. Primary retest: professional submission quality of `final-resume.pdf`, especially Summary, Skills, Experience, Projects, Education, spacing, hierarchy, and date placement.
-5. Keep Tailoring Review perceived value as a secondary watch item.
-6. Keep Issues #122 and #97 open unless fresh applicant evidence actually satisfies their acceptance bars.
+## Out of scope until Milestone 1 exits
+
+Freeze expansion of:
+
+- persistent Candidate Knowledge database / long-term user memory;
+- proactive career-information acquisition;
+- multiple resume templates;
+- generic agent-framework development;
+- Career Reflection / Curiosity workflows;
+- autonomous outcome learning;
+- cover letters;
+- job discovery;
+- automatic application;
+- quantified time-savings optimization.
+
+## Active execution rhythm
+
+One active Milestone blocker at a time:
+
+```text
+real-shaped regression
+  -> earliest-boundary repair
+  -> natural E2E
+  -> actual final PDF inspection
+  -> specialist structure/content/design review
+  -> independent score
+  -> internal repair loop
+  -> Milestone Exit Candidate
+  -> fresh human Beta
+```
+
+Fresh Beta should discover genuine applicant-product learning, not obvious structural or PDF QA defects.

@@ -1,4 +1,5 @@
 const POLICY_VERSION = 'resume-tailoring-policy/1.1.0';
+const DOCUMENT_OPERATION_VERSION = 'resume-document-operations/1.0.0';
 const GENERIC = new Set(['communication', 'teamwork']);
 const SUMMARY_ELIGIBLE = new Set(['skill', 'project', 'experience', 'achievement', 'responsibility', 'education']);
 
@@ -41,4 +42,43 @@ function plan({ facts, requirements, sourceResumeArtifact }) {
   const sourceFlags = !sourceResumeArtifact ? [] : String(sourceResumeArtifact.content || '').split(/\r?\n/).filter((line) => /\b(advanced|expert|\d+\+? years?|led|increased|improved)\b/i.test(line)).map((line) => ({ source_artifact_id: sourceResumeArtifact.id, source_artifact_version: sourceResumeArtifact.version, text: line, status: 'requires_candidate_knowledge_validation', rationale: 'Source resume wording is not trusted over committed Candidate Knowledge and was not edited.' }));
   return { selections, coverage, sectionPlans, sourceFlags, limitations: 'No prose, rendering, acquisition, or Candidate Knowledge write is performed.' };
 }
-module.exports = { POLICY_VERSION, plan };
+
+function documentOperations({ tailoringPlan, artifactRun }) {
+  const artifact = artifactRun?.resume_artifacts?.find((item) => item.artifact_type === 'structured_resume');
+  const composition = artifact?.content?.metadata?.composition || {};
+  const operations = [];
+  for (const sourceStatementId of composition.preserved_source_statement_ids || []) {
+    operations.push({ operation: 'KEEP', node_id: sourceStatementId });
+  }
+  for (const omitted of composition.omitted_source_statements || []) {
+    operations.push({
+      operation: 'OMIT',
+      node_id: omitted.source_statement_id,
+      selection_ids: omitted.resume_content_selection_ids || [],
+      reason: omitted.reason || 'role_specific_omission',
+    });
+  }
+  for (const superseded of composition.superseded_source_statements || []) {
+    operations.push({
+      operation: 'REWRITE',
+      node_id: superseded.source_statement_id,
+      generated_node_ids: superseded.generated_statement_ids || [],
+      selection_ids: superseded.resume_content_selection_ids || [],
+      reason: superseded.reason || 'supported_tailored_replacement',
+    });
+  }
+  for (const sectionPlan of tailoringPlan?.resume_section_plans || []) {
+    operations.push({
+      operation: 'REORDER_SECTION',
+      section: sectionPlan.section,
+      position: sectionPlan.recommended_order,
+    });
+  }
+  return {
+    schema: DOCUMENT_OPERATION_VERSION,
+    source_resume_artifact_id: composition.source_resume_snapshot?.source_resume_artifact_id || null,
+    operations,
+  };
+}
+
+module.exports = { DOCUMENT_OPERATION_VERSION, POLICY_VERSION, documentOperations, plan };

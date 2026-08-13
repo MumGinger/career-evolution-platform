@@ -26,6 +26,9 @@ const CRITICAL = [
 const CRITICAL_STATES = new Set(['PASS', 'FAIL', 'UNKNOWN']);
 const REQUIRED_SHIPPED_STAGES = ['Resume Input', 'Tailoring Review', 'Draft', 'Career Review', 'Export'];
 const SHA256 = /^[0-9a-f]{64}$/i;
+const QUALITY_TARGET = 90;
+const OVERRIDE_FLOOR = 88;
+const OVERRIDE_VISUAL_FLOOR = 8;
 
 function assertObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -74,6 +77,18 @@ function shippedFlowEvidenceErrors(scorecard, runtimeEvidence, requireReviewedPd
   return errors;
 }
 
+function approvedEngineeringOverride(scorecard, total, dimensionScores, allCriticalPass) {
+  const override = scorecard?.engineering_override;
+  if (!override || typeof override !== 'object' || Array.isArray(override)) return false;
+  if (override.approved !== true) return false;
+  if (!String(override.approved_by || '').trim()) return false;
+  if (!String(override.reason || '').trim()) return false;
+  if (!allCriticalPass || total < OVERRIDE_FLOOR || total >= QUALITY_TARGET) return false;
+  if (dimensionScores.typography_spacing_density_page_composition < OVERRIDE_VISUAL_FLOOR) return false;
+  if (dimensionScores.final_pdf_professional_credibility < OVERRIDE_VISUAL_FLOOR) return false;
+  return true;
+}
+
 function evaluateScorecard(scorecard, runtimeEvidence = null) {
   assertObject(scorecard, 'scorecard');
   if (!scorecard.candidate_id || typeof scorecard.candidate_id !== 'string') {
@@ -111,18 +126,22 @@ function evaluateScorecard(scorecard, runtimeEvidence = null) {
   const failedCritical = CRITICAL.filter((key) => critical[key] === 'FAIL');
   const unknownCritical = CRITICAL.filter((key) => critical[key] === 'UNKNOWN');
   const allCriticalPass = failedCritical.length === 0 && unknownCritical.length === 0;
+  const engineeringOverrideApplied = approvedEngineeringOverride(scorecard, total, dimensionScores, allCriticalPass);
 
   let verdict;
-  if (!allCriticalPass || total < 85) verdict = 'NOT BETA READY';
-  else if (total < 90) verdict = 'NEAR READY';
+  if (!allCriticalPass || total < OVERRIDE_FLOOR) verdict = 'NOT BETA READY';
+  else if (total < QUALITY_TARGET && !engineeringOverrideApplied) verdict = 'NEAR READY';
   else verdict = 'BETA READY';
 
   return {
     candidate_id: scorecard.candidate_id,
     total,
     maximum: 100,
+    quality_target: QUALITY_TARGET,
     verdict,
     beta_ready: verdict === 'BETA READY',
+    beta_ready_with_override: verdict === 'BETA READY' && engineeringOverrideApplied,
+    engineering_override_applied: engineeringOverrideApplied,
     failed_critical: failedCritical,
     unknown_critical: unknownCritical,
     runtime_evidence_valid: runtimeEvidenceErrors.length === 0 && critical.shipped_flow_completion === 'PASS',
@@ -134,6 +153,8 @@ function evaluateScorecard(scorecard, runtimeEvidence = null) {
 module.exports = {
   CRITICAL,
   DIMENSIONS,
+  OVERRIDE_FLOOR,
+  QUALITY_TARGET,
   REQUIRED_SHIPPED_STAGES,
   evaluateScorecard,
   runtimeFlowEvidenceErrors,
