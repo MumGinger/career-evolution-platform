@@ -85,6 +85,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install PDF extraction dependency
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Install test dependencies
         run: npm install --no-audit --no-fund
 
