@@ -33,20 +33,16 @@ function assertObject(value, label) {
   }
 }
 
-function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
+function runtimeFlowEvidenceErrors(candidateId, runtimeEvidence) {
   const errors = [];
   if (!runtimeEvidence || typeof runtimeEvidence !== 'object' || Array.isArray(runtimeEvidence)) {
     return ['runtime evidence is required when shipped_flow_completion is claimed PASS'];
   }
-  if (runtimeEvidence.candidate_id !== scorecard.candidate_id) errors.push('runtime evidence candidate_id must match the scorecard candidate_id');
+  if (candidateId && runtimeEvidence.candidate_id !== candidateId) {
+    errors.push('runtime evidence candidate_id must match the scorecard candidate_id');
+  }
   for (const key of ['source_resume_sha256', 'job_description_sha256', 'final_pdf_sha256']) {
     if (!SHA256.test(String(runtimeEvidence[key] || ''))) errors.push(`${key} must be a SHA-256 digest`);
-  }
-  const reviewedFinalPdf = String(scorecard.reviewed_final_pdf_sha256 || '');
-  if (!SHA256.test(reviewedFinalPdf)) {
-    errors.push('scorecard reviewed_final_pdf_sha256 must identify the final PDF independently reviewed for this score');
-  } else if (reviewedFinalPdf.toLowerCase() !== String(runtimeEvidence.final_pdf_sha256 || '').toLowerCase()) {
-    errors.push('reviewed final PDF SHA-256 must match runtime evidence final_pdf_sha256');
   }
   if (!String(runtimeEvidence.artifact_run_id || '').trim()) errors.push('artifact_run_id is required');
   const flow = runtimeEvidence.shipped_flow;
@@ -59,6 +55,19 @@ function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
   if (!String(flow.run_id || '').trim()) errors.push('shipped_flow.run_id is required');
   if (!Array.isArray(flow.completed_stages) || REQUIRED_SHIPPED_STAGES.some((stage) => !flow.completed_stages.includes(stage))) {
     errors.push(`shipped_flow.completed_stages must include ${REQUIRED_SHIPPED_STAGES.join(' -> ')}`);
+  }
+  return errors;
+}
+
+function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
+  const errors = runtimeFlowEvidenceErrors(scorecard?.candidate_id, runtimeEvidence);
+  if (!runtimeEvidence || typeof runtimeEvidence !== 'object' || Array.isArray(runtimeEvidence)) return errors;
+
+  const reviewedFinalPdf = String(scorecard?.reviewed_final_pdf_sha256 || '');
+  if (!SHA256.test(reviewedFinalPdf)) {
+    errors.push('scorecard reviewed_final_pdf_sha256 must identify the final PDF independently reviewed for this score');
+  } else if (reviewedFinalPdf.toLowerCase() !== String(runtimeEvidence.final_pdf_sha256 || '').toLowerCase()) {
+    errors.push('reviewed final PDF SHA-256 must match runtime evidence final_pdf_sha256');
   }
   return errors;
 }
@@ -125,5 +134,6 @@ module.exports = {
   DIMENSIONS,
   REQUIRED_SHIPPED_STAGES,
   evaluateScorecard,
+  runtimeFlowEvidenceErrors,
   shippedFlowEvidenceErrors,
 };
