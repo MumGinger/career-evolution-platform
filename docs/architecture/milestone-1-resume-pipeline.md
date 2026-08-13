@@ -1,5 +1,7 @@
 # Milestone 1 Resume Pipeline Consolidation
 
+**Execution state:** ACTIVE. PR #144 is the preserved shipped-flow regression floor. The six migration slices below are the only active Milestone 1 engineering program until exit.
+
 ## Decision
 
 Milestone 1 should restructure the resume artifact pipeline rather than continue stacking local repairs on the existing statement-reconstruction path.
@@ -254,6 +256,10 @@ Keep PR #144 complex shipped-flow coverage as a regression floor, but update it 
 After current and new real-shaped regressions pass, remove/bypass obsolete presentation-time structural reconstruction and Store monkey-patch repair seams.
 
 Do not maintain two independent final-resume architectures.
+
+### Slice 6 — Milestone exit gate
+
+Run the same shipped canonical-document path across the primary Ya-Ching + Zurich-shaped golden and at least two materially different resume shapes. Freeze the exact reviewed PDFs, run hard-blocker checks first, then independent quality review. Keep the candidate internal until hard blockers all pass and professional quality is credible under `MILESTONE_1.md`.
 
 ## Milestone proof matrix
 
