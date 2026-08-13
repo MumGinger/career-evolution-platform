@@ -95,13 +95,14 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          if git diff --quiet "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e/applicant-flow.spec.js; then
-            echo "Applicant browser regression is unchanged in this pull request; pre-fix red proof is not required."
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e; then
+            echo "Applicant browser regressions are unchanged in this pull request; pre-fix red proof is not required."
             exit 0
           fi
           git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
+          rm -rf ../pre-fix/tests/browser-e2e
           mkdir -p ../pre-fix/tests/browser-e2e
-          cp tests/browser-e2e/applicant-flow.spec.js ../pre-fix/tests/browser-e2e/applicant-flow.spec.js
+          cp -R tests/browser-e2e/. ../pre-fix/tests/browser-e2e/
           cp playwright.config.js ../pre-fix/playwright.config.js
           ln -s "$GITHUB_WORKSPACE/node_modules" ../pre-fix/node_modules
           set +e
@@ -109,10 +110,10 @@ jobs:
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
-            echo "Expected the applicant-facing regression to fail on the pre-fix commit, but it passed."
+            echo "Expected at least one applicant-facing browser regression to fail on the pre-fix commit, but all passed."
             exit 1
           fi
-          echo "Pre-fix regression failed as expected; green proof follows on the pull-request head."
+          echo "Pre-fix browser regression failed as expected; green proof follows on the pull-request head."
 
       - name: Run real browser end-to-end test
         run: npm run test:browser-e2e
