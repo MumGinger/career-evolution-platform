@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const humanReview = require('./human-review');
 
+const REVIEWED_RESUME_VERSION = 'reviewed-resume-document/1.0.0';
 const MOJIBAKE = new Map([
   ['â€¢', '•'],
   ['â€“', '–'],
@@ -36,6 +37,10 @@ function normalizeVisibleText(value) {
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+function normalizeKey(value) {
+  return normalizeVisibleText(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
 }
 
 function escapeHtml(value) {
@@ -249,7 +254,7 @@ function structuredEntries(section, statements) {
   let current = null;
   function ensureEntry() {
     if (!current) {
-      current = { title: '', date: null, meta: [], body: [], source_statements: [] };
+      current = { title: '', date: null, meta: [], body: [], source_statements: [], orphan: true };
       entries.push(current);
     }
     return current;
@@ -321,6 +326,42 @@ function resumePresentationModel(reviews) {
     });
 }
 
+function reviewedResumeErrors(document) {
+  if (!document || document.schema !== REVIEWED_RESUME_VERSION || !Array.isArray(document.sections)) return ['invalid reviewed resume document'];
+  const errors = [];
+  const seenSections = new Set();
+  for (const section of document.sections) {
+    if (seenSections.has(section.section)) errors.push(`duplicate reviewed section: ${section.section}`);
+    seenSections.add(section.section);
+    if (section.kind !== 'entries') continue;
+    for (const entry of section.entries) {
+      if (entry.orphan && entry.body.some((item) => item.display_style === 'bullet')) errors.push(`orphan bullet in ${section.section}`);
+      const titleKey = normalizeKey(entry.title || '');
+      const seenBody = new Set();
+      for (const statement of entry.body || []) {
+        const key = normalizeKey(statement.text);
+        if (!key && statement.display_style === 'bullet') errors.push(`blank bullet in ${section.section}`);
+        if (key && titleKey && key === titleKey) errors.push(`title repeated as body in ${section.section}`);
+        if (key && seenBody.has(key)) errors.push(`duplicate body content in ${section.section}`);
+        if (key) seenBody.add(key);
+      }
+    }
+  }
+  return [...new Set(errors)];
+}
+
+function reviewedResumeDocument(reviews) {
+  const sections = resumePresentationModel(reviews);
+  const document = {
+    schema: REVIEWED_RESUME_VERSION,
+    section_order: sections.map((section) => section.section),
+    sections,
+  };
+  const errors = reviewedResumeErrors(document);
+  if (errors.length) throw new Error(`Reviewed resume invariant failed: ${errors.join('; ')}`);
+  return document;
+}
+
 function renderBodyHtml(body, { linesOnly = false } = {}) {
   const blocks = [];
   let bullets = [];
@@ -372,45 +413,46 @@ function renderResumeSectionHtml(sectionName, statements) {
 }
 
 function resumeHtml(reviews, { title = 'Approved Resume', standalone = true } = {}) {
-  const body = resumePresentationModel(reviews).map(renderPresentationSectionHtml).join('');
-  const content = `<article class="resume-paper" aria-label="${escapeHtml(title)}">${body}</article>`;
+  const document = reviewedResumeDocument(reviews);
+  const body = document.sections.map(renderPresentationSectionHtml).join('');
+  const content = `<article class="resume-paper" data-resume-schema="${REVIEWED_RESUME_VERSION}" aria-label="${escapeHtml(title)}">${body}</article>`;
   if (!standalone) return content;
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${resumeCss()}</style></head><body>${content}</body></html>`;
 }
 
 function resumeCss() {
   return `
-:root{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;color:#171a21;background:#eef1f5}
+:root{font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;color:#171a21;background:#eef1f5}
 *{box-sizing:border-box}
 body{margin:0;padding:32px}
-.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.46in .56in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.28;color:#171a21}
-.resume-header{text-align:center;padding-bottom:9px;margin-bottom:12px;border-bottom:1.25px solid #353b45}
+.resume-paper{width:min(8.5in,100%);min-height:11in;margin:0 auto;background:#fff;padding:.48in .58in;box-shadow:0 10px 35px rgba(20,32,55,.12);line-height:1.3;color:#171a21}
+.resume-header{text-align:center;padding-bottom:10px;margin-bottom:13px;border-bottom:1.25px solid #353b45}
 .resume-header .resume-line{margin:0}
-.resume-header .resume-name{font-size:23px;font-weight:700;letter-spacing:.012em;margin-bottom:4px}
-.resume-header .resume-contact{font-size:9.3pt;color:#3f4650;line-height:1.3}
-.resume-section{margin:11px 0 0;break-inside:auto}
-.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #8d949e;padding-bottom:2px;font-size:11pt;letter-spacing:.065em;text-transform:uppercase;color:#20252c}
+.resume-header .resume-name{font-size:24px;font-weight:700;letter-spacing:.01em;margin-bottom:4px}
+.resume-header .resume-contact{font-size:9.5pt;color:#3f4650;line-height:1.32}
+.resume-section{margin:12px 0 0;break-inside:auto}
+.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #8d949e;padding-bottom:2px;font-size:11pt;letter-spacing:.06em;text-transform:uppercase;color:#20252c}
 .resume-summary-section{margin-top:9px}
-.resume-summary-section .resume-line{margin:0;font-size:9.8pt;line-height:1.34}
-.resume-entry{margin:0 0 8px;break-inside:avoid}
+.resume-summary-section .resume-line{margin:0;font-size:10pt;line-height:1.36}
+.resume-entry{margin:0 0 8.5px;break-inside:avoid}
 .resume-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:0 0 2px}
 .resume-entry-primary{min-width:0;flex:1}
-.resume-entry-heading{font-size:10.3pt;line-height:1.24;margin:0;font-weight:700}
-.resume-entry-date{font-size:9.4pt;line-height:1.24;font-weight:600;white-space:nowrap;text-align:right;color:#303640}
-.resume-entry-meta{font-size:9.3pt;line-height:1.24;margin:1px 0 0;color:#424953}
-.resume-line{margin:2px 0;font-size:9.7pt;line-height:1.31;white-space:pre-line}
+.resume-entry-heading{font-size:10.5pt;line-height:1.25;margin:0;font-weight:700}
+.resume-entry-date{font-size:9.5pt;line-height:1.25;font-weight:600;white-space:nowrap;text-align:right;color:#303640}
+.resume-entry-meta{font-size:9.4pt;line-height:1.25;margin:1px 0 0;color:#424953}
+.resume-line{margin:2px 0;font-size:9.8pt;line-height:1.33;white-space:pre-line}
 ul{margin:2px 0 4px;padding-left:16px}
-li{font-size:9.7pt;line-height:1.31;margin:1.5px 0;padding-left:1px}
+li{font-size:9.8pt;line-height:1.33;margin:1.7px 0;padding-left:1px}
 .resume-skill-groups{display:block;margin:0}
-.resume-skill-group{display:flex;gap:8px;align-items:flex-start;margin:1.5px 0;font-size:9.4pt;line-height:1.29}
-.resume-skill-label{font-weight:700;min-width:150px;flex:0 0 150px}
+.resume-skill-group{display:flex;gap:8px;align-items:flex-start;margin:1.7px 0;font-size:9.5pt;line-height:1.3}
+.resume-skill-label{font-weight:700;min-width:145px;flex:0 0 145px}
 .resume-skill-values{flex:1;min-width:0}
 .resume-skills-section>.resume-skills{display:flex;flex-wrap:wrap;gap:2px 16px;list-style:none;padding:0;margin:3px 0 0}
 .resume-skills-section>.resume-skills li{margin:0}
 .resume-education-section .resume-entry{margin-bottom:7px}
 .resume-education-section .resume-line{margin:1px 0}
 @media(max-width:650px){.resume-entry-head{display:block}.resume-entry-date{display:block;text-align:left;margin-top:1px}.resume-skill-group{display:block}.resume-skill-label{display:block;min-width:0}.resume-paper{padding:24px}}
-@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.38in .48in}@page{size:Letter;margin:0}}
+@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.4in .5in}@page{size:Letter;margin:0}}
 `;
 }
 
@@ -461,10 +503,10 @@ function pdfEscape(value) {
 function resumePdf(reviews) {
   const pageWidth = 612;
   const pageHeight = 792;
-  const left = 46;
-  const right = 46;
-  const top = 38;
-  const bottom = 38;
+  const left = 44;
+  const right = 44;
+  const top = 36;
+  const bottom = 36;
   const pages = [];
   let commands = [];
   let y = pageHeight - top;
@@ -480,7 +522,7 @@ function resumePdf(reviews) {
   function textCommand(text, x, baseline, { font = 'F1', size = 10 } = {}) {
     commands.push(`BT /${font} ${size} Tf 1 0 0 1 ${x.toFixed(2)} ${baseline.toFixed(2)} Tm (${pdfEscape(text)}) Tj ET`);
   }
-  function addText(text, { font = 'F1', size = 9.7, leading = 12.6, indent = 0, align = 'left', widthChars = null } = {}) {
+  function addText(text, { font = 'F1', size = 9.8, leading = 12.8, indent = 0, align = 'left', widthChars = null } = {}) {
     const width = widthChars || Math.max(32, Math.floor((pageWidth - left - right - indent) / (size * 0.52)));
     for (const line of wrapText(text, width)) {
       ensureSpace(leading);
@@ -491,46 +533,47 @@ function resumePdf(reviews) {
     }
   }
   function addSectionTitle(title) {
-    ensureSpace(28);
+    ensureSpace(29);
     y -= 3;
-    textCommand(title.toUpperCase(), left, y, { font: 'F2', size: 12 });
+    textCommand(title.toUpperCase(), left, y, { font: 'F2', size: 11.6 });
     y -= 4;
     commands.push(`0.42 G ${left} ${y} m ${pageWidth - right} ${y} l S`);
     y -= 8;
   }
   function addEntry(entry, section) {
-    ensureSpace(34);
+    ensureSpace(35);
     if (entry.title || entry.date) {
       const titleLines = entry.title ? wrapText(entry.title, entry.date ? 58 : 88) : [''];
       const first = titleLines.shift() || '';
-      if (first) textCommand(first, left, y, { font: 'F2', size: 10.3 });
+      if (first) textCommand(first, left, y, { font: 'F2', size: 10.5 });
       if (entry.date) {
         const dateText = pdfAscii(entry.date);
-        const dateSize = 9.4;
+        const dateSize = 9.5;
         const x = pageWidth - right - (dateText.length * dateSize * 0.52);
         textCommand(dateText, x, y, { font: 'F1', size: dateSize });
       }
-      y -= 12.5;
+      y -= 12.7;
       for (const line of titleLines) {
-        textCommand(line, left, y, { font: 'F2', size: 10.3 });
-        y -= 12.5;
+        textCommand(line, left, y, { font: 'F2', size: 10.5 });
+        y -= 12.7;
       }
     }
-    for (const meta of entry.meta || []) addText(meta, { size: 9.2, leading: 11.5 });
+    for (const meta of entry.meta || []) addText(meta, { size: 9.4, leading: 11.7 });
     for (const statement of entry.body || []) {
-      if (statement.display_style === 'bullet' && section !== 'Education') addText(`- ${statement.text}`, { size: 9.6, leading: 12.4, indent: 10 });
-      else addText(statement.text, { size: 9.6, leading: 12.4 });
+      if (statement.display_style === 'bullet' && section !== 'Education') addText(`- ${statement.text}`, { size: 9.8, leading: 12.7, indent: 10 });
+      else addText(statement.text, { size: 9.8, leading: 12.7 });
     }
-    y -= 3;
+    y -= 3.5;
   }
 
-  for (const model of resumePresentationModel(reviews)) {
+  const document = reviewedResumeDocument(reviews);
+  for (const model of document.sections) {
     if (model.kind === 'header') {
       const body = model.entries[0]?.body || [];
       body.forEach((statement, index) => addText(statement.text, {
         font: index === 0 ? 'F2' : 'F1',
-        size: index === 0 ? 20 : 9.3,
-        leading: index === 0 ? 23 : 11.5,
+        size: index === 0 ? 21 : 9.5,
+        leading: index === 0 ? 24 : 11.7,
         align: 'center',
       }));
       y -= 2;
@@ -541,25 +584,25 @@ function resumePdf(reviews) {
 
     addSectionTitle(model.section);
     if (model.kind === 'summary') {
-      for (const statement of model.entries[0]?.body || []) addText(statement.text, { size: 9.7, leading: 12.7 });
+      for (const statement of model.entries[0]?.body || []) addText(statement.text, { size: 10, leading: 13 });
       y -= 2;
       continue;
     }
     if (model.kind === 'skills') {
       for (const group of model.groups) {
         ensureSpace(13);
-        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.4 });
-        const labelWidth = Math.max(108, Math.min(170, (pdfAscii(group.label).length + 2) * 9.4 * 0.52 + 10));
+        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.5 });
+        const labelWidth = Math.max(104, Math.min(165, (pdfAscii(group.label).length + 2) * 9.5 * 0.52 + 10));
         const valueX = left + labelWidth;
-        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.4 * 0.52)));
+        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.5 * 0.52)));
         const lines = wrapText(group.values, valueWidth);
         lines.forEach((line, index) => {
-          if (index > 0) y -= 11.7;
-          textCommand(line, valueX, y, { size: 9.4 });
+          if (index > 0) y -= 11.9;
+          textCommand(line, valueX, y, { size: 9.5 });
         });
-        y -= 12.2;
+        y -= 12.4;
       }
-      if (model.items.length) addText(model.items.join(' | '), { size: 9.4, leading: 12.2 });
+      if (model.items.length) addText(model.items.join(' | '), { size: 9.5, leading: 12.4 });
       y -= 1;
       continue;
     }
@@ -606,7 +649,8 @@ function resumePdf(reviews) {
 
 function writeApplicantOutputs({ directory, run, exported }) {
   const markdown = normalizeVisibleText(humanReview.markdown(run));
-  const normalizedExport = { ...exported, markdown };
+  const reviewedResume = reviewedResumeDocument(run.section_reviews);
+  const normalizedExport = { ...exported, markdown, reviewed_resume_document: reviewedResume };
   fs.writeFileSync(path.join(directory, 'final-resume.md'), `${markdown}\n`);
   fs.writeFileSync(path.join(directory, 'final-resume.json'), `${JSON.stringify(normalizedExport, null, 2)}\n`);
   fs.writeFileSync(path.join(directory, 'career-review-report.html'), careerReviewHtml(run, normalizedExport));
@@ -615,6 +659,7 @@ function writeApplicantOutputs({ directory, run, exported }) {
 }
 
 module.exports = {
+  REVIEWED_RESUME_VERSION,
   careerReviewHtml,
   evidenceAcceptExplanation,
   escapeHtml,
@@ -624,6 +669,8 @@ module.exports = {
   resumeHtml,
   resumePdf,
   resumePresentationModel,
+  reviewedResumeDocument,
+  reviewedResumeErrors,
   sectionOriginExplanation,
   sectionStatements,
   splitSkillItems,
