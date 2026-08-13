@@ -59,9 +59,11 @@ function runtimeFlowEvidenceErrors(candidateId, runtimeEvidence) {
   return errors;
 }
 
-function shippedFlowEvidenceErrors(scorecard, runtimeEvidence) {
+function shippedFlowEvidenceErrors(scorecard, runtimeEvidence, requireReviewedPdf = false) {
   const errors = runtimeFlowEvidenceErrors(scorecard?.candidate_id, runtimeEvidence);
-  if (!runtimeEvidence || typeof runtimeEvidence !== 'object' || Array.isArray(runtimeEvidence)) return errors;
+  if (!requireReviewedPdf || !runtimeEvidence || typeof runtimeEvidence !== 'object' || Array.isArray(runtimeEvidence)) {
+    return errors;
+  }
 
   const reviewedFinalPdf = String(scorecard?.reviewed_final_pdf_sha256 || '');
   if (!SHA256.test(reviewedFinalPdf)) {
@@ -99,7 +101,7 @@ function evaluateScorecard(scorecard, runtimeEvidence = null) {
   }
 
   const runtimeEvidenceErrors = critical.shipped_flow_completion === 'PASS'
-    ? shippedFlowEvidenceErrors(scorecard, runtimeEvidence)
+    ? shippedFlowEvidenceErrors(scorecard, runtimeEvidence, true)
     : [];
   if (critical.shipped_flow_completion === 'PASS' && runtimeEvidenceErrors.length) {
     critical.shipped_flow_completion = 'UNKNOWN';
