@@ -31,7 +31,7 @@ function visibleStatements(artifact) {
 }
 function sourceStatement(statement) { return statement?.content_origin === 'source_resume_passthrough'; }
 
-function validateGeneratedSectionReplacement({ section, replacementReason, generatedIds, generatedEntries, selections, preserved }) {
+function validateGeneratedSectionReplacement({ section, replacementReason, generatedIds, generatedEntries, selections }) {
   if (!generatedIds.length || generatedEntries.length !== generatedIds.length) return false;
   if (section === 'Professional Summary' && replacementReason === 'supported_job_specific_summary_replacement') {
     return generatedEntries.every((entry) => {
@@ -61,6 +61,22 @@ function validateGeneratedSectionReplacement({ section, replacementReason, gener
   return false;
 }
 
+function matchingReplacementSelectionIds({ replacement, generatedEntries, selections, facts, sourceText }) {
+  const explicit = Array.isArray(replacement?.resume_content_selection_ids)
+    ? replacement.resume_content_selection_ids
+    : [];
+  const attached = new Set(generatedEntries.flatMap((entry) => entry.statement.resume_content_selection_ids || []));
+  const candidates = explicit.length ? explicit : [...attached];
+  const sourceKey = normal(sourceText);
+  return [...new Set(candidates.filter((selectionId) => {
+    if (!attached.has(selectionId)) return false;
+    const selection = selections.get(selectionId);
+    const fact = facts.get(selection?.candidate_fact_id);
+    return selection?.selection_state === 'include'
+      && candidateFactSourceValues(fact).map(normal).includes(sourceKey);
+  }))];
+}
+
 function validateSourceComposition({ artifact, plan, findings }) {
   const snapshot = plan.source_resume_snapshot;
   if (!snapshot?.sections?.length) return;
@@ -75,7 +91,7 @@ function validateSourceComposition({ artifact, plan, findings }) {
   const superseded = new Map((metadata.superseded_source_statements || []).map((item) => [item.source_statement_id, item]));
   const omitted = new Map((metadata.omitted_source_statements || []).map((item) => [item.source_statement_id, item]));
   const preserved = new Set(metadata.preserved_source_statement_ids || []);
-  const generatedReplacementUsage = new Set();
+  const generatedReplacementSelectionUsage = new Map();
   const expected = snapshot.sections.flatMap((section) => (section.statements || []).map((statement) => ({ section: section.section, statement })));
   if (metadata.source_statement_count !== expected.length) findings.push(finding('whole_resume_completeness', 'source-statement-count', 'critical', 'Composition metadata must count every immutable source-resume statement.', { expected: expected.length, actual: metadata.source_statement_count }));
   for (const { section, statement } of expected) {
@@ -115,20 +131,30 @@ function validateSourceComposition({ artifact, plan, findings }) {
         generatedIds,
         generatedEntries,
         selections,
-        preserved,
       });
     } else {
+      const replacementSelectionIds = matchingReplacementSelectionIds({
+        replacement,
+        generatedEntries,
+        selections,
+        facts,
+        sourceText: statement.text,
+      });
       supported = Boolean(replacement)
         && replacement.reason === 'supported_tailored_replacement'
         && generatedIds.length > 0
         && generatedEntries.length === generatedIds.length
+        && replacementSelectionIds.length > 0
         && !preserved.has(id);
       for (const entry of generatedEntries) {
         const generated = entry.statement;
-        const factIds = generated.provenance?.candidate_fact_ids || [];
-        const sourceValues = factIds.flatMap((factId) => candidateFactSourceValues(facts.get(factId), generated.template)).map(normal).filter(Boolean);
-        if (sourceStatement(generated) || entry.section !== section || !sourceValues.includes(normal(statement.text)) || generatedReplacementUsage.has(generated.statement_id)) supported = false;
-        generatedReplacementUsage.add(generated.statement_id);
+        const attached = new Set(generated.resume_content_selection_ids || []);
+        const entryReplacementSelections = replacementSelectionIds.filter((selectionId) => attached.has(selectionId));
+        const used = generatedReplacementSelectionUsage.get(generated.statement_id) || new Set();
+        const reusedSelection = entryReplacementSelections.some((selectionId) => used.has(selectionId));
+        if (sourceStatement(generated) || entry.section !== section || !entryReplacementSelections.length || reusedSelection) supported = false;
+        entryReplacementSelections.forEach((selectionId) => used.add(selectionId));
+        generatedReplacementSelectionUsage.set(generated.statement_id, used);
       }
     }
     if (!supported) findings.push(finding('whole_resume_completeness', 'source-statement-preserved-or-supported-replacement', 'critical', 'Every source-resume statement must be preserved verbatim, explicitly omitted by an exact role-specific selection decision, or independently proven to be replaced by supported Candidate Knowledge generated content.', { source_statement_id: id, section, generated_statement_ids: generatedIds }));
