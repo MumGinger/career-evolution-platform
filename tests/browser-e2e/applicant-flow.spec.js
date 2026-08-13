@@ -109,7 +109,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('real browser reviews concrete tailoring, regenerates after correction, and preserves Career Review authority', async ({ page, request }) => {
+test('real browser uses proposed tailoring by default, regenerates explicit corrections, and preserves Career Review authority', async ({ page, request }) => {
   await page.goto(baseURL);
   await expect(page.getByRole('heading', { name: 'Build and verify your tailored resume' })).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/1 of 5/);
@@ -142,24 +142,26 @@ test('real browser reviews concrete tailoring, regenerates after correction, and
 
   await expect(page.locator('#tailoring')).toContainText('Tailoring Review');
   await expect(page.locator('#tailoring')).toContainText('Original wording');
-  await expect(page.locator('#tailoring')).toContainText('Proposed tailored wording');
-  await expect(page.locator('#tailoring')).toContainText('Use tailored version');
+  await expect(page.locator('#tailoring')).toContainText('Proposed tailored wording — default');
+  await expect(page.locator('#tailoring')).toContainText('Use proposed wording');
   await expect(page.locator('#tailoring')).toContainText('Keep original wording');
   await expect(page.locator('#tailoring')).toContainText('Needs correction');
+  await expect(page.locator('#tailoring')).toContainText('will be used by default');
   await expect(page.locator('#tailoring')).not.toContainText(/Evidence Review|Accept —|Skip —|Candidate Knowledge|003\.6/i);
 
   let materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
-  expect(await materialCards.count()).toBeGreaterThan(0);
+  expect(await materialCards.count()).toBeGreaterThan(1);
   const firstCard = materialCards.first();
   const firstName = await firstCard.locator('input[data-tailoring-choice]').first().getAttribute('name');
   await firstCard.locator('input[value="needs_correction"]').check();
   await expect(firstCard.locator('.correction-box')).toBeVisible();
   await firstCard.locator(`textarea[data-correction="${firstName}"]`).fill('The dashboard focused on FX exposure reporting; it did not cover portfolio risk.');
+
   for (let index = 1; index < await materialCards.count(); index += 1) {
-    await materialCards.nth(index).locator('input[value="use_tailored"]').check();
+    await expect(materialCards.nth(index).locator('input[data-tailoring-choice]:checked')).toHaveCount(0);
   }
-  await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Apply my wording choices' }).click();
+  await expect(page.getByRole('button', { name: 'Continue with these changes' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Continue with these changes' }).click();
 
   await expect(page.locator('#tailoring')).toBeVisible();
   await expect(page.locator('#draft')).toBeHidden();
@@ -180,10 +182,10 @@ test('real browser reviews concrete tailoring, regenerates after correction, and
   materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
   expect(await materialCards.count()).toBeGreaterThan(0);
   for (let index = 0; index < await materialCards.count(); index += 1) {
-    await materialCards.nth(index).locator('input[value="use_tailored"]').check();
+    await expect(materialCards.nth(index).locator('input[data-tailoring-choice]:checked')).toHaveCount(0);
   }
-  await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Apply my wording choices' }).click();
+  await expect(page.getByRole('button', { name: 'Continue with these changes' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Continue with these changes' }).click();
 
   await expect(page.locator('#draft')).toBeVisible();
   await expect(page.locator('#understanding')).toBeHidden();
