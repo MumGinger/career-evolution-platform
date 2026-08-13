@@ -83,7 +83,8 @@ test('applicant surface reviews concrete tailoring instead of re-verifying uploa
   assert.doesNotMatch(APPLICANT_PAGE, /<h2>Evidence Review<\/h2>/);
   assert.doesNotMatch(APPLICANT_PAGE, /Accept — allow this evidence|Skip — do not reuse this evidence/);
   assert.match(APPLICANT_PAGE, /Tailoring Review/);
-  assert.match(APPLICANT_PAGE, /Use tailored version/);
+  assert.match(APPLICANT_PAGE, /Proposed tailored wording — default/);
+  assert.match(APPLICANT_PAGE, /will be used by default/);
   assert.match(APPLICANT_PAGE, /Keep original wording/);
   assert.match(APPLICANT_PAGE, /Needs correction/);
   assert.match(APPLICANT_PAGE, /What is inaccurate or missing/);
