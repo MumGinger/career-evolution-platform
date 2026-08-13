@@ -22,11 +22,12 @@ Education
 B.Sc. Statistics — Example University`;
 
 const JOB = `Company: Example Employer
-Role Title: Platform Intern
+Role Title: Data Analytics Intern
 
 Required Qualifications:
-Kubernetes administration required.
-Terraform required.`;
+Python required.
+SQL required.
+Power BI required.`;
 
 test.beforeAll(async () => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'issue140-browser-'));
@@ -40,7 +41,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('valid source-linked resume with zero material changes never dead-ends at Draft blocked', async ({ page }) => {
+test('valid reviewable source evidence with zero material wording changes never dead-ends at Draft blocked', async ({ page }) => {
   await page.goto(baseURL);
   await page.locator('#p').selectOption('mock');
   await page.getByRole('button', { name: 'Check connection' }).click();
@@ -58,10 +59,13 @@ test('valid source-linked resume with zero material changes never dead-ends at D
   await expect(page.locator('#tailoring')).toBeVisible();
   await expect(page.locator('#draft')).toBeHidden();
   await expect(page.locator('#state')).toHaveText(/2 of 5.*Tailoring Review/);
+  await expect(page.locator('#counts')).toContainText('Concrete changes');
+  await expect(page.locator('#counts')).toContainText('0');
   await expect(page.locator('#tailoring-cards')).toContainText('No material wording changes need your decision');
   await expect(page.locator('#validation')).not.toContainText('Draft blocked');
 
   const session = [...app.sessions.values()][0];
+  expect(session.queue.flatMap((group) => group.candidates).length).toBeGreaterThan(0);
   expect(session.stage).toBe('tailoring-review');
   expect(session.draftValidation.validation_status).toMatch(/^passed/);
   expect((session.tailoringReview || []).filter((item) => item.materialRewrite)).toHaveLength(0);
