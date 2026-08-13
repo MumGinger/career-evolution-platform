@@ -1,12 +1,16 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
+const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer } = require('../../src/beta-ui');
+const llmUnderstanding = require('../../src/llm-resume-understanding');
 
 let app;
 let baseURL;
 let root;
+let draftServer;
+let draftBaseURL;
 
 const RESUME = `Taylor Chen
 taylor.chen@example.com | +1 416 555 0199
@@ -36,15 +40,72 @@ Power BI required.
 Python required.
 Automation required.`;
 
+function replayUnderstandingProvider() {
+  return {
+    name: 'provider-replay-understanding',
+    model: 'source-bound-browser-fixture',
+    async checkConnection() { return true; },
+    async understand({ text }) {
+      return { provider: this.name, model: this.model, understanding: llmUnderstanding.mockUnderstand({ text }) };
+    },
+  };
+}
+
+function startMaterialDraftServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      let raw = '';
+      req.setEncoding('utf8');
+      req.on('data', (chunk) => { raw += chunk; });
+      req.on('end', () => {
+        try {
+          const body = JSON.parse(raw || '{}');
+          const schemaName = body.response_format?.json_schema?.name || 'connection_probe';
+          if (schemaName !== 'resume_draft') {
+            res.writeHead(200, { 'content-type': 'application/json' });
+            res.end(JSON.stringify({ choices: [{ message: { content: 'READY' } }] }));
+            return;
+          }
+          const payload = JSON.parse(body.messages?.at(-1)?.content || '{}');
+          const bySection = new Map();
+          for (const fact of payload.committed_facts || []) {
+            const statement = {
+              text: `Tailored wording: ${fact.value}`,
+              candidate_fact_ids: [fact.candidate_fact_id],
+              job_requirement_ids: [...(fact.mapped_job_requirement_ids || [])],
+            };
+            bySection.set(fact.recommended_section, [...(bySection.get(fact.recommended_section) || []), statement]);
+          }
+          const draft = { sections: [...bySection].map(([section, statements]) => ({ section, statements })) };
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(draft) } }] }));
+        } catch (error) {
+          res.writeHead(500, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(error.message || error) }));
+        }
+      });
+    });
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
 test.beforeAll(async () => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'applicant-browser-e2e-'));
-  app = createBetaUiServer({ port: 0, tempRoot: root });
+  draftServer = await startMaterialDraftServer();
+  const providerAddress = draftServer.address();
+  draftBaseURL = `http://127.0.0.1:${providerAddress.port}/v1`;
+  app = createBetaUiServer({
+    port: 0,
+    tempRoot: root,
+    resumeUnderstandingProviderFromConfig: () => replayUnderstandingProvider(),
+  });
   const address = await app.listen();
   baseURL = `http://${address.address}:${address.port}`;
 });
 
 test.afterAll(async () => {
   await app.close();
+  await new Promise((resolve) => draftServer.close(resolve));
   fs.rmSync(root, { recursive: true, force: true });
 });
 
@@ -54,7 +115,10 @@ test('real browser reviews concrete tailoring, regenerates after correction, and
   await expect(page.locator('#state')).toHaveText(/1 of 5/);
   await expect(page.locator('body')).toContainText('uploaded resume is treated as your source');
 
-  await page.locator('#p').selectOption('mock');
+  await page.locator('#p').selectOption('openai-compatible');
+  await page.locator('#m').fill('material-rewrite-browser-provider');
+  await page.locator('#k').fill('test-only-key');
+  await page.locator('#b').fill(draftBaseURL);
   await page.getByRole('button', { name: 'Check connection' }).click();
   await expect(page.locator('#readiness')).toHaveText('Ready to create your tailored resume.');
 
