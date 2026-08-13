@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { composeSourceResume } = require('../../src/resume-composition');
+const { projectSourceResumeSnapshot } = require('../../src/source-structure-projection');
 
 function semanticRun() {
   return {
@@ -51,8 +52,10 @@ function semanticRun() {
   };
 }
 
-test('source composition projects raw parent evidence into one heading, metadata lines, and nonduplicated child bullets', () => {
-  const artifact = composeSourceResume({ profile: { id: 'profile-1' }, semanticRun: semanticRun() });
+test('source structure boundary projects raw parent evidence into one heading, metadata lines, and nonduplicated child bullets', () => {
+  const semantic = semanticRun();
+  const raw = composeSourceResume({ profile: { id: 'profile-1' }, semanticRun: semantic });
+  const artifact = projectSourceResumeSnapshot(raw, semantic);
   const projects = artifact.sections.find((section) => section.section === 'Projects').statements;
   assert.deepEqual(projects.map((statement) => [statement.display_style, statement.text]), [
     ['heading', 'Analytics Dashboard'],
@@ -65,4 +68,5 @@ test('source composition projects raw parent evidence into one heading, metadata
   assert.equal(projects[3].parent_source_statement_id, projects[0].source_statement_id);
   assert.equal(projects[4].parent_source_statement_id, projects[0].source_statement_id);
   assert.equal(projects[0].provenance.raw_container_exact_source_text.includes('May 2025 - Present'), true);
+  assert.equal(artifact.structure_projection.raw_evidence_authority, 'resume_semantic_run');
 });
