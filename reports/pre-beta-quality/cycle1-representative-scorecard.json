@@ -20,14 +20,16 @@
     "applicant_decision_integrity": "PASS",
     "professional_readability": "PASS",
     "final_pdf_usability": "PASS",
-    "review_export_equivalence": "PASS"
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "UNKNOWN"
   },
   "review": {
     "total": 86,
-    "verdict": "NEAR READY",
+    "verdict": "NOT BETA READY",
     "requires_internal_loop": true,
     "rendered_pdf": "deidentified representative Cycle 1 candidate rendered from src/applicant-resume.js and inspected at 200 DPI",
     "ci_evidence": "GitHub Actions run 31623988536 HTTP and representative PDF contract PASS",
+    "governance_note": "Representative artifact evidence did not prove the same frozen candidate could complete the shipped applicant UI. After Issue #140 exposed a real Draft-blocked dead end, shipped-flow completion is required as a critical gate.",
     "deductions": [
       {
         "dimension": "job_specific_targeting",

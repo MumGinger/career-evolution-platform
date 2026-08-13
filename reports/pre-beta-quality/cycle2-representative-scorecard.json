@@ -20,16 +20,18 @@
     "applicant_decision_integrity": "PASS",
     "professional_readability": "PASS",
     "final_pdf_usability": "PASS",
-    "review_export_equivalence": "PASS"
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "UNKNOWN"
   },
   "review": {
     "total": 91,
-    "verdict": "BETA READY",
-    "requires_internal_loop": false,
-    "scope": "deidentified representative engineering candidate only; a private real-resume/real-job frozen candidate must still pass the same gate before external Beta",
+    "verdict": "NOT BETA READY",
+    "requires_internal_loop": true,
+    "scope": "deidentified representative engineering candidate only",
     "rendered_pdf": "Cycle 2 representative PDF rendered at 200 DPI and visually inspected",
     "pdf_preflight": "PASS: openable, one page, not encrypted, not scanned, no XFA",
     "ci_render_evidence": "GitHub Actions run 31625436931 HTTP and representative PDF contract PASS",
+    "governance_note": "The 91 numerical artifact score is preserved, but Issue #140 proves it was a false Beta-ready declaration because the same candidate shape was not proven through the shipped applicant flow. shipped_flow_completion is therefore UNKNOWN and blocks Beta readiness.",
     "deductions": [
       {
         "dimension": "job_specific_targeting",

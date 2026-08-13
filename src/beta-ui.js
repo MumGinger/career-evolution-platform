@@ -7,6 +7,7 @@ const applicant = require('./applicant-resume');
 const cleanup = require('./applicant-cleanup');
 const option2 = require('./option2-tailoring-review');
 const tailoringEntry = require('./tailoring-review-entry-context');
+const { recoverNoChangeBlock } = require('./no-change-draft-recovery');
 const { providerFromConfig: draftProviderFromConfig } = require('./resume-draft');
 const { APPLICANT_PAGE } = require('./applicant-option2-page');
 
@@ -259,7 +260,7 @@ function createBetaUiServer(options = {}) {
       const isLlmStart = req.method === 'POST' && url.pathname === '/api/llm-first/start';
       if (proxied.status < 300 && isLlmStart) {
         const current = coreApp.sessions.get(value.sessionId);
-        const prepared = await option2.prepare(current);
+        const prepared = recoverNoChangeBlock(current, await option2.prepare(current));
         value = { ...value, ...prepared, stage: prepared.stage };
         responseSession = current;
         delete value.evidence;

@@ -20,6 +20,7 @@ const CRITICAL = [
   'professional_readability',
   'final_pdf_usability',
   'review_export_equivalence',
+  'shipped_flow_completion',
 ];
 
 const CRITICAL_STATES = new Set(['PASS', 'FAIL', 'UNKNOWN']);

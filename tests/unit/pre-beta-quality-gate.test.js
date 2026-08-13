@@ -54,6 +54,16 @@ test('critical UNKNOWN blocks a high numerical score', () => {
   assert.deepEqual(result.unknown_critical, ['final_pdf_usability']);
 });
 
+test('shipped applicant flow completion is mandatory even for a 100-point artifact', () => {
+  const candidate = scorecard({ score: 10 });
+  candidate.critical.shipped_flow_completion = 'UNKNOWN';
+  const result = evaluateScorecard(candidate);
+  assert.equal(result.total, 100);
+  assert.equal(result.verdict, 'NOT BETA READY');
+  assert.equal(result.beta_ready, false);
+  assert.deepEqual(result.unknown_critical, ['shipped_flow_completion']);
+});
+
 test('invalid or incomplete scorecards are rejected rather than treated as readiness evidence', () => {
   const candidate = scorecard();
   delete candidate.dimensions.final_pdf_professional_credibility;
