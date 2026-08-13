@@ -1,7 +1,11 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
-  testDir: './tests/browser-e2e',
+  testDir: './tests',
+  testMatch: [
+    'browser-e2e/**/*.spec.js',
+    'browser-quality/**/*.spec.js',
+  ],
   fullyParallel: false,
   forbidOnly: true,
   retries: 0,
