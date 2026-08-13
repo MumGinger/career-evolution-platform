@@ -145,7 +145,7 @@ function normalizeApplicantResponse(value, session = null) {
       ...cleanup.cleanReview(review),
       applicant_origin: applicant.sectionOriginExplanation(review),
     }));
-    value.resumeHtml = applicant.resumeHtml(value.careerReview, { standalone: false });
+    if (session?.semantic?.id) value.resumeHtml = applicant.resumeHtml(value.careerReview, { standalone: false });
   }
   if (typeof value.validation === 'string') {
     value.validationSummary = applicant.validationSummary(value.validation, value.validationFindings || []);
@@ -340,7 +340,7 @@ function createBetaUiServer(options = {}) {
         delete value.evidence;
       }
 
-      if (proxied.status < 300 && isCareerReview) {
+      if (proxied.status < 300 && isCareerReview && session?.semantic?.id) {
         value = cleanAndWriteApplicantOutputs(session, value);
       }
 
