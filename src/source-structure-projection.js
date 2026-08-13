@@ -2,6 +2,7 @@ const { Store } = require('./store');
 const { latestSourceResumeSnapshot } = require('./resume-composition');
 
 const GLYPH_ONLY = /^[\u2022\u2023\u25e6\uf0b7\u00b7\-\u2013\u2014*]+$/;
+const CANONICAL_RESUME_VERSION = 'canonical-resume-document/1.0.0';
 
 function normalize(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
@@ -97,6 +98,88 @@ function standaloneProjection(statement, section) {
   }];
 }
 
+function canonicalNode(statement) {
+  return {
+    id: statement.statement_id,
+    text: cleanLine(statement.text),
+    style: statement.display_style || 'line',
+    source_statement_id: statement.source_statement_id || statement.statement_id,
+    provenance: statement.provenance || null,
+  };
+}
+
+function canonicalEntrySection(section) {
+  const entries = [];
+  let current = null;
+  for (const statement of section.statements || []) {
+    const node = canonicalNode(statement);
+    if (!node.text) continue;
+    if (node.style === 'heading') {
+      current = { id: node.id, title: node.text, metadata: [], body: [], source_refs: [node.source_statement_id] };
+      entries.push(current);
+      continue;
+    }
+    if (!current) {
+      current = { id: `${normalize(section.section)}:orphan:${entries.length + 1}`, title: '', metadata: [], body: [], source_refs: [], orphan: true };
+      entries.push(current);
+    }
+    current.source_refs = [...new Set([...current.source_refs, node.source_statement_id])];
+    if (node.style === 'bullet') current.body.push(node);
+    else current.metadata.push(node);
+  }
+  return { section: section.section, kind: 'entries', entries };
+}
+
+function canonicalSkillSection(section) {
+  const groups = [];
+  const items = [];
+  for (const statement of section.statements || []) {
+    const lines = String(statement.text || '').replace(/\r/g, '').split('\n').map(cleanLine).filter(Boolean).filter((line) => normalize(line) !== 'skills');
+    if (lines.length >= 2) {
+      const label = lines.shift();
+      groups.push({ id: statement.statement_id, label, items: lines.join(' ').split(/\s*[,;|•]\s*/).map(cleanLine).filter(Boolean), source_refs: [statement.source_statement_id || statement.statement_id] });
+    } else if (lines.length) items.push(canonicalNode({ ...statement, text: lines[0] }));
+  }
+  return { section: section.section, kind: 'skills', groups, items };
+}
+
+function buildCanonicalResumeDocument(snapshot) {
+  const sections = (snapshot.sections || []).map((section) => {
+    if (['Experience', 'Projects'].includes(section.section)) return canonicalEntrySection(section);
+    if (section.section === 'Skills') return canonicalSkillSection(section);
+    if (section.section === 'Education') return { section: section.section, kind: 'education', entries: (section.statements || []).map(canonicalNode).filter((item) => item.text) };
+    return { section: section.section, kind: section.section === 'Applicant Header' ? 'header' : section.section === 'Professional Summary' ? 'summary' : 'generic', items: (section.statements || []).map(canonicalNode).filter((item) => item.text) };
+  });
+  return {
+    schema: CANONICAL_RESUME_VERSION,
+    id: snapshot.id,
+    version: snapshot.version,
+    source_resume_artifact_id: snapshot.source_resume_artifact_id || snapshot.id,
+    resume_semantic_run_id: snapshot.resume_semantic_run_id,
+    section_order: sections.map((section) => section.section),
+    sections,
+  };
+}
+
+function canonicalResumeErrors(document) {
+  const errors = [];
+  if (!document || document.schema !== CANONICAL_RESUME_VERSION || !Array.isArray(document.sections)) return ['invalid canonical resume document'];
+  for (const section of document.sections.filter((item) => item.kind === 'entries')) {
+    for (const entry of section.entries) {
+      if (entry.orphan && entry.body.length) errors.push(`orphan bullet in ${section.section}`);
+      const seen = new Set();
+      for (const node of entry.body) {
+        const key = normalize(node.text);
+        if (!key || GLYPH_ONLY.test(String(node.text || '').trim())) errors.push(`blank bullet in ${section.section}`);
+        if (key === normalize(entry.title)) errors.push(`title repeated as body in ${section.section}`);
+        if (key && seen.has(key)) errors.push(`duplicate body content in ${section.section}`);
+        if (key) seen.add(key);
+      }
+    }
+  }
+  return [...new Set(errors)];
+}
+
 function projectSourceResumeSnapshot(snapshot, semanticRun) {
   if (!snapshot?.sections?.length || !semanticRun?.entities?.length) return snapshot;
   const entityBySpan = new Map((semanticRun.entities || []).map((entity) => [entity.evidence_span_id, entity]));
@@ -119,15 +202,20 @@ function projectSourceResumeSnapshot(snapshot, semanticRun) {
     }
     return { ...section, statements };
   });
-  return {
+  const projected = {
     ...snapshot,
     content: projectedSections.flatMap((section) => section.statements.map((statement) => statement.text)).join('\n'),
     sections: projectedSections,
     structure_projection: {
-      policy_version: 'source-structure-projection/1.0.0',
+      policy_version: 'source-structure-projection/2.0.0',
       raw_evidence_authority: 'resume_semantic_run',
+      structural_authority: CANONICAL_RESUME_VERSION,
     },
   };
+  const canonicalDocument = buildCanonicalResumeDocument(projected);
+  const structuralErrors = canonicalResumeErrors(canonicalDocument);
+  if (structuralErrors.length) throw new Error(`Canonical resume structure invalid: ${structuralErrors.join('; ')}`);
+  return { ...projected, canonical_document: canonicalDocument };
 }
 
 function installSourceStructureBoundary() {
@@ -146,6 +234,9 @@ function installSourceStructureBoundary() {
 }
 
 module.exports = {
+  CANONICAL_RESUME_VERSION,
+  buildCanonicalResumeDocument,
+  canonicalResumeErrors,
   installSourceStructureBoundary,
   projectSourceResumeSnapshot,
   sourceBackedTitle,
