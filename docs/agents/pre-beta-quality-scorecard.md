@@ -4,12 +4,14 @@
 
 Fresh Beta is not the first professional QA pass.
 
-Before a resume candidate can be called Beta-ready, the Career Evolution Platform must run an internal specialist repair-and-review loop against a frozen representative candidate until an independent reviewer records:
+Before a resume candidate can be called Beta-ready, the Career Evolution Platform must run an internal specialist repair-and-review loop against one frozen candidate until an independent reviewer records:
 
 - **overall score >= 90/100**; and
 - **every critical must-pass criterion = PASS**.
 
 A score below 90, any critical FAIL, or any material critical UNKNOWN keeps the candidate inside the internal loop.
+
+A polished PDF is not enough. The exact frozen candidate must also complete the **shipped applicant flow**. Representative fixture output, renderer-only proof, or manually reconstructed artifacts cannot substitute for start-to-export product proof.
 
 ## Frozen candidate rule
 
@@ -22,7 +24,8 @@ Every review cycle evaluates one immutable candidate artifact set. At minimum, r
 - Career Review state;
 - applicant review surface;
 - final PDF;
-- final HTML / Markdown / JSON when applicable.
+- final HTML / Markdown / JSON when applicable;
+- shipped-flow run/session evidence for the same candidate.
 
 Once independent review begins, the candidate is frozen. Any repair creates a **new candidate version** and requires a new scorecard from scratch.
 
@@ -94,8 +97,6 @@ Check Tailoring Review decisions, Career Review decisions, source-preserved word
 
 ## Scoring anchors
 
-Use these anchors consistently for every dimension:
-
 - **9–10:** polished, professionally credible, no meaningful internal repair needed for this dimension.
 - **7–8:** generally good but still has visible or material issues worth fixing before Beta.
 - **5–6:** functional but clearly under-polished; this is the kind of 60-point candidate that must remain internal.
@@ -124,6 +125,7 @@ These are separate from the numerical score and cannot be averaged away:
 6. **Professional readability** — Summary, Skills, Experience, Projects, Education, dates, bullets, and major boundaries are readable as a professional resume.
 7. **Final PDF usability** — the rendered PDF is technically usable and professionally credible enough to deserve real-user Beta evaluation.
 8. **Review / export equivalence** — the final PDF represents the same approved resume as the review surface.
+9. **Shipped flow completion** — the same frozen candidate completes the actual applicant product path from start through Tailoring Review or explicit no-change handling, Draft, Career Review, and export without dead-end stages, hidden manual intervention, or bypassing deterministic validation.
 
 For critical criteria:
 
@@ -131,9 +133,27 @@ For critical criteria:
 - material `UNKNOWN` => `NOT BETA READY` until evidence resolves it.
 - only all `PASS` allows a 90+ score to become `BETA READY`.
 
+### Shipped-flow proof requirements
+
+`shipped_flow_completion = PASS` requires evidence from the real shipped server/UI boundary, not a direct helper invocation alone. The same frozen candidate must prove:
+
+```text
+resume + job input
+  -> source understanding succeeds
+  -> Tailoring Review if material changes exist
+     OR explicit no-change path with no unnecessary applicant decision
+  -> deterministic-valid Draft
+  -> Career Review is reachable
+  -> applicant decisions can complete
+  -> export succeeds
+  -> exported PDF/HTML/Markdown/JSON correspond to reviewed content
+```
+
+A dead-end stage with no applicant action is a critical FAIL. A candidate that has only representative PDF/render evidence is `UNKNOWN` for shipped-flow completion.
+
 ## Machine-readable scorecard contract
 
-In addition to the human-readable review, every independent review cycle must produce one JSON scorecard for the exact frozen candidate using these keys:
+Every independent review cycle must produce one JSON scorecard for the exact frozen candidate:
 
 ```json
 {
@@ -158,7 +178,8 @@ In addition to the human-readable review, every independent review cycle must pr
     "applicant_decision_integrity": "PASS",
     "professional_readability": "PASS",
     "final_pdf_usability": "PASS",
-    "review_export_equivalence": "PASS"
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "PASS"
   }
 }
 ```
@@ -177,7 +198,7 @@ Exit semantics:
 - exit `1`: valid scorecard but `NEAR READY` or `NOT BETA READY`;
 - exit `2`: malformed/incomplete scorecard or unreadable input.
 
-The deterministic gate does not create the professional judgment. The independent reviewer creates the scores and critical findings from actual artifacts; the gate enforces the threshold consistently so the Lead cannot reinterpret an 89 or average away a critical FAIL.
+The deterministic gate does not create the professional judgment. The independent reviewer creates the scores and critical findings from actual artifacts and the shipped product run; the gate enforces the threshold consistently so the Lead cannot reinterpret an 89, average away a critical FAIL, or substitute a renderer fixture for a functioning product.
 
 ## Independent reviewer output
 
@@ -186,13 +207,14 @@ Every review cycle returns:
 1. frozen candidate/version identifiers;
 2. the ten dimension scores;
 3. total score out of 100;
-4. critical must-pass matrix as PASS / FAIL / UNKNOWN;
+4. all nine critical must-pass criteria as PASS / FAIL / UNKNOWN;
 5. point deductions with concrete evidence;
 6. owning specialist for every repair item;
 7. earliest failure boundary for each critical FAIL;
 8. `BETA READY`, `NEAR READY`, or `NOT BETA READY`;
 9. whether another internal loop is required;
-10. the machine-readable JSON scorecard matching the contract above.
+10. shipped-flow run/session evidence for the same frozen candidate;
+11. the machine-readable JSON scorecard matching the contract above.
 
 The reviewer does not repair the candidate during the same independent review run.
 
@@ -202,9 +224,9 @@ Default ownership:
 
 - parsing, section identity, entry grouping, cross-entry bleed -> **Career Resume Structure Engineer**;
 - targeting, wording, concision, prioritization, low-value content, duplication -> **Career Resume Content Specialist**;
-- Tailoring Review grouping, comprehension, decision burden -> **Career Resume Review UX Designer**;
+- Tailoring Review grouping, comprehension, decision burden, dead-end applicant stages -> **Career Resume Review UX Designer**;
 - typography, spacing, density, Skills presentation, page composition -> **Career Resume Visual Designer**;
-- UI/PDF implementation not matching approved structure/design -> **Career Frontend Presentation Engineer**.
+- UI/PDF implementation, stage transitions, or shipped-flow behavior not matching the approved product contract -> **Career Frontend Presentation Engineer**.
 
 The Engineering Lead owns the repair ledger and integration decision.
 
@@ -212,18 +234,15 @@ The Engineering Lead owns the repair ledger and integration decision.
 
 ```text
 freeze candidate v1
-  -> independent reviewer scores 70
-  -> route deductions to specialists
-  -> repair
-  -> freeze candidate v2
-  -> independent reviewer scores 75
-  -> route deductions to specialists
-  -> repair
-  -> freeze candidate v3
-  -> independent reviewer scores 89
-  -> still internal; repair remaining issues
-  -> freeze candidate v4
-  -> reviewer scores 92 + all critical PASS
+  -> run same candidate through shipped applicant flow
+  -> independent reviewer scores candidate + shipped flow
+  -> if score < 90 or any critical criterion FAIL/materially UNKNOWN:
+       route deductions to specialists
+       repair
+       freeze a new candidate
+       repeat shipped-flow proof
+       run a new independent review from scratch
+  -> repeat until score >= 90 and all nine critical criteria PASS
   -> deterministic gate confirms BETA READY
   -> only now begin fresh Beta
 ```
@@ -234,13 +253,6 @@ If the same failure class survives two repair cycles, follow the repository repe
 
 Internal score is **not** Beta acceptance.
 
-A 90+ candidate has earned the right to be tested by a real applicant. Fresh Beta still owns human judgments that internal agents cannot establish reliably, including:
+A 90+ candidate with shipped-flow completion has earned the right to be tested by a real applicant. Fresh Beta still owns human judgments that internal agents cannot establish reliably, including trust, review burden, time saved, practical usefulness, willingness to submit the resume, and willingness to use the product again.
 
-- trust;
-- review burden;
-- time saved;
-- practical usefulness;
-- willingness to submit the resume;
-- willingness to use the product again.
-
-The goal is that Beta discovers real user-experience/product learning, not obvious professional QA defects that specialist agents should have already caught.
+The goal is that Beta discovers real user-experience/product learning, not obvious professional QA defects or basic workflow dead ends that specialist agents should have already caught.
