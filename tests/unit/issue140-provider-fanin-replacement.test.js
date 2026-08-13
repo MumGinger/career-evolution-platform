@@ -69,9 +69,8 @@ function fixture() {
 
 test('one provider statement representing two source-linked facts supersedes both source statements but renders once', () => {
   const { plan, draftResult, integrity } = fixture();
-  const generated = artifact.generate(plan, null, draftResult);
-  const structured = generated.resume_artifacts.find((item) => item.artifact_type === 'structured_resume');
-  const projects = structured.content.sections.find((section) => section.section === 'Projects').statements;
+  const structured = artifact.generate(plan, null, draftResult);
+  const projects = structured.sections.find((section) => section.section === 'Projects').statements;
   const visible = projects.map((statement) => statement.text);
   assert.equal(visible.length, 1, JSON.stringify(projects, null, 2));
   assert.equal(visible[0].includes('Built Power BI dashboards using Python and SQL.'), true);
@@ -87,7 +86,22 @@ test('one provider statement representing two source-linked facts supersedes bot
     ['selection-1', 'selection-2'],
   );
 
-  const result = validation.validate({ artifactRun: generated, plan, integrity });
+  const artifactRun = {
+    id: 'artifact-run-fanin',
+    resume_tailoring_plan_run_id: plan.id,
+    resume_artifacts: [{
+      artifact_type: 'structured_resume',
+      content: { sections: structured.sections },
+      metadata: {
+        ...structured.metadata,
+        traceability: {
+          resume_artifact_run_id: 'artifact-run-fanin',
+          resume_tailoring_plan_run_id: plan.id,
+        },
+      },
+    }],
+  };
+  const result = validation.validate({ artifactRun, plan, integrity });
   const critical = result.findings.filter((finding) => ['critical', 'error'].includes(finding.severity));
   assert.deepEqual(critical, [], JSON.stringify(critical, null, 2));
 });
