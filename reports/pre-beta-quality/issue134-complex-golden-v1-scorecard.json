@@ -1,0 +1,78 @@
+{
+  "candidate_id": "issue134-pre-beta-complex-golden-v1",
+  "reviewed_final_pdf_sha256": "7e870be767fa2bd315df9c91c865b03a92d01bdccd20fe3952e215ae04410819",
+  "review_scope": "Deidentified complex master-resume-shaped natural shipped-flow candidate. The reviewed PDF is the CI artifact frozen by run 31744229141 and rendered independently at 200 DPI.",
+  "dimensions": {
+    "job_specific_targeting": 8,
+    "content_coherence_prioritization": 9,
+    "concision_duplication_control": 10,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 8,
+    "experience_projects_education_hierarchy": 10,
+    "typography_spacing_density_page_composition": 9,
+    "final_pdf_professional_credibility": 9,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "PASS"
+  },
+  "review": {
+    "total": 91,
+    "verdict": "BETA READY",
+    "rendered_pdf": "PASS: one-page Letter PDF rendered at 200 DPI; no clipping, overlap, broken glyphs, empty bullets, cross-entry bleed, or duplicate project bodies.",
+    "preflight": "PASS: PDF 1.4, one page, unencrypted, no forms or JavaScript, extractable text.",
+    "deductions": [
+      {
+        "dimension": "job_specific_targeting",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Skills and the three retained Projects are strongly analytics/automation targeted, but the source Professional Summary remains broader than the target role and mentions technology, markets, software, and data together."
+      },
+      {
+        "dimension": "content_coherence_prioritization",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The final document prioritizes three target-relevant Projects and removes unrelated project inventory; the broad Summary slightly weakens the otherwise coherent application narrative."
+      },
+      {
+        "dimension": "evidence_strength_supported_meaning",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Visible claims are source-backed and appropriately bounded, but the synthetic evidence intentionally contains few outcome or impact signals, limiting persuasive strength without authorizing invention."
+      },
+      {
+        "dimension": "summary_skills_quality",
+        "points_lost": 2,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Skills are concise and scanable, while the Professional Summary is structurally correct but still generic/broad rather than a tight target-specific synthesis."
+      },
+      {
+        "dimension": "typography_spacing_density_page_composition",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "The page is clean and conventionally structured, but there is substantial unused lower-page whitespace and the typesetting remains utilitarian rather than highly polished."
+      },
+      {
+        "dimension": "final_pdf_professional_credibility",
+        "points_lost": 1,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Submission-credible and readable with strong hierarchy, but visual refinement could improve use of page space and finish."
+      },
+      {
+        "dimension": "review_final_equivalence_decision_preservation",
+        "points_lost": 1,
+        "owner": "Career Frontend Presentation Engineer",
+        "reason": "The natural browser run approves Career Review and asserts key final Markdown/PDF content and selection integrity; exhaustive statement-by-statement visual equivalence is not separately scored as perfect."
+      }
+    ]
+  }
+}
