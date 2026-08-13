@@ -2,12 +2,13 @@ const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const option2 = require('../../src/option2-tailoring-review');
 const { createBetaUiServer } = require('../../src/beta-ui');
-const { requiredCoreSelections } = require('../../src/no-change-draft-recovery');
 
 let app;
 let baseURL;
 let root;
+let originalPrepare;
 
 const RESUME = `Taylor Chen
 taylor.chen@example.com | +1 416 555 0199
@@ -30,7 +31,66 @@ Python required.
 SQL required.
 Power BI required.`;
 
+function forceObservedNoChangeBlockedState(session, prepared) {
+  const originalItems = prepared.tailoringReview || [];
+  const sourceEquivalentItems = originalItems.map((item) => ({
+    ...item,
+    tailoredText: item.originalText,
+    materialRewrite: false,
+  }));
+  const byStatementId = new Map(sourceEquivalentItems.map((item) => [item.id, item]));
+
+  session.generatedReview = (session.generatedReview || []).map((section) => ({
+    ...section,
+    ai_version: {
+      ...section.ai_version,
+      statements: (section.ai_version?.statements || []).map((statement) => {
+        const item = byStatementId.get(statement.statement_id);
+        if (!item) return statement;
+        return {
+          ...statement,
+          text: item.originalText,
+          content_origin: 'source_resume_passthrough',
+          resume_content_selection_ids: [],
+          provenance: {
+            source_kind: 'validated_resume_understanding',
+            exact_source_text: item.originalText,
+            evidence_candidate_id: item.evidenceCandidateId,
+          },
+        };
+      }),
+    },
+  }));
+  session.tailoringReview = sourceEquivalentItems;
+  session.stage = 'draft-blocked';
+
+  const blocked = {
+    ...prepared,
+    stage: 'Draft blocked',
+    blocked: true,
+    tailoringReview: sourceEquivalentItems,
+    draftValidation: session.draftValidation.validation_status,
+    draftValidationFindings: session.draftValidation.validation_findings,
+    message: 'Tailoring Review is blocked because required included evidence did not render in its planned Experience or Projects section.',
+  };
+  session.option2PreparedResult = blocked;
+  return blocked;
+}
+
 test.beforeAll(async () => {
+  originalPrepare = option2.prepare;
+  option2.prepare = async (session) => {
+    const prepared = await originalPrepare(session);
+    const requiredCore = (session.tailoring?.resume_content_selections || []).filter((selection) =>
+      selection.selection_state === 'include'
+        && ['Experience', 'Projects'].includes(selection.recommended_section));
+    if (!requiredCore.length) throw new Error('Issue #140 regression requires at least one included Experience/Project selection.');
+    if (!['passed', 'passed_with_warnings'].includes(session.draftValidation?.validation_status)) {
+      throw new Error('Issue #140 regression requires deterministic draft validation to pass before reproducing the dead-end state.');
+    }
+    return forceObservedNoChangeBlockedState(session, prepared);
+  };
+
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'issue140-browser-'));
   app = createBetaUiServer({ port: 0, tempRoot: root });
   const address = await app.listen();
@@ -38,11 +98,12 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
+  option2.prepare = originalPrepare;
   await app.close();
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('source-equivalent required Project evidence with zero material wording changes never dead-ends at Draft blocked', async ({ page }) => {
+test('observed valid required-core + zero-change state never dead-ends before Career Review', async ({ page }) => {
   await page.goto(baseURL);
   await page.locator('#p').selectOption('mock');
   await page.getByRole('button', { name: 'Check connection' }).click();
@@ -66,12 +127,16 @@ test('source-equivalent required Project evidence with zero material wording cha
   await expect(page.locator('#validation')).not.toContainText('Draft blocked');
 
   const session = [...app.sessions.values()][0];
+  const requiredCore = session.tailoring.resume_content_selections.filter((selection) =>
+    selection.selection_state === 'include'
+      && ['Experience', 'Projects'].includes(selection.recommended_section));
   expect(session.queue.flatMap((group) => group.candidates).length).toBeGreaterThan(0);
-  expect(requiredCoreSelections(session.tailoring).length).toBeGreaterThan(0);
+  expect(requiredCore.length).toBeGreaterThan(0);
   expect(session.stage).toBe('tailoring-review');
   expect(session.draftValidation.validation_status).toMatch(/^passed/);
   expect((session.tailoringReview || []).filter((item) => item.materialRewrite)).toHaveLength(0);
   expect(session.option2PreparedResult.recovery.reason).toBe('valid_source_equivalent_core_evidence_with_no_material_wording_changes');
+  expect(session.option2PreparedResult.recovery.source_equivalent_core_selection_ids.length).toBe(requiredCore.length);
 
   await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
   await page.getByRole('button', { name: 'Apply my wording choices' }).click();
