@@ -72,7 +72,7 @@ jobs:
   browser-e2e:
     name: Real browser shipped flow
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       CEP_RUNTIME_EVIDENCE_PATH: /tmp/issue140-natural-shipped-flow-evidence.json
 
@@ -96,18 +96,20 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Prove applicant regression is red on the pre-fix commit
+      - name: Prove changed browser regressions are red on the pre-fix commit
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          if git diff --quiet "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e; then
-            echo "Applicant browser regressions are unchanged in this pull request; pre-fix red proof is not required."
+          changed_regressions="$(git diff --name-only "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e | grep -v '/[^/]*pre-beta[^/]*\.spec\.js$' || true)"
+          if [ -z "$changed_regressions" ]; then
+            echo "Only pre-Beta quality gates changed; pre-fix RED proof is not required."
             exit 0
           fi
           git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
           rm -rf ../pre-fix/tests/browser-e2e
           mkdir -p ../pre-fix/tests/browser-e2e
           cp -R tests/browser-e2e/. ../pre-fix/tests/browser-e2e/
+          find ../pre-fix/tests/browser-e2e -name '*pre-beta*.spec.js' -delete
           cp playwright.config.js ../pre-fix/playwright.config.js
           ln -s "$GITHUB_WORKSPACE/node_modules" ../pre-fix/node_modules
           set +e
@@ -115,12 +117,12 @@ jobs:
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
-            echo "Expected at least one applicant-facing browser regression to fail on the pre-fix commit, but all passed."
+            echo "Expected at least one changed applicant-facing regression to fail on the pre-fix commit, but all passed."
             exit 1
           fi
           echo "Pre-fix browser regression failed as expected; green proof follows on the pull-request head."
 
-      - name: Run real browser end-to-end test
+      - name: Run real browser end-to-end regressions and quality gates
         shell: bash
         run: |
           rm -f "$CEP_RUNTIME_EVIDENCE_PATH"
@@ -128,3 +130,21 @@ jobs:
 
       - name: Validate machine-bound natural shipped-flow evidence
         run: node scripts/validate-shipped-flow-evidence.js "$CEP_RUNTIME_EVIDENCE_PATH"
+
+      - name: Freeze complex pre-Beta quality candidate
+        env:
+          CEP_RUNTIME_EVIDENCE_PATH: test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
+          CEP_QUALITY_PDF_PATH: test-results/runtime-evidence/issue134-pre-beta-complex-golden.pdf
+        run: npx playwright test tests/browser-e2e/issue134-pre-beta-complex-golden.spec.js --config=playwright.config.js --workers=1
+
+      - name: Validate machine-bound pre-Beta quality evidence
+        run: node scripts/validate-shipped-flow-evidence.js test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
+
+      - name: Upload frozen complex pre-Beta quality artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue134-pre-beta-complex-golden
+          path: |
+            test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
+            test-results/runtime-evidence/issue134-pre-beta-complex-golden.pdf
+          if-no-files-found: error

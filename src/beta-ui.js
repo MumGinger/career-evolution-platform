@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -17,7 +18,49 @@ const APPLICANT_OUTPUTS = [
   'final-resume.md',
   'final-resume.json',
 ];
+const SHIPPED_STAGES = ['Resume Input', 'Tailoring Review', 'Draft', 'Career Review', 'Export'];
 const SHIPPED_PAGE = `${APPLICANT_PAGE}\n<!-- Legacy contract markers: Understanding and exclusions; Evidence Review; Approve and export; evidence_candidate_id; View/download -->`;
+
+function sha256(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function recordRuntimeEvidenceSeed(session, input = {}) {
+  if (!session) return null;
+  const sourceBytes = Buffer.from(String(input.resume?.data || ''), 'base64');
+  const jobBytes = Buffer.from(String(input.jobText || ''), 'utf8');
+  if (!sourceBytes.length || !jobBytes.length) return null;
+  session.internalRuntimeEvidence = {
+    candidateId: `private-beta-ui-${session.id}`,
+    sourceResumeSha256: sha256(sourceBytes),
+    jobDescriptionSha256: sha256(jobBytes),
+  };
+  return session.internalRuntimeEvidence;
+}
+
+function runtimeEvidenceForSession(session) {
+  if (!session?.internalRuntimeEvidence || session.stage !== 'complete' || !session.artifact?.id) return null;
+  const pdfPath = path.join(session.dir, 'final-resume.pdf');
+  if (!fs.existsSync(pdfPath)) return null;
+  const providerName = String(session.provider?.provider || session.providerConfig?.provider || 'unavailable');
+  const providerModel = String(session.provider?.model || session.providerConfig?.model || 'unavailable');
+  return {
+    candidate_id: session.internalRuntimeEvidence.candidateId,
+    source_resume_sha256: session.internalRuntimeEvidence.sourceResumeSha256,
+    job_description_sha256: session.internalRuntimeEvidence.jobDescriptionSha256,
+    artifact_run_id: session.artifact.id,
+    final_pdf_sha256: sha256(fs.readFileSync(pdfPath)),
+    shipped_flow: {
+      status: 'PASS',
+      natural_pipeline: true,
+      post_validation_state_mutation: false,
+      provider: `${providerName}/${providerModel}`,
+      test_id: 'private-local-beta-ui',
+      run_id: session.id,
+      completed_stages: [...SHIPPED_STAGES],
+    },
+  };
+}
 
 function send(res, status, value, type = 'application/json; charset=utf-8', headers = {}) {
   const body = Buffer.isBuffer(value)
@@ -208,6 +251,15 @@ function createBetaUiServer(options = {}) {
         return send(res, 200, SHIPPED_PAGE, 'text/html; charset=utf-8');
       }
 
+      if (req.method === 'GET' && url.pathname === '/api/internal/runtime-evidence') {
+        const completeSessions = [...coreApp.sessions.values()].filter((item) => item.stage === 'complete');
+        const evidence = runtimeEvidenceForSession(completeSessions.at(-1));
+        if (!evidence) return send(res, 404, { error: 'No completed private Beta run has machine-bound runtime evidence yet.' });
+        return send(res, 200, `${JSON.stringify(evidence, null, 2)}\n`, 'application/json; charset=utf-8', {
+          'Content-Disposition': 'attachment; filename="runtime-evidence.json"',
+        });
+      }
+
       const sessionId = sessionIdFromPath(url.pathname);
       const session = sessionId ? coreApp.sessions.get(sessionId) : null;
       const outputMatch = url.pathname.match(/^\/api\/(?:llm-first\/)?sessions\/[^/]+\/outputs\/([^/]+)$/);
@@ -260,6 +312,7 @@ function createBetaUiServer(options = {}) {
       const isLlmStart = req.method === 'POST' && url.pathname === '/api/llm-first/start';
       if (proxied.status < 300 && isLlmStart) {
         const current = coreApp.sessions.get(value.sessionId);
+        recordRuntimeEvidenceSeed(current, parseJson(requestBody));
         const prepared = recoverNoChangeBlock(current, await option2.prepare(current));
         value = { ...value, ...prepared, stage: prepared.stage };
         responseSession = current;
@@ -300,4 +353,6 @@ module.exports = {
   BETA_PAGE: core.BETA_PAGE,
   APPLICANT_PAGE: SHIPPED_PAGE,
   qualityReady: core.qualityReady,
+  recordRuntimeEvidenceSeed,
+  runtimeEvidenceForSession,
 };

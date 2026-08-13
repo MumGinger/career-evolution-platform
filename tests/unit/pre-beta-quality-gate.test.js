@@ -5,6 +5,7 @@ const { evaluateScorecard, DIMENSIONS, CRITICAL } = require('../../src/pre-beta-
 function scorecard({ score = 9, critical = 'PASS', overrides = {} } = {}) {
   return {
     candidate_id: 'candidate-v1',
+    reviewed_final_pdf_sha256: 'c'.repeat(64),
     dimensions: Object.fromEntries(DIMENSIONS.map((key) => [key, score])),
     critical: Object.fromEntries(CRITICAL.map((key) => [key, critical])),
     ...overrides,
@@ -55,6 +56,17 @@ test('runtime evidence for a different candidate cannot authorize the scorecard'
   assert.equal(result.verdict, 'NOT BETA READY');
   assert.deepEqual(result.unknown_critical, ['shipped_flow_completion']);
   assert.match(result.runtime_evidence_errors.join(' '), /candidate_id must match/i);
+});
+
+test('runtime evidence for a different final PDF cannot authorize a reviewed scorecard', () => {
+  const result = evaluateScorecard(
+    scorecard({ score: 10 }),
+    runtimeEvidence({ final_pdf_sha256: 'd'.repeat(64) }),
+  );
+  assert.equal(result.verdict, 'NOT BETA READY');
+  assert.equal(result.beta_ready, false);
+  assert.deepEqual(result.unknown_critical, ['shipped_flow_completion']);
+  assert.match(result.runtime_evidence_errors.join(' '), /reviewed final pdf/i);
 });
 
 test('85-89 remains NEAR READY when machine evidence is valid', () => {
