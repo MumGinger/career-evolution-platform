@@ -1,6 +1,6 @@
 {
   "candidate_id": "cycle3-real-input-repair-v5@0f3bd02e1e179749cb7eb2c55505a9bd4a2b5d66",
-  "scope": "deidentified real-input-shaped engineering candidate derived from the actual private failure structure; actual Ya-Ching artifact must still be regenerated after merge",
+  "scope": "deidentified real-input-shaped engineering candidate derived from the actual private failure structure",
   "dimensions": {
     "job_specific_targeting": 9,
     "content_coherence_prioritization": 9,
@@ -21,14 +21,16 @@
     "applicant_decision_integrity": "PASS",
     "professional_readability": "PASS",
     "final_pdf_usability": "PASS",
-    "review_export_equivalence": "PASS"
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "UNKNOWN"
   },
   "review": {
     "total": 92,
-    "verdict": "BETA READY",
-    "requires_internal_loop": false,
+    "verdict": "NOT BETA READY",
+    "requires_internal_loop": true,
     "rendered_pdf": "Issue #138 real-input-shaped finalist PDF rendered at 200 DPI and independently inspected",
     "pdf_preflight": "PASS: openable, one page, not encrypted, not scanned, no XFA",
+    "governance_note": "The 92 artifact score remains valid as document-quality evidence, but Issue #140 showed the real shipped applicant UI could still dead-end before Career Review. A score cannot declare Beta readiness until the same frozen candidate completes the shipped flow, so shipped_flow_completion remains UNKNOWN.",
     "deductions": [
       {
         "dimension": "job_specific_targeting",
