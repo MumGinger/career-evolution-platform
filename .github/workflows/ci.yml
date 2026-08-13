@@ -139,3 +139,12 @@ jobs:
 
       - name: Validate machine-bound pre-Beta quality evidence
         run: node scripts/validate-shipped-flow-evidence.js test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
+
+      - name: Upload frozen complex pre-Beta quality artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue134-pre-beta-complex-golden
+          path: |
+            test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
+            test-results/runtime-evidence/issue134-pre-beta-complex-golden.pdf
+          if-no-files-found: error
