@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
+const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { createBetaUiServer } = require('../../src/beta-ui');
@@ -7,6 +8,9 @@ const { createBetaUiServer } = require('../../src/beta-ui');
 let app;
 let baseURL;
 let root;
+let providerServer;
+let providerBaseURL;
+let observedProviderCalls = [];
 
 const SOURCE = `Casey Lee
 casey.lee@example.com | +1 416 555 0100
@@ -97,19 +101,85 @@ function replayUnderstanding(text) {
   };
 }
 
-function replayUnderstandingProvider() {
-  return {
-    name: 'provider-replay',
-    model: 'complex-parent-container-replay',
-    async checkConnection() { return true; },
-    async understand({ text }) {
-      return {
-        provider: this.name,
-        model: this.model,
-        understanding: replayUnderstanding(text),
-      };
-    },
-  };
+function replayDraft(payload) {
+  const committed = payload.committed_facts || [];
+  const grouped = new Map();
+  for (const fact of committed) {
+    if (!grouped.has(fact.recommended_section)) grouped.set(fact.recommended_section, []);
+    grouped.get(fact.recommended_section).push(fact);
+  }
+
+  // A real provider is allowed to synthesize multiple attached facts into one
+  // statement while citing only the mapped requirement(s) actually expressed by
+  // that sentence. This deliberately exercises that production-provider contract.
+  let combined = false;
+  const sections = [];
+  for (const [section, facts] of grouped) {
+    const statements = [];
+    const withRequirements = facts.filter((fact) => (fact.mapped_job_requirement_ids || []).length);
+    if (!combined && withRequirements.length >= 2) {
+      const pair = withRequirements.slice(0, 2);
+      statements.push({
+        text: pair.map((fact) => fact.value).join('; '),
+        candidate_fact_ids: pair.map((fact) => fact.candidate_fact_id),
+        job_requirement_ids: [pair[0].mapped_job_requirement_ids[0]],
+      });
+      const consumed = new Set(pair.map((fact) => fact.candidate_fact_id));
+      for (const fact of facts.filter((item) => !consumed.has(item.candidate_fact_id))) {
+        statements.push({
+          text: fact.value,
+          candidate_fact_ids: [fact.candidate_fact_id],
+          job_requirement_ids: (fact.mapped_job_requirement_ids || []).slice(0, 1),
+        });
+      }
+      combined = true;
+    } else {
+      for (const fact of facts) {
+        statements.push({
+          text: fact.value,
+          candidate_fact_ids: [fact.candidate_fact_id],
+          job_requirement_ids: (fact.mapped_job_requirement_ids || []).slice(0, 1),
+        });
+      }
+    }
+    if (statements.length) sections.push({ section, statements });
+  }
+  if (!combined) throw new Error('Provider replay fixture requires two selected facts in one section to exercise multi-fact provenance.');
+  return { sections };
+}
+
+function responseEnvelope(content) {
+  return JSON.stringify({ choices: [{ message: { content } }] });
+}
+
+function startProviderReplayServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      let raw = '';
+      req.setEncoding('utf8');
+      req.on('data', (chunk) => { raw += chunk; });
+      req.on('end', () => {
+        try {
+          const body = JSON.parse(raw || '{}');
+          const schemaName = body.response_format?.json_schema?.name || 'connection_probe';
+          observedProviderCalls.push(schemaName);
+          let content = 'READY';
+          if (schemaName === 'resume_understanding') {
+            content = JSON.stringify(replayUnderstanding(body.messages?.at(-1)?.content || ''));
+          } else if (schemaName === 'resume_draft') {
+            const payload = JSON.parse(body.messages?.at(-1)?.content || '{}');
+            content = JSON.stringify(replayDraft(payload));
+          }
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(responseEnvelope(content));
+        } catch (error) {
+          res.writeHead(500, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(error.message || error) }));
+        }
+      });
+    });
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
 }
 
 function occurrences(value, needle) {
@@ -122,27 +192,31 @@ function escapeHtml(value) {
 
 test.beforeAll(async () => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'issue140-natural-complex-pdf-'));
-  app = createBetaUiServer({
-    port: 0,
-    tempRoot: root,
-    resumeUnderstandingProviderFromConfig: () => replayUnderstandingProvider(),
-  });
+  providerServer = await startProviderReplayServer();
+  const providerAddress = providerServer.address();
+  providerBaseURL = `http://127.0.0.1:${providerAddress.port}/v1`;
+  app = createBetaUiServer({ port: 0, tempRoot: root });
   const address = await app.listen();
   baseURL = `http://${address.address}:${address.port}`;
 });
 
 test.afterAll(async () => {
   await app.close();
+  await new Promise((resolve) => providerServer.close(resolve));
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('complex PDF follows the natural production path from upload to export without post-validation state mutation', async ({ page, request }) => {
+test('complex PDF and real provider classes complete the natural shipped path without post-validation state mutation', async ({ page, request }) => {
+  observedProviderCalls = [];
   const pdfPath = path.join(root, 'complex-source-resume.pdf');
   await page.setContent(`<html><body><pre style="font: 10px monospace; white-space: pre-wrap">${escapeHtml(SOURCE)}</pre></body></html>`);
   await page.pdf({ path: pdfPath, format: 'Letter', printBackground: true });
 
   await page.goto(baseURL);
-  await page.locator('#p').selectOption('mock');
+  await page.locator('#p').selectOption('openai-compatible');
+  await page.locator('#m').fill('provider-replay-model');
+  await page.locator('#k').fill('provider-replay-key');
+  await page.locator('#b').fill(providerBaseURL);
   await page.getByRole('button', { name: 'Check connection' }).click();
   await expect(page.locator('#readiness')).toHaveText('Ready to create your tailored resume.');
   await page.locator('#f').setInputFiles(pdfPath);
@@ -154,17 +228,23 @@ test('complex PDF follows the natural production path from upload to export with
   await expect(page.locator('#draft')).toBeHidden();
   await expect(page.locator('#state')).toHaveText(/2 of 5.*Tailoring Review/);
   await expect(page.locator('#validation')).not.toContainText('Draft blocked');
-  await expect(page.locator('#counts')).toContainText('Concrete changes');
-  await expect(page.locator('#counts')).toContainText('0');
-  await expect(page.locator('#tailoring-cards')).toContainText('No material wording changes need your decision');
+  expect(observedProviderCalls).toContain('resume_understanding');
+  expect(observedProviderCalls).toContain('resume_draft');
 
   const session = [...app.sessions.values()][0];
   expect(session).toBeTruthy();
   expect(session.stage).toBe('tailoring-review');
   expect(session.draftValidation.validation_status).not.toBe('failed');
-  expect(session.tailoringReview.filter((item) => item.materialRewrite)).toHaveLength(0);
+  const criticalFindings = (session.draftValidation.validation_findings || []).filter((finding) => ['critical', 'error'].includes(finding.severity));
+  expect(criticalFindings).toEqual([]);
 
+  const materialCards = page.locator('.tailoring-card').filter({ has: page.locator('input[data-tailoring-choice]') });
+  for (let index = 0; index < await materialCards.count(); index += 1) {
+    await materialCards.nth(index).locator('input[value="use_tailored"]').check();
+  }
+  await expect(page.getByRole('button', { name: 'Apply my wording choices' })).toBeEnabled();
   await page.getByRole('button', { name: 'Apply my wording choices' }).click();
+
   await expect(page.locator('#draft')).toBeVisible();
   await expect(page.locator('#state')).toHaveText(/3 of 5.*Draft and validation/);
   await expect(page.locator('#validation')).toContainText(/Ready for your review|Ready for review/);
