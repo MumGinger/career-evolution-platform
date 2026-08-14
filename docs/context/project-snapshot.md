@@ -1,80 +1,58 @@
 # Project Snapshot
 
-**As of:** 2026-08-13 — Fresh Beta regression under repair
+**As of:** 2026-08-13 — Milestone 1 fresh Beta paused for runtime verification
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
-**Engineering Beta Ready:** **NO**
+**Engineering Beta Ready:** **NO / PAUSED**
 **Milestone 1 Accepted:** **NO**
 **Beta Accepted:** **NO**
 
 Repository and current GitHub evidence override stale context.
 
-## Current product state
+## Current state
 
-Milestone 1 remains **Reliable Resume Tailoring**. The previously recorded engineering Beta-ready checkpoint was invalidated by fresh real-applicant evidence.
+Fresh real-applicant Beta reported a `3 of 5 · Draft blocked` screen after a pull, with 40 read / 40 matched / 0 unused / 0 concrete changes and source-understanding diagnostics showing no validation reasons. The same screenshot also showed a Career Review continuation control.
 
-Fresh Beta reached:
+This state is tracked in **#147**. Do not continue the applicant session yet.
 
-- `3 of 5 · Draft blocked`;
-- 40 resume blocks read;
-- 40 matched to source;
-- 0 excluded;
-- **0 concrete changes**;
-- no reliable path to Career Review.
+## Why this is not yet an engineering root-cause finding
 
-Developer View simultaneously showed source-understanding success (`Valid: 40`, `Validation reasons: none`). Those diagnostics were stale for the later Draft stage and did not explain the actual block.
+The visible Developer View diagnostics are for Resume Understanding, not deterministic Draft Validation. The displayed `0 concrete changes` is also not sufficient to prove a natural zero-change draft when preparation has blocked before Tailoring Review.
 
-Fresh Beta is stopped. Active blocker: **#147 — zero-change real resume still Draft blocked**.
+Issue #140 historically demonstrated that inferring the exact Draft Validation failure from this screen is unsafe. Its post-#141 audit explicitly required natural-pipeline machine evidence before another repair.
 
-## Why prior CI missed it
+The current screenshot also contains a state combination not expected from the current shipped page: `Draft blocked` and a visible Career Review continuation control at the same time.
 
-The same failure class had previously been addressed under #140 with a dedicated browser regression for the deterministic-valid zero-material-change path. During later restructuring, `tests/browser-e2e/issue140-no-change-flow.spec.js` disappeared from the current browser suite.
+## Local runtime hypothesis
 
-The three browser scenarios used for the previous pre-Beta gate therefore did not cover this exact path. A green 3/3 result was insufficient evidence for real zero-change input.
+The Beta UI is a normal long-running Node process (`node src/beta-ui.js`) with no hot reload. Pulling new files does not reload an existing process or its in-memory sessions.
 
-## Current repair direction
+The next required evidence is therefore a clean runtime verification:
 
-The no-change path is being repaired at the readiness boundary:
+1. stop the current Node Beta server completely;
+2. pull `chore/project-foundation`;
+3. start a fresh `node src/beta-ui.js` process;
+4. hard refresh/open a new browser tab;
+5. run a brand-new real resume + Zurich JD session.
 
-```text
-real resume + job
-  -> deterministic-valid complete draft
-  -> zero material wording changes
-  -> no fake Tailoring decision required
-  -> Draft
-  -> Career Review
-  -> export
-```
+## Repository integrity after audit
 
-A deterministic-valid complete zero-change resume must not depend on brittle selection-id/source-equivalence matching merely to become reviewable.
+A speculative no-change recovery change and an injected post-validation browser test were briefly explored, then audited against #140 history and fully reverted. They are not present in current application/test state.
 
-Strict boundaries remain:
+A tree comparison against the prior Beta-ready checkpoint `0435512326a862f0590690be64516729289378fa` shows no net application/test change from that checkpoint; only durable state documentation has changed to pause Beta while current runtime is verified.
 
-- deterministic validation failure blocks;
-- material rewrite placement/support failure blocks;
-- unsupported/invented claims remain forbidden;
-- complete resume structure and final review/export equivalence remain protected.
+## If current fresh runtime still blocks
 
-A permanent current browser regression has been restored as `tests/browser-e2e/issue147-zero-change-flow.spec.js`.
+Capture the actual Draft Validation status/findings from the natural process. Then reproduce that exact state without mutating session/artifact/validation after the pipeline, repair the earliest owning boundary, and rerun:
 
-## Previous internal evidence
+- unit/integration;
+- HTTP/PDF contract;
+- natural browser shipped flow;
+- machine-bound runtime evidence;
+- frozen exact-PDF pre-Beta quality gate.
 
-The earlier frozen development PDF remains historical evidence only:
-
-`SHA-256 7fc13d318695959eb25e5a0919f83bc52e548f6d80c7307e57683d97b7b7e768`
-
-It scored 90/100 with all critical criteria PASS for that candidate, but it no longer establishes Engineering Beta Ready because fresh Beta exposed a shipped-flow path not covered by the current suite.
-
-## Exit before Beta resumes
-
-Do not restart human Beta until:
-
-1. #147 current zero-change browser regression passes;
-2. existing material-change/correction flows still pass;
-3. HTTP/PDF, unit/integration, and all browser E2E pass on the latest primary head;
-4. exact pre-Beta runtime/PDF gate passes again;
-5. durable docs are returned to Engineering Beta Ready only after that evidence exists.
+Only after that can Engineering Beta Ready return to YES.
 
 ## Frozen scope
 
-Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization while #147 remains open.
+Milestone 1 remains intentionally narrow. Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization until #147 is resolved and fresh Beta can resume.
