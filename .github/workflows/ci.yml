@@ -11,8 +11,37 @@ permissions:
   contents: read
 
 jobs:
-  engineering-tests:
-    name: Unit and integration
+  change-scope:
+    name: Classify delivery gate scope
+    runs-on: ubuntu-latest
+    outputs:
+      scope: ${{ steps.scope.outputs.scope }}
+      revision: ${{ steps.scope.outputs.revision }}
+      base_revision: ${{ steps.scope.outputs.base_revision }}
+    steps:
+      - name: Check out tested revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Classify changed files
+        id: scope
+        shell: bash
+        run: |
+          revision='${{ github.event.pull_request.head.sha || github.sha }}'
+          base='${{ github.event.pull_request.base.sha || github.event.before }}'
+          if [ -z "$base" ] || [ "$base" = '0000000000000000000000000000000000000000' ]; then
+            base="$(git rev-parse "$revision^")"
+          fi
+          echo "scope=$(node scripts/gate-manifest.js scope --base "$base" --head "$revision")" >> "$GITHUB_OUTPUT"
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "base_revision=$base" >> "$GITHUB_OUTPUT"
+
+  unit-tests:
+    name: Unit tests
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'applicant-path'
     runs-on: windows-latest
     timeout-minutes: 20
 
@@ -20,6 +49,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.change-scope.outputs.revision }}
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -33,27 +63,69 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+  integration-tests:
+    name: Integration tests
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'applicant-path'
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Run integration tests
         run: npm run test:integration
 
-      - name: Check patch whitespace (pull request)
-        if: github.event_name == 'pull_request'
-        shell: pwsh
-        run: git diff --check "${{ github.event.pull_request.base.sha }}...HEAD"
+  engineering-tests:
+    name: Unit and integration
+    needs: [change-scope, unit-tests, integration-tests]
+    if: always() && needs.change-scope.outputs.scope == 'applicant-path'
+    runs-on: windows-latest
+    timeout-minutes: 20
 
-      - name: Check patch whitespace (branch push)
-        if: github.event_name != 'pull_request'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
+          fetch-depth: 0
+
+      - name: Require successful unit and integration outcomes
         shell: pwsh
-        run: git diff --check HEAD^...HEAD
+        run: |
+          if ('${{ needs.unit-tests.result }}' -ne 'success' -or '${{ needs.integration-tests.result }}' -ne 'success') {
+            Write-Error "Unit result: ${{ needs.unit-tests.result }}; integration result: ${{ needs.integration-tests.result }}"
+            exit 1
+          }
+
+      - name: Check patch whitespace
+        shell: pwsh
+        run: git diff --check "${{ needs.change-scope.outputs.base_revision }}...${{ needs.change-scope.outputs.revision }}"
 
   http-contract:
     name: HTTP and representative PDF contract
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'applicant-path'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -69,17 +141,60 @@ jobs:
       - name: Run HTTP and applicant contract tests
         run: npm run test:http-contract
 
-  browser-e2e:
-    name: Real browser shipped flow
+  incident-replay:
+    name: 'Delivery Incident #152 replay'
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'applicant-path'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     env:
-      CEP_RUNTIME_EVIDENCE_PATH: /tmp/issue140-natural-shipped-flow-evidence.json
+      CEP_GATE_REVISION: ${{ needs.change-scope.outputs.revision }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.change-scope.outputs.revision }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Replay Delivery Incident #152
+        env:
+          CEP_ISSUE152_RUNTIME_EVIDENCE_PATH: ${{ runner.temp }}/issue152-draft-blocked-replay.json
+        run: npx playwright test tests/browser-e2e/issue152-draft-blocked-replay.spec.js --config=playwright.config.js --workers=1
+
+      - name: Upload incident replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue152-draft-blocked-replay
+          path: ${{ runner.temp }}/issue152-draft-blocked-replay.json
+          if-no-files-found: warn
+
+  browser-e2e:
+    name: Real browser shipped flow
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'applicant-path'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CEP_RUNTIME_EVIDENCE_PATH: /tmp/issue140-natural-shipped-flow-evidence.json
+      CEP_GATE_REVISION: ${{ needs.change-scope.outputs.revision }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -100,12 +215,12 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          changed_regressions="$(git diff --name-only "${{ github.event.pull_request.base.sha }}...HEAD" -- tests/browser-e2e | grep -v '/[^/]*pre-beta[^/]*\.spec\.js$' || true)"
+          changed_regressions="$(git diff --name-only "${{ needs.change-scope.outputs.base_revision }}...${{ needs.change-scope.outputs.revision }}" -- tests/browser-e2e | grep -v '/[^/]*pre-beta[^/]*\.spec\.js$' || true)"
           if [ -z "$changed_regressions" ]; then
-            echo "Only pre-Beta quality gates changed; pre-fix RED proof is not required."
+            echo "Only non-browser code changed; pre-fix browser RED proof is not required."
             exit 0
           fi
-          git worktree add ../pre-fix "${{ github.event.pull_request.base.sha }}"
+          git worktree add ../pre-fix "${{ needs.change-scope.outputs.base_revision }}"
           rm -rf ../pre-fix/tests/browser-e2e
           mkdir -p ../pre-fix/tests/browser-e2e
           cp -R tests/browser-e2e/. ../pre-fix/tests/browser-e2e/
@@ -120,7 +235,7 @@ jobs:
             echo "Expected at least one changed applicant-facing regression to fail on the pre-fix commit, but all passed."
             exit 1
           fi
-          echo "Pre-fix browser regression failed as expected; green proof follows on the pull-request head."
+          echo "Pre-fix browser regression failed as expected; green proof follows on the tested revision."
 
       - name: Run real browser end-to-end regressions and quality gates
         shell: bash
@@ -175,4 +290,88 @@ jobs:
             test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
             test-results/runtime-evidence/issue134-pre-beta-complex-golden.pdf
             test-results/runtime-evidence/milestone1-exit-scorecard.json
+          if-no-files-found: error
+
+  documentation-gate:
+    name: Documentation delivery gate
+    needs: change-scope
+    if: needs.change-scope.outputs.scope == 'documentation'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tested revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
+          fetch-depth: 0
+
+      - name: Check documentation patch whitespace
+        run: git diff --check "${{ needs.change-scope.outputs.base_revision }}...${{ needs.change-scope.outputs.revision }}"
+
+  merge-authorization-manifest:
+    name: Merge authorization manifest
+    needs: [change-scope, unit-tests, integration-tests, engineering-tests, http-contract, incident-replay, browser-e2e, documentation-gate]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      CEP_SCOPE: ${{ needs.change-scope.outputs.scope }}
+      CEP_REVISION: ${{ needs.change-scope.outputs.revision }}
+      CEP_BASE_REVISION: ${{ needs.change-scope.outputs.base_revision }}
+      CEP_UNIT_RESULT: ${{ needs.unit-tests.result }}
+      CEP_INTEGRATION_RESULT: ${{ needs.integration-tests.result }}
+      CEP_HTTP_RESULT: ${{ needs.http-contract.result }}
+      CEP_REPLAY_RESULT: ${{ needs.incident-replay.result }}
+      CEP_BROWSER_RESULT: ${{ needs.browser-e2e.result }}
+      CEP_DOCUMENTATION_RESULT: ${{ needs.documentation-gate.result }}
+
+    steps:
+      - name: Check out tested revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.change-scope.outputs.revision }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download incident replay evidence
+        if: env.CEP_SCOPE == 'applicant-path' && env.CEP_REPLAY_RESULT == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: issue152-draft-blocked-replay
+          path: test-results/runtime-evidence
+
+      - name: Generate Gate Manifest from actual job outcomes
+        shell: bash
+        run: |
+          args=(
+            generate
+            --output "$RUNNER_TEMP/gate-manifest.json"
+            --revision "$CEP_REVISION"
+            --base "$CEP_BASE_REVISION"
+            --head "$CEP_REVISION"
+            --run-id "${{ github.run_id }}"
+            --repository "${{ github.repository }}"
+            --outcome "unit=$CEP_UNIT_RESULT"
+            --outcome "integration=$CEP_INTEGRATION_RESULT"
+            --outcome "http-contract=$CEP_HTTP_RESULT"
+            --outcome "browser-e2e=$CEP_BROWSER_RESULT"
+            --outcome "issue-152-replay=$CEP_REPLAY_RESULT"
+            --outcome "documentation-diff=$CEP_DOCUMENTATION_RESULT"
+          )
+          if [ "$CEP_SCOPE" = 'applicant-path' ]; then
+            args+=(--artifact "issue152-draft-blocked-replay=test-results/runtime-evidence/issue152-draft-blocked-replay.json")
+          fi
+          node scripts/gate-manifest.js "${args[@]}"
+
+      - name: Validate revision-bound Gate Manifest
+        run: node scripts/gate-manifest.js validate --input "$RUNNER_TEMP/gate-manifest.json" --expected-revision "$CEP_REVISION"
+
+      - name: Upload Gate Manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-manifest
+          path: ${{ runner.temp }}/gate-manifest.json
           if-no-files-found: error
