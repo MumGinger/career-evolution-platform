@@ -8,10 +8,34 @@ const path = require('node:path');
 const { createBetaUiServer } = require('../../src/beta-ui');
 const llmUnderstanding = require('../../src/llm-resume-understanding');
 
+const TEST_ID = 'issue152-draft-blocked-replay';
 const REPRODUCTION = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'issue152-draft-blocked-reproduction.json'), 'utf8'));
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function writeRuntimeEvidence() {
+  const target = process.env.CEP_ISSUE152_RUNTIME_EVIDENCE_PATH
+    || path.join(process.cwd(), 'test-results', 'runtime-evidence', `${TEST_ID}.json`);
+  const evidence = {
+    schema_version: 1,
+    runtime_evidence: true,
+    delivery_incident: '#152',
+    revision: process.env.CEP_GATE_REVISION || process.env.GITHUB_SHA || 'local-playwright-run',
+    run_id: process.env.GITHUB_RUN_ID || 'local-playwright-run',
+    observable_state: '3 of 5 · Draft blocked',
+    recovery_action: 'start_new_session',
+    privacy: {
+      contains_resume_text: false,
+      contains_job_description_text: false,
+      contains_provider_credentials: false,
+      contains_raw_provider_response: false,
+    },
+  };
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, `${JSON.stringify(evidence, null, 2)}\n`);
+  return evidence;
 }
 
 const RESUME = `Jordan Park
@@ -142,4 +166,8 @@ test('captures the deidentified Draft-blocked dead end without private replay in
   await expect(page.locator('#input')).toBeVisible();
   await expect(page.locator('#understanding')).toBeHidden();
   await expect(page.locator('#draft')).toBeHidden();
+
+  const evidence = writeRuntimeEvidence();
+  expect(evidence.delivery_incident).toBe('#152');
+  expect(evidence.runtime_evidence).toBe(true);
 });
