@@ -1,8 +1,8 @@
 # Current State
 
-**Phase:** Milestone 1 — Engineering Repair after fresh Beta regression
+**Phase:** Milestone 1 — Fresh Beta runtime verification
 **Last updated:** 2026-08-13
-**Engineering Beta Ready:** **NO**
+**Engineering Beta Ready:** **NO / PAUSED**
 **Milestone 1 Accepted:** **NO**
 **Beta Accepted:** **NO**
 
@@ -10,59 +10,54 @@ Repository and current GitHub evidence are authoritative if this document become
 
 Read `MILESTONE_1.md` before acting on resume product work.
 
-## Fresh Beta evidence
+## Fresh Beta observation
 
-The first fresh real-applicant run after the previous Beta-ready checkpoint failed before Career Review.
-
-Visible shipped state:
+The applicant reports that after pulling `chore/project-foundation`, the local UI still showed:
 
 - `3 of 5 · Draft blocked`;
 - 40 source blocks read;
 - 40 matched to source;
-- 0 excluded;
-- **0 concrete changes**;
-- applicant could not reliably continue to Career Review;
-- Developer View still showed source-understanding diagnostics (`Valid: 40`, `Validation reasons: none`), which made the blocked state appear contradictory.
+- 0 unused;
+- 0 concrete changes;
+- Developer View showed source-processing success / `Validation reasons: none`;
+- `Continue to Career Review` was also visible in the same screenshot.
 
-This is a Milestone 1 hard blocker. Fresh Beta is paused.
+Fresh Beta is paused. Active tracking issue: **#147**.
 
-## Active blocker
+## Important interpretation
 
-Issue #147 — `Milestone 1 regression — zero-change real resume still Draft blocked`.
+The screenshot alone does **not** identify the exact backend failure.
 
-This reproduces the same failure class previously recorded in #140. The earlier #140 repair added a dedicated zero-change browser regression, but that regression was later dropped from the current browser suite during restructuring. The previous three-shape CI gate therefore did not protect this path.
+- Developer View at this stage reports Resume Understanding diagnostics, not the later deterministic Draft Validation findings. `Validation reasons: none` therefore does not prove Draft Validation passed.
+- A blocked preparation response may expose zero tailoring cards, so `0 concrete changes` is not sufficient proof that the natural pipeline produced a true zero-change draft.
+- The screenshot combines `Draft blocked` with a visible Career Review continuation control, which is not an expected state combination from the current shipped transition logic.
 
-## Repair contract
+Issue #140 previously recorded the same lesson: do not infer the exact Draft Validation rule from the applicant screenshot; capture the natural-pipeline finding first.
 
-A deterministic-valid, structurally complete resume with **zero material wording changes** must remain actionable:
+## Runtime version must be verified first
+
+The local Beta is launched with:
 
 ```text
-real resume + job
-  -> understanding
-  -> zero material changes / no fake decision required
-  -> complete Draft
-  -> Career Review
-  -> export
+node src/beta-ui.js
 ```
 
-No-material-change readiness must not depend on brittle selection-id/source-equivalence matching once deterministic validation has passed and the complete reviewed resume has normal Experience/Projects content.
+There is no hot reload. `git pull` changes files on disk but does not reload an already-running Node process or its in-memory session state.
 
-Genuine deterministic validation failure remains blocking. Genuine material-rewrite placement failure remains blocking.
+Before changing product logic again, the applicant must fully stop the existing server process, pull current primary, start a new server process, open a fresh browser session, and rerun the real resume + Zurich JD.
 
-## Current repair
+## Repository code state
 
-Primary has been updated to:
+A speculative no-change readiness change and injected post-validation browser test were audited and reverted. They are **not** part of current application/test code.
 
-- relax only the zero-material-change recovery path so a deterministic-valid complete review document can continue;
-- preserve strict blocking for material rewrites and failed deterministic validation;
-- restore a permanent browser shipped-flow regression for the zero-change case (`tests/browser-e2e/issue147-zero-change-flow.spec.js`).
+Compared with the prior Beta-ready checkpoint `0435512326a862f0590690be64516729289378fa`, current application and test files are unchanged; only durable state documentation records that Beta is paused pending current-runtime verification.
 
-The project is **not Beta-ready again until the latest primary CI is green**, including the restored zero-change browser path and the existing exact-PDF pre-Beta quality gate.
+## If the fresh restarted process still blocks
 
-## Milestone 1 scope remains frozen
+Do not add another heuristic recovery patch.
 
-Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization while this blocker is open.
+Capture the actual deterministic Draft Validation status/findings from the natural current process, reproduce that exact failure with a natural pipeline test (no post-validation state mutation), and repair the earliest owning boundary. Then rerun full latest-primary CI and the exact pre-Beta artifact gate before Beta resumes.
 
-## Next valid action
+## Frozen scope
 
-Engineering must finish #147, run the full latest-primary gate, and only then reopen a fresh human Beta. Do not ask the applicant to continue the currently blocked session.
+Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization while #147 remains unresolved.
