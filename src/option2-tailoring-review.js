@@ -26,22 +26,15 @@ function validationExportSafe(run) {
   return ['passed', 'passed_with_warnings'].includes(run?.validation_status);
 }
 
-function qualityReady(artifactRun, review, tailoringPlan) {
+function qualityReady(artifactRun, review) {
   const artifact = artifactRun.resume_artifacts.find((item) => item.artifact_type === 'structured_resume');
-  const sections = artifact?.content?.sections || [];
-  const populated = new Set(sections.filter((section) => section.statements?.length).map((section) => section.section));
-  const rendered = new Map();
-  for (const section of sections) for (const statement of section.statements || []) {
-    for (const selectionId of statement.resume_content_selection_ids || []) {
-      rendered.set(selectionId, [...(rendered.get(selectionId) || []), section.section]);
-    }
-  }
-  const required = (tailoringPlan?.resume_content_selections || []).filter((selection) =>
-    selection.selection_state === 'include' && ['Experience', 'Projects'].includes(selection.recommended_section));
-  return review.length > 0
-    && required.length > 0
-    && required.every((selection) => (rendered.get(selection.id) || []).includes(selection.recommended_section))
-    && (populated.has('Experience') || populated.has('Projects'));
+  const populated = new Set((artifact?.content?.sections || [])
+    .filter((section) => section.statements?.some((statement) => String(statement.text || '').trim()))
+    .map((section) => section.section));
+  return Array.isArray(review)
+    && review.length > 0
+    && populated.has('Applicant Header')
+    && (populated.has('Experience') || populated.has('Projects') || populated.has('Education'));
 }
 
 function markdownFromArtifact(artifactRun) {
@@ -255,11 +248,11 @@ async function generateTailoring(session) {
   });
   const validation = session.store.createResumeValidationRun({ resumeArtifactRunId: artifact.id });
   const generatedReview = humanReview.createDraft({ artifactRun: artifact, presentationStrategyRun: presentation });
-  const exportSafe = validationExportSafe(validation) && qualityReady(artifact, generatedReview, tailoring);
+  const exportSafe = validationExportSafe(validation) && qualityReady(artifact, generatedReview);
   const message = !validationExportSafe(validation)
     ? 'Tailoring Review and export are blocked until deterministic draft validation passes.'
     : !exportSafe
-      ? 'Tailoring Review is blocked because required included evidence did not render in its planned Experience or Projects section.'
+      ? 'The draft passed validation but did not produce a complete applicant review document. This is an internal product error, not an applicant correction task.'
       : null;
   Object.assign(session, {
     tailoring,
@@ -494,4 +487,5 @@ module.exports = {
   sourceAttestedProposal,
   integrateCorrection,
   installEffectiveKnowledgeBoundary,
+  qualityReady,
 };
