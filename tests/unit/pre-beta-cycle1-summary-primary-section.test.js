@@ -17,7 +17,7 @@ function sourceStatement(id, text, section, style, parent = null) {
   };
 }
 
-test('cross-section Summary is supplemental and does not consume the primary Experience rendering', () => {
+test('cross-section Summary is supplemental while primary Experience remains an exact source-backed KEEP', () => {
   const fact = {
     id: 'fact-analytics',
     entity_type: 'responsibility',
@@ -83,13 +83,22 @@ test('cross-section Summary is supplemental and does not consume the primary Exp
 
   assert.equal(summary.statements.length, 1);
   assert.deepEqual(summary.statements[0].resume_content_selection_ids, [selection.id]);
+
   assert.equal(experience.statements.length, 2);
-  assert.deepEqual(experience.statements[1].resume_content_selection_ids, [selection.id]);
-  assert.equal(experience.statements[1].content_origin, 'candidate_knowledge_generated');
+  assert.equal(experience.statements[1].text, fact.value.text);
+  assert.deepEqual(experience.statements[1].resume_content_selection_ids, []);
+  assert.equal(experience.statements[1].content_origin, 'source_resume_passthrough');
+
+  assert.equal(
+    artifact.metadata.draft_completion_source_keeps.some((item) =>
+      item.resume_content_selection_id === selection.id
+        && item.source_statement_id === 'source:experience-body'
+        && item.source_section === 'Experience'),
+    true,
+  );
   assert.equal(
     artifact.metadata.draft_completion_fallbacks.some((item) =>
-      item.resume_content_selection_id === selection.id
-        && item.reason === 'provider_omitted_included_selection'),
-    true,
+      item.resume_content_selection_id === selection.id),
+    false,
   );
 });
