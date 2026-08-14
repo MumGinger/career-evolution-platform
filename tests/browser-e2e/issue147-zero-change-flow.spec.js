@@ -61,6 +61,14 @@ function forceObservedNoChangeBlockedState(session, prepared) {
       }),
     },
   }));
+
+  // Reproduce the real regression seam: the complete reviewed resume is valid and
+  // source-backed, but the tailoring-plan fact snapshot cannot prove the old
+  // selection-id/source-equivalence heuristic. Old recovery code dead-ended here.
+  session.tailoring = {
+    ...session.tailoring,
+    candidate_knowledge_snapshot: [],
+  };
   session.tailoringReview = sourceEquivalentItems;
   session.stage = 'draft-blocked';
 
@@ -103,7 +111,7 @@ test.afterAll(async () => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('deterministic-valid complete zero-change resume completes shipped flow through export', async ({ page, request }) => {
+test('deterministic-valid complete zero-change resume does not require source-equivalence heuristic and exports', async ({ page, request }) => {
   await page.goto(baseURL);
   await page.locator('#p').selectOption('mock');
   await page.getByRole('button', { name: 'Check connection' }).click();
@@ -132,10 +140,12 @@ test('deterministic-valid complete zero-change resume completes shipped flow thr
       && ['Experience', 'Projects'].includes(selection.recommended_section));
   expect(session.queue.flatMap((group) => group.candidates).length).toBeGreaterThan(0);
   expect(requiredCore.length).toBeGreaterThan(0);
+  expect(session.tailoring.candidate_knowledge_snapshot).toHaveLength(0);
   expect(session.stage).toBe('tailoring-review');
   expect(session.draftValidation.validation_status).toMatch(/^passed/);
   expect((session.tailoringReview || []).filter((item) => item.materialRewrite)).toHaveLength(0);
   expect(session.option2PreparedResult.recovery.reason).toBe('deterministic_valid_complete_resume_with_no_material_wording_changes');
+  expect(session.option2PreparedResult.recovery.source_equivalent_core_selection_ids).toHaveLength(0);
 
   await expect(page.getByRole('button', { name: 'Continue with these changes' })).toBeEnabled();
   await page.getByRole('button', { name: 'Continue with these changes' }).click();
