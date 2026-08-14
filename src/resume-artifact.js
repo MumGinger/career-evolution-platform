@@ -75,6 +75,33 @@ function providerSelectionSetKey(statement) {
 function providerStatementPriority(statement, selections) {
   return Math.max(0, ...(statement.resume_content_selection_ids || []).map((id) => selections.get(id)?.priority_score || 0));
 }
+function providerRequirementCitationsValid(statement, linked) {
+  const cited = statement.provenance?.job_requirement_ids || [];
+  const allowed = [...new Set(linked.flatMap((selection) => selection.mapped_requirement_ids || []))];
+  if (new Set(cited).size !== cited.length) return false;
+  if (!allowed.length) return cited.length === 0;
+  return cited.length > 0 && cited.every((id) => allowed.includes(id));
+}
+function sourceKeepForSelection(plan, selection, fact) {
+  const snapshot = plan.source_resume_snapshot;
+  if (!snapshot?.sections?.length || !fact) return null;
+  const keys = new Set(sourceValues(fact, templateFor(selection, fact)).map(normal).filter(Boolean));
+  if (!keys.size) return null;
+  for (const section of snapshot.sections) {
+    for (const statement of section.statements || []) {
+      if (!keys.has(normal(statement.text))) continue;
+      return {
+        resume_content_selection_id: selection.id,
+        candidate_fact_id: selection.candidate_fact_id,
+        source_statement_id: statement.source_statement_id || statement.statement_id,
+        source_section: section.section,
+        source_text: statement.text,
+        reason: 'source_backed_keep',
+      };
+    }
+  }
+  return null;
+}
 function completedProviderSections(providerSections, plan, facts) {
   const selections = new Map(plan.resume_content_selections.map((selection) => [selection.id, selection]));
   const droppedAlternatives = [];
@@ -83,11 +110,21 @@ function completedProviderSections(providerSections, plan, facts) {
     let statements = section.statements.filter((statement) => {
       const linked = statement.resume_content_selection_ids.map((id) => selections.get(id)).filter(Boolean);
       const factIds = statement.provenance?.candidate_fact_ids || [];
-      const valid = linked.length === statement.resume_content_selection_ids.length
+      const structuralValid = linked.length === statement.resume_content_selection_ids.length
         && linked.length > 0
         && linked.every((selection) => selection.selection_state === 'include' && (selection.recommended_section === section.section || crossSectionSummary(selection, section.section)))
         && sameSet(factIds, linked.map((selection) => selection.candidate_fact_id));
-      if (!valid) return false;
+      const requirementValid = structuralValid && providerRequirementCitationsValid(statement, linked);
+      const textValid = Boolean(String(statement.text || '').trim());
+      if (!structuralValid || !requirementValid || !textValid) {
+        droppedAlternatives.push({
+          section: section.section,
+          statement_id: statement.statement_id,
+          resume_content_selection_ids: [...(statement.resume_content_selection_ids || [])],
+          reason: !structuralValid ? 'invalid_provider_selection_contract' : !requirementValid ? 'invalid_provider_requirement_citations' : 'empty_provider_statement',
+        });
+        return false;
+      }
       const selectionSetKey = providerSelectionSetKey(statement);
       if (seenSelectionSets.has(selectionSetKey)) {
         droppedAlternatives.push({
@@ -120,16 +157,22 @@ function completedProviderSections(providerSections, plan, facts) {
   const renderedInPrimarySection = new Set(sections.flatMap((section) =>
     section.statements.flatMap((statement) => (statement.resume_content_selection_ids || []).filter((selectionId) =>
       selections.get(selectionId)?.recommended_section === section.section))));
-  const fallbacks = []; const failures = [];
+  const sourceKeeps = []; const fallbacks = []; const failures = [];
   for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'include' && !renderedInPrimarySection.has(item.id))) {
-    const statement = renderStatement(selection, facts.get(selection.candidate_fact_id));
+    const fact = facts.get(selection.candidate_fact_id);
+    const sourceKeep = sourceKeepForSelection(plan, selection, fact);
+    if (sourceKeep) {
+      sourceKeeps.push(sourceKeep);
+      continue;
+    }
+    const statement = renderStatement(selection, fact);
     if (!statement) { failures.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'deterministic_completion_unrenderable' }); continue; }
     const section = sections.find((item) => item.section === selection.recommended_section);
     if (section) section.statements.push(statement);
     else sections.push({ section: selection.recommended_section, position: GENERATED_SECTIONS.indexOf(selection.recommended_section) + 1, placeholder: null, statements: [statement] });
-    fallbacks.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'provider_omitted_included_selection' });
+    fallbacks.push({ resume_content_selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section, reason: 'provider_omitted_non_source_selection' });
   }
-  return { sections: sections.sort((left, right) => left.position - right.position), fallbacks, failures, droppedAlternatives };
+  return { sections: sections.sort((left, right) => left.position - right.position), sourceKeeps, fallbacks, failures, droppedAlternatives };
 }
 
 function matchableGenerated(statement, facts) {
@@ -302,7 +345,7 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       .filter(Boolean),
   }));
   const providerSections = generatedStatements(draftResult?.draft, plan, facts);
-  const completion = providerSections ? completedProviderSections(providerSections, plan, facts) : { sections: deterministicSections, fallbacks: [], failures: [], droppedAlternatives: [] };
+  const completion = providerSections ? completedProviderSections(providerSections, plan, facts) : { sections: deterministicSections, sourceKeeps: [], fallbacks: [], failures: [], droppedAlternatives: [] };
   const composed = composeSections(completion.sections, plan, facts);
   const sections = composed.sections;
   const rendered = sections.flatMap((section) => section.statements);
@@ -322,11 +365,12 @@ function generate(plan, presentationStrategy = null, draftResult = null) {
       requirement_coverage: plan.requirement_coverage.map((coverage) => ({ requirement_id: coverage.job_requirement_id, status: coverage.coverage_status, rationale: coverage.coverage_rationale })),
       presentation_strategy: presentationStrategy ? { policy_version: presentationStrategy.policy_version, target_job: presentationStrategy.target_job, career_understanding_snapshot_run_id: presentationStrategy.shared_understanding.career_understanding_snapshot_run_id, limitations: presentationStrategy.limitations } : null,
       draft_provider: draftResult ? { provider: draftResult.provider, model: draftResult.model, version: draftResult.version, parse_error: draftResult.parseError || null } : { provider: 'deterministic-fallback', model: 'local', version: POLICY_VERSION },
+      draft_completion_source_keeps: completion.sourceKeeps,
       draft_completion_fallbacks: completion.fallbacks,
       draft_completion_failures: completion.failures,
       dropped_provider_alternatives: completion.droppedAlternatives,
       composition: composed.composition,
-      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary and Skills sections may replace broader source sections and are recorded as superseded source content. Cross-section Summary use is supplemental: every included selection still renders in its primary approved section. These composition decisions never write Candidate Knowledge.',
+      limitations: 'Generated claims contain only values permitted by a Resume Content Selection. Source-backed included facts may remain as verbatim KEEP content in their original resume structure when the provider does not materially rewrite them; non-source included facts still require supported generated placement. Unchanged source-resume passthrough is preserved verbatim unless an exact source statement is linked to an explicit role-specific omit selection; supported generated Professional Summary and Skills sections may replace broader source sections and are recorded as superseded source content. These composition decisions never write Candidate Knowledge.',
     },
     rendered_statement_count: rendered.length,
   };
