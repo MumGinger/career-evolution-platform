@@ -46,33 +46,18 @@ function requiredCoreCoveredBySource(session) {
     selectionHasSourceEquivalent(session, selection));
 }
 
-function reviewableCorePresent(session) {
-  return (session?.generatedReview || []).some((review) =>
-    ['Experience', 'Projects'].includes(review.section)
-      && (review.ai_version?.statements || []).some((statement) => String(statement.text || '').trim()));
-}
-
 function recoverableNoChangeBlock(session, prepared) {
   if (!prepared?.blocked) return false;
   if (!VALIDATION_SAFE.has(prepared.draftValidation)) return false;
   if (!Array.isArray(session?.generatedReview) || session.generatedReview.length === 0) return false;
   const material = (prepared.tailoringReview || []).filter((item) => item.materialRewrite);
   if (material.length !== 0) return false;
-
-  // No material wording is being introduced, so selection-id/source-equivalence matching
-  // must not become a second, hidden validation gate. The reviewed document itself is
-  // the structural authority at this point. If deterministic validation passed and the
-  // complete review contains normal Experience/Projects content, the applicant can
-  // continue without a fake Tailoring decision.
-  return reviewableCorePresent(session);
+  return requiredCoreCoveredBySource(session);
 }
 
 function recoverNoChangeBlock(session, prepared) {
   if (!recoverableNoChangeBlock(session, prepared)) return prepared;
   const requiredCore = requiredCoreSelections(session.tailoring);
-  const sourceEquivalent = requiredCoreCoveredBySource(session)
-    ? requiredCore.map((selection) => selection.id)
-    : [];
   const recovered = {
     ...prepared,
     stage: 'Tailoring Review',
@@ -80,9 +65,11 @@ function recoverNoChangeBlock(session, prepared) {
     message: null,
     tailoringReview: prepared.tailoringReview || [],
     recovery: {
-      reason: 'deterministic_valid_complete_resume_with_no_material_wording_changes',
+      reason: requiredCore.length
+        ? 'valid_source_equivalent_core_evidence_with_no_material_wording_changes'
+        : 'valid_complete_resume_with_no_material_wording_changes',
       applicant_action: 'continue_without_tailoring_decisions',
-      source_equivalent_core_selection_ids: sourceEquivalent,
+      source_equivalent_core_selection_ids: requiredCore.map((selection) => selection.id),
     },
   };
   session.stage = 'tailoring-review';
@@ -97,6 +84,5 @@ module.exports = {
   recoverNoChangeBlock,
   requiredCoreCoveredBySource,
   requiredCoreSelections,
-  reviewableCorePresent,
   selectionHasSourceEquivalent,
 };
