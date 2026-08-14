@@ -30,6 +30,20 @@ function visibleStatements(artifact) {
   return (artifact.content.sections || []).flatMap((section) => (section.statements || []).map((statement) => ({ section, statement })));
 }
 function sourceStatement(statement) { return statement?.content_origin === 'source_resume_passthrough'; }
+function sourceKeepCoversSelection({ artifact, plan, selection, fact }) {
+  if (!plan.source_resume_snapshot?.sections?.length || !fact) return false;
+  const keep = (artifact.metadata?.draft_completion_source_keeps || []).find((item) =>
+    item.resume_content_selection_id === selection.id
+      && item.candidate_fact_id === selection.candidate_fact_id);
+  if (!keep?.source_statement_id || !keep?.source_text || !keep?.source_section) return false;
+  const visible = visibleStatements(artifact).find(({ section, statement }) =>
+    sourceStatement(statement)
+      && section.section === keep.source_section
+      && (statement.source_statement_id || statement.statement_id) === keep.source_statement_id);
+  if (!visible || normal(visible.statement.text) !== normal(keep.source_text)) return false;
+  const factValues = candidateFactSourceValues(fact).map(normal).filter(Boolean);
+  return factValues.includes(normal(keep.source_text));
+}
 
 function validateGeneratedSectionReplacement({ section, replacementReason, generatedIds, generatedEntries, selections }) {
   if (!generatedIds.length || generatedEntries.length !== generatedIds.length) return false;
@@ -231,7 +245,9 @@ function validate({ artifactRun, plan, integrity }) {
   for (const selection of plan.resume_content_selections.filter((item) => item.selection_state === 'include')) {
     const sections = renderedSelections.get(selection.id) || [];
     if (!sections.length) {
-      findings.push(finding('plan_completeness', 'included-selection-rendered', 'critical', 'Every included Resume Content Selection must render in generated visible output.', { selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section }));
+      const fact = facts.get(selection.candidate_fact_id);
+      if (sourceKeepCoversSelection({ artifact, plan, selection, fact })) continue;
+      findings.push(finding('plan_completeness', 'included-selection-rendered', 'critical', 'Every included Resume Content Selection must either render in supported generated output or remain visibly present as an exact source-backed KEEP statement.', { selection_id: selection.id, candidate_fact_id: selection.candidate_fact_id, recommended_section: selection.recommended_section }));
       continue;
     }
     const allowed = (section) => section === selection.recommended_section || (section === 'Professional Summary' && selection.permitted_claim_scope.includes('cross_section_summary'));
@@ -252,4 +268,4 @@ function statusFor(findings) {
   return 'passed';
 }
 
-module.exports = { POLICY_VERSION, validate, statusFor, validateSourceComposition };
+module.exports = { POLICY_VERSION, validate, statusFor, validateSourceComposition, sourceKeepCoversSelection };

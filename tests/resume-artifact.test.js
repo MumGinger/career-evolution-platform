@@ -62,5 +62,5 @@ test('deterministically completes an included Projects selection omitted by the 
   assert.deepEqual(projects.statements[0].resume_content_selection_ids, ['selection-project']);
   assert.deepEqual(projects.statements[0].provenance.candidate_fact_ids, ['fact-project']);
   assert.deepEqual(projects.statements[0].provenance.job_requirement_ids, ['requirement-project']);
-  assert.deepEqual(generated.metadata.draft_completion_fallbacks, [{ resume_content_selection_id: 'selection-project', candidate_fact_id: 'fact-project', recommended_section: 'Projects', reason: 'provider_omitted_included_selection' }]);
+  assert.deepEqual(generated.metadata.draft_completion_fallbacks, [{ resume_content_selection_id: 'selection-project', candidate_fact_id: 'fact-project', recommended_section: 'Projects', reason: 'provider_omitted_non_source_selection' }]);
 });
