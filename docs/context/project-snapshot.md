@@ -1,111 +1,115 @@
 # Project Snapshot
 
-**As of:** 2026-08-13 — Milestone 1 product/development reset
+**As of:** 2026-08-13 — Milestone 1 Engineering Beta Ready
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
-**Milestone 1 Accepted:** **NO**
-**Beta Accepted:** **NO**
+**Engineering Beta Ready:** **YES**
+**Milestone 1 Accepted:** **NO — FRESH HUMAN BETA REQUIRED**
+**Beta Accepted:** **NO — FRESH HUMAN BETA REQUIRED**
 
 Repository and current GitHub evidence override stale context.
 
 ## Product state
 
-Beta #1 through Beta #9 are historical **FAIL** results. The repeated failure pattern is that the project has not yet made the basic resume vertical slice consistently trustworthy enough for a real applicant.
+Beta #1 through Beta #9 remain historical FAIL results. They motivated a Milestone 1 reset around the basic resume vertical slice rather than broader platform expansion.
 
-The project is now explicitly frozen on **Milestone 1 — Reliable Resume Tailoring**. Read `MILESTONE_1.md` for the authoritative product/exit contract.
+The project is still in **Milestone 1 — Reliable Resume Tailoring**, but the internal engineering/pre-Beta gate is now complete. The next action is one fresh real-applicant Beta; do not continue pre-Beta polishing without new evidence.
 
-Milestone 1 is intentionally basic:
+Milestone 1 remains intentionally narrow:
 
 ```text
 real resume PDF + real job description
   -> system understanding
-  -> applicant correction
+  -> applicant correction when needed
   -> tailored review
   -> professional 1–2 page final PDF
 ```
 
 The final PDF is the primary product artifact.
 
-## Latest merged engineering floor
+## Current authoritative engineering evidence
 
-PR #144 (`Pre-Beta complex golden shipped-flow gate`) merged on 2026-08-13.
+PR #146 merged the Milestone 1 exit candidate, including canonical resume structure, reviewed-document export, explicit edit operations, correction-first Tailoring Review, strict shipped-flow boundaries, and three-shape natural E2E proof.
 
-It provides a valuable regression floor:
+Post-merge primary regressions in the shipped page were repaired before Beta:
 
-- complex deidentified master-resume-shaped PDF input;
-- natural shipped browser flow;
-- real provider classes against deterministic replay;
-- targeting, validation, Draft, Career Review, and export;
-- Skills narrowing and project prioritization;
-- no known parent/child duplication or blank/glyph bullets in the frozen candidate;
-- one-page final PDF;
-- exact runtime-evidence/final-PDF hash binding;
-- current CI green;
-- representative independent score 91/100.
+- Career Review export serializer restored;
+- Tailoring Review compatibility kept without returning to micro-approval burden;
+- manual Career Review edit payload corrected to the authoritative `finalVersion` contract.
 
-This is engineering evidence only. It does **not** establish Milestone 1 or Beta acceptance. The reviewed candidate still recorded a broad Summary, utilitarian typography, unused page whitespace, and remaining visual refinement.
+The final internal checkpoint is primary commit `8f62171f47b2f1bebcca1e36f158e3215a50c6e7`, CI run `31755414727`.
 
-## New Milestone 1 priority
+On that exact head:
 
-Priority order:
+- Unit and integration: PASS;
+- HTTP/PDF contract: PASS;
+- natural browser E2E: 3/3 PASS across materially different resume shapes;
+- correction-first default + natural-language correction regeneration: PASS;
+- Career Review manual edit/export: PASS;
+- machine-bound shipped-flow/runtime evidence: PASS;
+- frozen complex candidate: PASS;
+- formal exact-PDF pre-Beta quality gate: PASS.
 
-1. natural end-to-end completion;
-2. final-PDF structural correctness;
-3. professional typography/layout/page composition;
-4. no duplication or malformed content;
-5. applicant correction persistence;
-6. credible JD relevance and supported prioritization;
-7. deeper content intelligence later.
+Reviewed frozen PDF:
 
-90/100 remains the internal quality target, not an inflexible mathematical law. Hard blockers are absolute. A documented sub-90 exception is allowed only when every critical criterion passes and remaining deductions are non-material; material PDF/design/structure/E2E defects cannot be overridden.
+`7fc13d318695959eb25e5a0919f83bc52e548f6d80c7307e57683d97b7b7e768`
 
-## Architecture direction
+Formal gate result:
 
-Substantial restructuring is authorized when it simplifies the vertical slice.
+- total: 90/100;
+- verdict: `BETA READY`;
+- `beta_ready: true`;
+- critical FAIL: none;
+- critical UNKNOWN: none;
+- runtime evidence valid: true;
+- Engineering Lead override: false;
+- another internal loop required: false.
 
-Preferred durable Milestone 1 boundary:
+The PDF is one-page Letter, extractable and usable, with no known clipping, broken glyphs, blank/orphan bullets, section bleed, container/child duplication, or other Milestone 1 hard blocker.
+
+## Remaining non-blocking deductions
+
+The development candidate is credible but not perfect:
+
+- broad source Professional Summary;
+- noticeable lower-page whitespace;
+- conservative/utilitarian Helvetica finish;
+- limited impact/outcome evidence in the fixture without inventing unsupported claims.
+
+These may be learned from in Beta, but they do not justify another internal repair loop before the real applicant sees the product.
+
+## Architecture now under test in Beta
 
 ```text
 Source Resume PDF + Job Description
-  -> Resume Parser
   -> Canonical Resume Document
-  -> Targeting / explicit edit operations
+  -> Targeting / KEEP-OMIT-REWRITE-REORDER operations
   -> Reviewed Resume Document
   -> Professional Renderer
   -> Final PDF
 ```
 
-The resume document owns artifact structure. Source evidence owns factual support. Candidate Knowledge / persistent career memory is not a Milestone 1 blocking requirement.
+The resume document owns artifact structure. Source evidence owns factual support. The final PDF score is bound to exact output bytes, so renderer changes invalidate the old reviewed-artifact gate.
 
-Do not keep patching a fragmented boundary merely because prior code exists. If the same failure class survives two repair cycles, restructure the earliest broken boundary.
+## Fresh human Beta gate
 
-## Development evidence required before human Beta
+Run the real Ya-Ching resume + Zurich Data Analytics & AI job description through the normal shipped flow.
 
-- primary Ya-Ching + Zurich-shaped development golden;
-- natural E2E PASS;
-- all hard blockers PASS;
-- actual final PDF inspected by design/quality review;
-- professionally credible internal score;
-- at least three materially different resume shapes complete the natural E2E without structural breakage.
+Milestone 1 human acceptance requires both:
 
-Only then start the next fresh human Beta.
+1. the applicant would reasonably submit the resulting PDF; and
+2. the workflow is not painful or unreasonably burdensome.
 
-## Frozen scope
+Any newly observed structural/PDF/truth/correction/E2E hard failure returns to engineering. Otherwise, do not reopen internal quality work merely to chase polish scores.
+
+If both human judgments pass, close the remaining Milestone 1 applicant-facing acceptance issues and move to Milestone 2.
+
+## Issue state
+
+- #134 pre-Beta specialist/quality gate: engineering-complete and closed;
+- #138 real-input composition blocker: engineering-complete under current regressions; closure/archival is housekeeping;
+- #97, #122, #126 remain open because they require fresh applicant-facing acceptance evidence.
+
+## Frozen scope until Milestone 1 human acceptance
 
 Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization until Milestone 1 exits.
-
-## Active execution rhythm
-
-One Milestone blocker at a time:
-
-```text
-real-shaped regression
-  -> earliest-boundary repair/restructure
-  -> natural E2E
-  -> final PDF inspection
-  -> specialist review
-  -> independent score
-  -> internal repair loop
-  -> Milestone Exit Candidate
-  -> fresh human Beta
-```
