@@ -1,115 +1,80 @@
 # Project Snapshot
 
-**As of:** 2026-08-13 — Milestone 1 Engineering Beta Ready
+**As of:** 2026-08-13 — Fresh Beta regression under repair
 **Repository:** `MumGinger/career-evolution-platform`
 **Primary branch:** `chore/project-foundation`
-**Engineering Beta Ready:** **YES**
-**Milestone 1 Accepted:** **NO — FRESH HUMAN BETA REQUIRED**
-**Beta Accepted:** **NO — FRESH HUMAN BETA REQUIRED**
+**Engineering Beta Ready:** **NO**
+**Milestone 1 Accepted:** **NO**
+**Beta Accepted:** **NO**
 
 Repository and current GitHub evidence override stale context.
 
-## Product state
+## Current product state
 
-Beta #1 through Beta #9 remain historical FAIL results. They motivated a Milestone 1 reset around the basic resume vertical slice rather than broader platform expansion.
+Milestone 1 remains **Reliable Resume Tailoring**. The previously recorded engineering Beta-ready checkpoint was invalidated by fresh real-applicant evidence.
 
-The project is still in **Milestone 1 — Reliable Resume Tailoring**, but the internal engineering/pre-Beta gate is now complete. The next action is one fresh real-applicant Beta; do not continue pre-Beta polishing without new evidence.
+Fresh Beta reached:
 
-Milestone 1 remains intentionally narrow:
+- `3 of 5 · Draft blocked`;
+- 40 resume blocks read;
+- 40 matched to source;
+- 0 excluded;
+- **0 concrete changes**;
+- no reliable path to Career Review.
 
-```text
-real resume PDF + real job description
-  -> system understanding
-  -> applicant correction when needed
-  -> tailored review
-  -> professional 1–2 page final PDF
-```
+Developer View simultaneously showed source-understanding success (`Valid: 40`, `Validation reasons: none`). Those diagnostics were stale for the later Draft stage and did not explain the actual block.
 
-The final PDF is the primary product artifact.
+Fresh Beta is stopped. Active blocker: **#147 — zero-change real resume still Draft blocked**.
 
-## Current authoritative engineering evidence
+## Why prior CI missed it
 
-PR #146 merged the Milestone 1 exit candidate, including canonical resume structure, reviewed-document export, explicit edit operations, correction-first Tailoring Review, strict shipped-flow boundaries, and three-shape natural E2E proof.
+The same failure class had previously been addressed under #140 with a dedicated browser regression for the deterministic-valid zero-material-change path. During later restructuring, `tests/browser-e2e/issue140-no-change-flow.spec.js` disappeared from the current browser suite.
 
-Post-merge primary regressions in the shipped page were repaired before Beta:
+The three browser scenarios used for the previous pre-Beta gate therefore did not cover this exact path. A green 3/3 result was insufficient evidence for real zero-change input.
 
-- Career Review export serializer restored;
-- Tailoring Review compatibility kept without returning to micro-approval burden;
-- manual Career Review edit payload corrected to the authoritative `finalVersion` contract.
+## Current repair direction
 
-The final internal checkpoint is primary commit `8f62171f47b2f1bebcca1e36f158e3215a50c6e7`, CI run `31755414727`.
-
-On that exact head:
-
-- Unit and integration: PASS;
-- HTTP/PDF contract: PASS;
-- natural browser E2E: 3/3 PASS across materially different resume shapes;
-- correction-first default + natural-language correction regeneration: PASS;
-- Career Review manual edit/export: PASS;
-- machine-bound shipped-flow/runtime evidence: PASS;
-- frozen complex candidate: PASS;
-- formal exact-PDF pre-Beta quality gate: PASS.
-
-Reviewed frozen PDF:
-
-`7fc13d318695959eb25e5a0919f83bc52e548f6d80c7307e57683d97b7b7e768`
-
-Formal gate result:
-
-- total: 90/100;
-- verdict: `BETA READY`;
-- `beta_ready: true`;
-- critical FAIL: none;
-- critical UNKNOWN: none;
-- runtime evidence valid: true;
-- Engineering Lead override: false;
-- another internal loop required: false.
-
-The PDF is one-page Letter, extractable and usable, with no known clipping, broken glyphs, blank/orphan bullets, section bleed, container/child duplication, or other Milestone 1 hard blocker.
-
-## Remaining non-blocking deductions
-
-The development candidate is credible but not perfect:
-
-- broad source Professional Summary;
-- noticeable lower-page whitespace;
-- conservative/utilitarian Helvetica finish;
-- limited impact/outcome evidence in the fixture without inventing unsupported claims.
-
-These may be learned from in Beta, but they do not justify another internal repair loop before the real applicant sees the product.
-
-## Architecture now under test in Beta
+The no-change path is being repaired at the readiness boundary:
 
 ```text
-Source Resume PDF + Job Description
-  -> Canonical Resume Document
-  -> Targeting / KEEP-OMIT-REWRITE-REORDER operations
-  -> Reviewed Resume Document
-  -> Professional Renderer
-  -> Final PDF
+real resume + job
+  -> deterministic-valid complete draft
+  -> zero material wording changes
+  -> no fake Tailoring decision required
+  -> Draft
+  -> Career Review
+  -> export
 ```
 
-The resume document owns artifact structure. Source evidence owns factual support. The final PDF score is bound to exact output bytes, so renderer changes invalidate the old reviewed-artifact gate.
+A deterministic-valid complete zero-change resume must not depend on brittle selection-id/source-equivalence matching merely to become reviewable.
 
-## Fresh human Beta gate
+Strict boundaries remain:
 
-Run the real Ya-Ching resume + Zurich Data Analytics & AI job description through the normal shipped flow.
+- deterministic validation failure blocks;
+- material rewrite placement/support failure blocks;
+- unsupported/invented claims remain forbidden;
+- complete resume structure and final review/export equivalence remain protected.
 
-Milestone 1 human acceptance requires both:
+A permanent current browser regression has been restored as `tests/browser-e2e/issue147-zero-change-flow.spec.js`.
 
-1. the applicant would reasonably submit the resulting PDF; and
-2. the workflow is not painful or unreasonably burdensome.
+## Previous internal evidence
 
-Any newly observed structural/PDF/truth/correction/E2E hard failure returns to engineering. Otherwise, do not reopen internal quality work merely to chase polish scores.
+The earlier frozen development PDF remains historical evidence only:
 
-If both human judgments pass, close the remaining Milestone 1 applicant-facing acceptance issues and move to Milestone 2.
+`SHA-256 7fc13d318695959eb25e5a0919f83bc52e548f6d80c7307e57683d97b7b7e768`
 
-## Issue state
+It scored 90/100 with all critical criteria PASS for that candidate, but it no longer establishes Engineering Beta Ready because fresh Beta exposed a shipped-flow path not covered by the current suite.
 
-- #134 pre-Beta specialist/quality gate: engineering-complete and closed;
-- #138 real-input composition blocker: engineering-complete under current regressions; closure/archival is housekeeping;
-- #97, #122, #126 remain open because they require fresh applicant-facing acceptance evidence.
+## Exit before Beta resumes
 
-## Frozen scope until Milestone 1 human acceptance
+Do not restart human Beta until:
 
-Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization until Milestone 1 exits.
+1. #147 current zero-change browser regression passes;
+2. existing material-change/correction flows still pass;
+3. HTTP/PDF, unit/integration, and all browser E2E pass on the latest primary head;
+4. exact pre-Beta runtime/PDF gate passes again;
+5. durable docs are returned to Engineering Beta Ready only after that evidence exists.
+
+## Frozen scope
+
+Do not expand persistent Candidate Knowledge, long-term memory, proactive information acquisition, multiple templates, generic agent-framework work, Career Reflection, Curiosity, autonomous outcome learning, cover letters, job discovery, auto-application, or quantified time-saving optimization while #147 remains open.
