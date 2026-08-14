@@ -254,6 +254,10 @@ async function generateTailoring(session) {
     : !exportSafe
       ? 'The draft passed validation but did not produce a complete applicant review document. This is an internal product error, not an applicant correction task.'
       : null;
+  const recovery = !exportSafe ? {
+    action: 'start_new_session',
+    correlationId: `draft-${session.id}`,
+  } : null;
   Object.assign(session, {
     tailoring,
     presentation,
@@ -272,6 +276,7 @@ async function generateTailoring(session) {
     draftValidationFindings: validation.validation_findings,
     blocked: !exportSafe,
     message,
+    recovery,
   };
   return session.option2PreparedResult;
 }

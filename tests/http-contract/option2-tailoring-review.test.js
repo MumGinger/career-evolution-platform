@@ -79,6 +79,24 @@ function startMaterialDraftServer() {
   });
 }
 
+function startInvalidDraftServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      let raw = '';
+      req.setEncoding('utf8');
+      req.on('data', (chunk) => { raw += chunk; });
+      req.on('end', () => {
+        const body = JSON.parse(raw || '{}');
+        const schemaName = body.response_format?.json_schema?.name || 'connection_probe';
+        const content = schemaName === 'resume_draft' ? '{not-valid-json' : 'READY';
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ choices: [{ message: { content } }] }));
+      });
+    });
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
 test('applicant surface reviews concrete tailoring instead of re-verifying uploaded resume evidence', () => {
   assert.doesNotMatch(APPLICANT_PAGE, /<h2>Evidence Review<\/h2>/);
   assert.doesNotMatch(APPLICANT_PAGE, /Accept — allow this evidence|Skip — do not reuse this evidence/);
@@ -128,6 +146,33 @@ test('source attestation never promotes an AI-only normalized meaning into Candi
     assert.doesNotMatch(JSON.stringify(committed), /Led enterprise AI transformation/i);
     assert.match(JSON.stringify(committed), /Delivered business insights and data analysis reporting for stakeholders/i);
   }, { resumeUnderstandingProviderFromConfig: () => provider });
+});
+
+test('invalid draft validation returns a blocked safe-recovery contract', async () => {
+  const draftServer = await startInvalidDraftServer();
+  const address = draftServer.address();
+  const baseUrl = `http://127.0.0.1:${address.port}/v1`;
+  try {
+    await withServer(async ({ app, base }) => {
+      const started = await json(`${base}/api/llm-first/start`, input({
+        provider: 'openai-compatible',
+        model: 'invalid-draft-contract-provider',
+        apiKey: 'test-only-key',
+        baseUrl,
+      }));
+      assert.equal(started.response.status, 201, JSON.stringify(started.value));
+      assert.equal(started.value.stage, 'Draft blocked');
+      assert.equal(started.value.blocked, true);
+      assert.match(started.value.message, /blocked until deterministic draft validation passes/i);
+      assert.deepEqual(started.value.recovery, {
+        action: 'start_new_session',
+        correlationId: `draft-${started.value.sessionId}`,
+      });
+      assert.equal(app.sessions.get(started.value.sessionId).stage, 'draft-blocked');
+    }, { resumeUnderstandingProviderFromConfig: () => replayUnderstandingProvider() });
+  } finally {
+    await new Promise((resolve) => draftServer.close(resolve));
+  }
 });
 
 test('needs-correction flows through acquisition and 003.6, regenerates, and requires a second tailoring decision', async () => {

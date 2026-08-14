@@ -1,0 +1,27 @@
+{
+  "artifact_version": 1,
+  "delivery_incident": "#152",
+  "delivery_owner": {
+    "github_login": "MumGinger",
+    "role": "Engineering Lead"
+  },
+  "reported_primary_revision": "baaaacaf",
+  "affected_applicant_path": "resume input -> Draft",
+  "source_resume_sha256": "45cef2c95d10a9e0e382d09eba580d6aa0af9bf9e4e119eb0a6e2a5a4dfdaa3a",
+  "job_description_sha256": "289be378c80352a90d4676e88063a7b2aa57ae1aabc6215f4fcc65ccc11a5dc3",
+  "correlation_id": "cep-issue152-deidentified-draft-blocked-v1",
+  "scenario_shape": "validated deidentified resume with an OpenAI-compatible provider that returns an unusable structured Draft response",
+  "observable_symptom": {
+    "stage": "3 of 5 · Draft blocked",
+    "draft_review_available": false,
+    "safe_recovery_available": false
+  },
+  "sanitized_reason_category": "draft_provider_unusable_structured_response",
+  "required_safe_recovery": "start_new_session",
+  "privacy": {
+    "contains_resume_text": false,
+    "contains_job_description_text": false,
+    "contains_provider_credentials": false,
+    "contains_raw_provider_response": false
+  }
+}
