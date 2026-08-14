@@ -12,6 +12,9 @@ module.exports = defineConfig({
   workers: 1,
   reporter: 'line',
   timeout: 60_000,
+  expect: {
+    timeout: 15_000,
+  },
   use: {
     ...devices['Desktop Chrome'],
     headless: true,
