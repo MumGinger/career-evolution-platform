@@ -156,3 +156,26 @@ test('the exported PDF carries the same reviewed content as the approved resume 
 
   assert.doesNotMatch(pdfText, /â€¢|â€“|ï‚·|�/);
 });
+
+test('a source line break inside a statement does not fuse or break the reviewed text in the rendered PDF', async (t) => {
+  const run = [
+    sectionReview('Applicant Header', [source('Taylor Chen')]),
+    sectionReview('Experience', [
+      source('Data Analyst — Example Co.\nToronto, ON | May 2023 – Aug 2024', 'heading'),
+      source('Built dashboards across\nmultiple reporting workflows.', 'bullet'),
+    ]),
+  ];
+
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'issue158-pdf-word-boundary-'));
+  t.after(async () => {
+    fs.rmSync(temp, { recursive: true, force: true });
+    await applicant.closePdfRenderer();
+  });
+  const pdfPath = path.join(temp, 'final-resume.pdf');
+  fs.writeFileSync(pdfPath, await applicant.resumePdf(run));
+
+  const pdfText = execFileSync('pdftotext', ['-enc', 'UTF-8', pdfPath, '-'], { encoding: 'utf8' });
+
+  assert.match(pdfText, /across multiple reporting workflows\./, `expected the source line break to render as a plain word boundary, got:\n${pdfText}`);
+  assert.doesNotMatch(pdfText, /acrossmultiple/, `source line break must not fuse adjacent words, got:\n${pdfText}`);
+});

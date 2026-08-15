@@ -440,7 +440,7 @@ body{margin:0;padding:32px}
 .resume-entry-heading{font-size:10.5pt;line-height:1.25;margin:0;font-weight:700}
 .resume-entry-date{font-size:9.5pt;line-height:1.25;font-weight:600;white-space:nowrap;text-align:right;color:#303640}
 .resume-entry-meta{font-size:9.4pt;line-height:1.25;margin:1px 0 0;color:#424953}
-.resume-line{margin:2px 0;font-size:9.8pt;line-height:1.33;white-space:pre-line}
+.resume-line{margin:2px 0;font-size:9.8pt;line-height:1.33;white-space:normal}
 ul{margin:2px 0 4px;padding-left:16px}
 li{font-size:9.8pt;line-height:1.33;margin:1.7px 0;padding-left:1px}
 .resume-skill-groups{display:block;margin:0}
