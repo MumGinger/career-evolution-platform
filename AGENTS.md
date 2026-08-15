@@ -1,5 +1,15 @@
 # Working Agreement for Codex Agents
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues on `MumGinger/career-evolution-platform`, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context repo. This repo uses its own layered system (`PROJECT_CONTEXT.md`, `docs/context/`, `docs/adr/`, `docs/glossary.md`) instead of a plain `CONTEXT.md`. See `docs/agents/domain.md`.
+
 ## Authority and ownership
 
 `ENGINEERING_LEAD.md` is the source of truth for Engineering Lead ownership, delegation, review, and merge behavior.
