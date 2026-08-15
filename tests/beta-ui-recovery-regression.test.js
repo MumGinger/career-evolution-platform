@@ -165,6 +165,62 @@ test('Career Review and export use safe phases and retry export without duplicat
   });
 });
 
+test('a failed PDF render leaves the session recoverable instead of stuck at complete', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-pdf-retry-'));
+  let renderCalls = 0;
+  const app = createBetaUiServer({
+    port: 0,
+    renderPdf: async () => {
+      renderCalls += 1;
+      if (renderCalls === 1) throw new Error('renderer unavailable');
+      return Buffer.from('%PDF-1.4\n%%EOF\n', 'latin1');
+    },
+  });
+  const address = await app.listen();
+  const base = `http://127.0.0.1:${address.port}`;
+  try {
+    const store = {
+      createHumanReviewRun() { return { id: 'review-1', review_complete: true, section_reviews: [] }; },
+      exportResumeArtifact() { return { markdown: '# Approved resume' }; },
+      getCommittedCandidateKnowledge() { return []; },
+      close() {},
+    };
+    const session = {
+      id: 'pdf-retry-session',
+      mode: 'llm-first',
+      stage: 'career-review',
+      dir,
+      store,
+      semantic: { id: 'semantic-1' },
+      artifact: { id: 'artifact-1' },
+      presentation: { id: 'presentation-1' },
+      draftValidation: { validation_status: 'passed' },
+      provider: { provider: 'openai-compatible', model: 'safe-model' },
+    };
+    app.sessions.set(session.id, session);
+    const endpoint = `${base}/api/llm-first/sessions/${session.id}/career-review`;
+
+    const first = await json(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: [{ section: 'Skills', action: 'approve' }] }) });
+    assert.equal(first.response.status, 400);
+    assert.equal(first.value.category, 'export_failure');
+    assert.doesNotMatch(JSON.stringify(first.value), /renderer unavailable/);
+    assert.equal(session.stage, 'export-pending', 'a PDF render failure must not leave the session stuck at complete');
+    assert.equal(fs.existsSync(path.join(dir, 'final-resume.pdf')), false);
+
+    const outputAttempt = await fetch(`${base}/api/llm-first/sessions/${session.id}/outputs/final-resume.pdf`);
+    assert.equal(outputAttempt.status, 409, 'export must stay blocked until a retry actually succeeds');
+
+    const second = await json(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decisions: [{ section: 'Skills', action: 'approve' }] }) });
+    assert.equal(second.response.status, 200);
+    assert.equal(second.value.stage, 'complete');
+    assert.equal(session.stage, 'complete');
+    assert.equal(renderCalls, 2);
+    assert.equal(fs.existsSync(path.join(dir, 'final-resume.pdf')), true);
+  } finally {
+    await app.close();
+  }
+});
+
 test('Career Review persistence failure is safely categorized without changing readiness state', async () => {
   await withServer(async ({ app, base }) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-review-failure-'));
