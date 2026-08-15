@@ -25,11 +25,16 @@ function sourceValues(fact, template = null) {
   if (template === 'project_name' || template === 'skill_name') return [value.name].filter((item) => scalar(item)).map(String);
   return [...new Set([fact?.display_value, value.name, value.title, value.text, value.credential, value.degree, value.program, displayValue(fact)].filter((item) => scalar(item)).map(String))];
 }
-function templateFor(selection, fact) {
-  if (selection.recommended_section === 'Skills') return 'skill_name';
-  if (selection.recommended_section === 'Projects') return fact?.value?.text && fact.value.text !== fact.value.name ? 'bounded_project_responsibilities' : 'project_name';
-  if (selection.recommended_section === 'Experience' && fact?.entity_type === 'responsibility') return 'bounded_responsibility';
-  if (selection.recommended_section === 'Experience') return fact?.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
+function templateFor(selection, fact, renderedSection = selection.recommended_section) {
+  if (renderedSection === 'Professional Summary') return 'cross_section_summary';
+  if (renderedSection === 'Skills') return 'skill_name';
+  if (renderedSection === 'Projects') {
+    if (fact?.entity_type === 'responsibility') return 'bounded_project_responsibilities';
+    if (fact?.entity_type === 'achievement') return 'accepted_achievement_detail';
+    return fact?.value?.text && fact.value.text !== fact.value.name ? 'bounded_project_responsibilities' : 'project_name';
+  }
+  if (renderedSection === 'Experience' && fact?.entity_type === 'responsibility') return 'bounded_responsibility';
+  if (renderedSection === 'Experience') return fact?.entity_type === 'achievement' ? 'accepted_achievement_detail' : 'accepted_fact_detail';
   return 'accepted_fact_detail';
 }
 function renderedValue(fact, template) {
@@ -64,7 +69,7 @@ function generatedStatements(draft, plan, facts) {
   return GENERATED_SECTIONS.map((name, position) => ({ section: name, position: position + 1, placeholder: null, statements: (sections.get(name) || []).map((item, index) => {
     const factIds = [...new Set(item.candidate_fact_ids || [])]; const linked = factIds.map((id) => selections.get(id)).filter(Boolean);
     const first = linked[0]; const fact = facts.get(first?.candidate_fact_id);
-    return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}), text: item.text, display_style: 'bullet', content_origin: 'candidate_knowledge_generated', resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
+    return { statement_id: `draft:${name}:${index + 1}`, template: templateFor(first || {}, fact || {}, name), text: item.text, display_style: 'bullet', content_origin: 'candidate_knowledge_generated', resume_content_selection_ids: linked.map((selection) => selection.id), provenance: { candidate_fact_id: first?.candidate_fact_id || null, candidate_fact_revision: first?.candidate_fact_revision || null, candidate_fact_ids: factIds, job_requirement_ids: item.job_requirement_ids || [], inherited_provenance_references: linked.flatMap((selection) => selection.inherited_provenance_references || []) } };
   }) }));
 }
 function sameSet(left, right) { return left.length === right.length && new Set(left).size === left.length && left.every((item) => right.includes(item)); }
