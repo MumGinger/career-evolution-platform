@@ -143,6 +143,18 @@ test('submission-ready PDF is a valid uncompressed PDF with readable applicant c
   assert.doesNotMatch(pdf.toString('latin1'), /â€¢|\uFFFD/);
 });
 
+test('PDF preserves a word boundary when source resume text contains a line break', () => {
+  const run = reviewRun();
+  for (const version of [run.section_reviews[1].ai_version, run.section_reviews[1].final_version]) {
+    version.statements[1].text = 'Built dashboards across\nmultiple reporting workflows.';
+  }
+
+  const pdf = applicant.resumePdf(run.section_reviews).toString('latin1');
+
+  assert.match(pdf, /across multiple reporting workflows\./);
+  assert.doesNotMatch(pdf, /acrossmultiple/);
+});
+
 test('Evidence Review explanation distinguishes evidence reuse from final resume inclusion', () => {
   const explanation = applicant.evidenceAcceptExplanation();
   assert.match(explanation, /already comes from your uploaded resume/i);

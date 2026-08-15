@@ -475,6 +475,7 @@ body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto
 
 function pdfAscii(value) {
   return normalizeVisibleText(value)
+    .replace(/\s+/g, ' ')
     .replace(/[•▪◦]/g, '-')
     .replace(/[–—]/g, '-')
     .replace(/[“”]/g, '"')
