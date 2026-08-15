@@ -152,6 +152,7 @@ test('captures the deidentified Draft-blocked dead end without private replay in
   await expect(page.locator('#state')).toHaveText(REPRODUCTION.observable_symptom.stage);
   await expect(page.locator('#draft')).toBeVisible();
   await expect(page.locator('#tailoring')).toBeHidden();
+  await expect(page.locator('#continue-review')).toBeHidden();
   await expect(page.locator('#validation')).toContainText('We couldn’t create a reviewable draft.');
   await expect(page.locator('#validation')).toContainText(/Draft incident reference: draft-[a-f0-9-]+/);
   await expect(page.locator('#preview')).toBeEmpty();
