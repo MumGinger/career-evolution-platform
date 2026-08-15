@@ -247,6 +247,8 @@ test('real browser uses proposed tailoring by default, regenerates explicit corr
   expect(pdfBody.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
   const pdfPath = path.join(root, 'downloaded-final-resume.pdf');
   fs.writeFileSync(pdfPath, pdfBody);
+  const pdfInfo = execFileSync('pdfinfo', [pdfPath], { encoding: 'utf8' });
+  expect(pdfInfo).toMatch(/^Producer:\s+Skia\/PDF/m);
   const pdfText = execFileSync('pdftotext', ['-enc', 'UTF-8', pdfPath, '-'], { encoding: 'utf8' });
   expect(pdfText).toContain('Taylor Chen Updated');
 
