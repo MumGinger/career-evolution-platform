@@ -452,7 +452,7 @@ li{font-size:9.8pt;line-height:1.33;margin:1.7px 0;padding-left:1px}
 .resume-education-section .resume-entry{margin-bottom:7px}
 .resume-education-section .resume-line{margin:1px 0}
 @media(max-width:650px){.resume-entry-head{display:block}.resume-entry-date{display:block;text-align:left;margin-top:1px}.resume-skill-group{display:block}.resume-skill-label{display:block;min-width:0}.resume-paper{padding:24px}}
-@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.4in .5in}@page{size:Letter;margin:0}}
+@media print{:root,body{background:#fff}body{padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.4in .5in}@page{size:Letter;margin:0}}
 `;
 }
 

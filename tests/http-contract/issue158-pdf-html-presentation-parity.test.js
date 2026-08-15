@@ -61,6 +61,58 @@ function stripTags(html) {
     .trim();
 }
 
+function readPpmPixel(ppmPath, x, y) {
+  const buffer = fs.readFileSync(ppmPath);
+  let offset = 0;
+  function nextToken() {
+    while (buffer[offset] === 0x23) { while (buffer[offset] !== 0x0a) offset += 1; offset += 1; }
+    while (/\s/.test(String.fromCharCode(buffer[offset]))) offset += 1;
+    const start = offset;
+    while (!/\s/.test(String.fromCharCode(buffer[offset]))) offset += 1;
+    return buffer.toString('latin1', start, offset);
+  }
+  const magic = nextToken();
+  if (magic !== 'P6') throw new Error(`unsupported PPM magic: ${magic}`);
+  const width = Number(nextToken());
+  const height = Number(nextToken());
+  nextToken();
+  offset += 1;
+  if (x >= width || y >= height) throw new Error(`pixel (${x},${y}) outside ${width}x${height} image`);
+  const pixelStart = offset + (y * width + x) * 3;
+  return { r: buffer[pixelStart], g: buffer[pixelStart + 1], b: buffer[pixelStart + 2] };
+}
+
+test('the rendered PDF page has no gray canvas showing through below short content', async (t) => {
+  const run = [sectionReview('Applicant Header', [source('Taylor Chen')])];
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'issue158-pdf-visual-'));
+  t.after(async () => {
+    fs.rmSync(temp, { recursive: true, force: true });
+    await applicant.closePdfRenderer();
+  });
+  const pdfPath = path.join(temp, 'short-resume.pdf');
+  fs.writeFileSync(pdfPath, await applicant.resumePdf(run));
+
+  const dpi = 50;
+  const ppmPrefix = path.join(temp, 'page');
+  execFileSync('pdftoppm', ['-r', String(dpi), pdfPath, ppmPrefix]);
+  const ppmPath = `${ppmPrefix}-1.ppm`;
+  assert.ok(fs.existsSync(ppmPath), 'expected pdftoppm to produce a rasterized page');
+
+  const pageWidthPx = Math.round((612 / 72) * dpi);
+  const pageHeightPx = Math.round((792 / 72) * dpi);
+  for (const [label, x, y] of [
+    ['bottom-left corner', 10, pageHeightPx - 10],
+    ['bottom-right corner', pageWidthPx - 10, pageHeightPx - 10],
+    ['vertical center, far below the one-line header', Math.round(pageWidthPx / 2), Math.round(pageHeightPx * 0.6)],
+  ]) {
+    const pixel = readPpmPixel(ppmPath, x, y);
+    assert.ok(
+      pixel.r >= 250 && pixel.g >= 250 && pixel.b >= 250,
+      `expected white at ${label} (${x},${y}) below the short header, got rgb(${pixel.r},${pixel.g},${pixel.b}) — the web-view canvas background is showing through`,
+    );
+  }
+});
+
 test('the exported PDF carries the same reviewed content as the approved resume HTML', async (t) => {
   const run = reviews();
   const html = applicant.resumeHtml(run, { standalone: false });

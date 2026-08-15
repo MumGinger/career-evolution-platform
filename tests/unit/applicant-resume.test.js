@@ -171,3 +171,11 @@ test('a failed PDF render does not produce a false-success export', async () => 
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('print CSS clears the web-view gray background from the page root, not only the body', () => {
+  const css = applicant.resumeCss();
+  const printStart = css.indexOf('@media print');
+  assert.notEqual(printStart, -1, 'expected an @media print block');
+  const printBlock = css.slice(printStart);
+  assert.match(printBlock, /:root/, 'print styles must reset :root, not only body, or short pages show the web-view gray background');
+});
