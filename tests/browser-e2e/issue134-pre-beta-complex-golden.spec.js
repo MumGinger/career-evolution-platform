@@ -420,7 +420,7 @@ test('complex master-resume shape naturally converges to a targeted <=2-page app
   const pages = Number(info.match(/^Pages:\s+(\d+)/m)?.[1]);
   expect(Number.isInteger(pages)).toBe(true);
   expect(pages).toBeLessThanOrEqual(2);
-  const pdfText = execFileSync('pdftotext', [tempPdf, '-'], { encoding: 'utf8' });
+  const pdfText = execFileSync('pdftotext', ['-enc', 'UTF-8', tempPdf, '-'], { encoding: 'utf8' });
   expect(pdfText).toContain('Workflow Automation System');
   expect(pdfText).toContain('Global Compensation Analytics Dashboard');
   expect(pdfText).toContain('Data Analysis and Model Building');

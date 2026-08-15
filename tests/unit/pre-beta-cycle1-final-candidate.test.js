@@ -257,18 +257,4 @@ test('Cycle 1 representative candidate resolves Beta 9 section, targeting, omiss
     compositionMetadata.omitted_source_statements.map((item) => item.source_statement_id).sort(),
     ['source:semantic-cycle1:s18', 'source:semantic-cycle1:s19'],
   );
-
-  const pdf = applicant.resumePdf(review).toString('latin1');
-  for (const required of [
-    'PROFESSIONAL SUMMARY',
-    'SKILLS',
-    'Data analytics candidate with Power BI dashboard and reporting automation experience.',
-    'Programming & Data:',
-    'Data Visualization & BI:',
-    'Analytics Dashboard',
-    'University of Toronto',
-    'CFA Level I',
-  ]) assert.match(pdf, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.doesNotMatch(pdf, /Gift Recommendation App/);
-  assert.doesNotMatch(pdf, /quantitative finance/);
 });

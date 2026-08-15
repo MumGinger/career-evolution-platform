@@ -49,7 +49,7 @@ function exactChild(id, sourceParent, text, position) {
   return source(id, text, 'Projects', 'bullet', position, sourceParent);
 }
 
-test('real-input-shaped application artifact is target-specific, de-duplicated, and no longer three pages', () => {
+test('real-input-shaped application artifact is target-specific, de-duplicated, and no longer three pages', async () => {
   const skills = [
     source('source:skills-1', 'SKILLS\nProgramming & Data\nPython, Java, C++, JavaScript, SQL, VBA, HTML/CSS, MATLAB', 'Skills', 'inline', 1),
     source('source:skills-2', 'Data Visualization & BI\nPower BI, D3.js, Excel (Advanced), Interactive Dashboards, Data Storytelling, CSV Data Processing', 'Skills', 'inline', 2),
@@ -156,11 +156,11 @@ test('real-input-shaped application artifact is target-specific, de-duplicated, 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'issue138-real-input-final-'));
   try {
     const pdfPath = path.join(temp, 'final-resume.pdf');
-    fs.writeFileSync(pdfPath, applicant.resumePdf(run.section_reviews));
+    fs.writeFileSync(pdfPath, await applicant.resumePdf(run.section_reviews));
     const info = execFileSync('pdfinfo', [pdfPath], { encoding: 'utf8' });
     const pages = Number(info.match(/^Pages:\s+(\d+)/m)?.[1]);
     assert.ok(Number.isInteger(pages) && pages <= 2, `expected at most 2 pages, got ${pages}`);
-    const text = execFileSync('pdftotext', [pdfPath, '-'], { encoding: 'utf8' });
+    const text = execFileSync('pdftotext', ['-enc', 'UTF-8', pdfPath, '-'], { encoding: 'utf8' });
     assert.match(text, /PROFESSIONAL SUMMARY/);
     assert.match(text, /Python/);
     assert.match(text, /Power BI/);
@@ -170,5 +170,6 @@ test('real-input-shaped application artifact is target-specific, de-duplicated, 
     assert.equal(text.split(/\r?\n/).some((line) => line.trim() === '-'), false);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
+    await applicant.closePdfRenderer();
   }
 });

@@ -153,7 +153,7 @@ function normalizeApplicantResponse(value, session = null) {
   return value;
 }
 
-function cleanAndWriteApplicantOutputs(session, value) {
+async function cleanAndWriteApplicantOutputs(session, value) {
   if (!session?.run || !session?.exported) return value;
   const presentationRun = cleanup.cleanRun(session.run);
   const presentationExport = {
@@ -164,7 +164,7 @@ function cleanAndWriteApplicantOutputs(session, value) {
       artifactRun: session.artifact,
     }),
   };
-  session.exported = applicant.writeApplicantOutputs({
+  session.exported = await applicant.writeApplicantOutputs({
     directory: session.dir,
     run: presentationRun,
     exported: presentationExport,
@@ -341,7 +341,7 @@ function createBetaUiServer(options = {}) {
       }
 
       if (proxied.status < 300 && isCareerReview && session?.semantic?.id) {
-        value = cleanAndWriteApplicantOutputs(session, value);
+        value = await cleanAndWriteApplicantOutputs(session, value);
       }
 
       return send(res, proxied.status, normalizeApplicantResponse(value, responseSession));
@@ -359,6 +359,7 @@ function createBetaUiServer(options = {}) {
     },
     close: () => new Promise((resolve) => server.close(async () => {
       await coreApp.close();
+      await applicant.closePdfRenderer();
       resolve();
     })),
   };

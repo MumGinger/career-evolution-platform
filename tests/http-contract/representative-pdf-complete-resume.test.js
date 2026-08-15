@@ -97,7 +97,7 @@ test('representative PDF survives Option 2 source attestation, concrete review, 
     const pdf = sourcePdf(SOURCE_LINES);
     const sourcePath = path.join(root, 'representative-resume.pdf');
     fs.writeFileSync(sourcePath, pdf);
-    const extracted = spawnSync('pdftotext', [sourcePath, '-'], { encoding: 'utf8' });
+    const extracted = spawnSync('pdftotext', ['-enc', 'UTF-8', sourcePath, '-'], { encoding: 'utf8' });
     assert.equal(extracted.status, 0, extracted.stderr);
     assert.match(extracted.stdout, /Senior Analyst [–-] Northstar Insurance/);
     assert.match(extracted.stdout, /Built recurring executive reporting/);
@@ -207,7 +207,7 @@ test('representative PDF survives Option 2 source attestation, concrete review, 
     assert.match(pdfResponse.headers.get('content-type'), /application\/pdf/);
     const finalPdfPath = path.join(root, 'final-resume.pdf');
     fs.writeFileSync(finalPdfPath, Buffer.from(await pdfResponse.arrayBuffer()));
-    const finalText = spawnSync('pdftotext', [finalPdfPath, '-'], { encoding: 'utf8' });
+    const finalText = spawnSync('pdftotext', ['-enc', 'UTF-8', finalPdfPath, '-'], { encoding: 'utf8' });
     assert.equal(finalText.status, 0, finalText.stderr);
     for (const phrase of ['Taylor Chen', 'Senior Analyst', 'Data Analyst', 'Power BI', 'Example University']) {
       assert.match(finalText.stdout, new RegExp(phrase));
