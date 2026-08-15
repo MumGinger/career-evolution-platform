@@ -289,6 +289,7 @@ jobs:
         run: npm run pre-beta:gate -- test-results/runtime-evidence/milestone1-exit-scorecard.json test-results/runtime-evidence/issue134-pre-beta-complex-golden.json
 
       - name: Upload frozen complex pre-Beta quality artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: issue134-pre-beta-complex-golden
