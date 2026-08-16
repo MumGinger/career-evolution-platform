@@ -276,7 +276,7 @@ function replayDraft(payload) {
   ].filter(Boolean);
   if (summaryEvidence.length) {
     sections.set('Professional Summary', [{
-      text: 'Data analyst with hands-on project experience in workflow automation, data quality, and analytics reporting, including building the Workflow Automation System and performing data analysis and model evaluation on real-world datasets.',
+      text: 'Data analyst with hands-on project experience in workflow automation, data quality, and analytics reporting, including building automation tooling to extract and structure information, and performing data analysis and model evaluation on real-world datasets.',
       candidate_fact_ids: summaryEvidence.map((fact) => fact.candidate_fact_id),
       job_requirement_ids: [...new Set(summaryEvidence.flatMap((fact) => fact.mapped_job_requirement_ids.slice(0, 1)))],
     }]);
