@@ -503,12 +503,20 @@ async function pdfPage() {
   }
 }
 
+function pinPdfTimestamps(buffer) {
+  const pinned = buffer
+    .toString('latin1')
+    .replace(/(\/(?:CreationDate|ModDate) \(D:)\d{14}([+-]\d{2}'\d{2}'\))/g, '$119700101000000$2');
+  return Buffer.from(pinned, 'latin1');
+}
+
 async function resumePdf(reviews) {
   const html = resumeHtml(reviews, { title: 'Resume', standalone: true });
   const page = await pdfPage();
   try {
     await page.setContent(html, { waitUntil: 'load' });
-    return await page.pdf({ preferCSSPageSize: true, printBackground: true });
+    const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+    return pinPdfTimestamps(pdf);
   } finally {
     await page.close().catch(() => {});
   }

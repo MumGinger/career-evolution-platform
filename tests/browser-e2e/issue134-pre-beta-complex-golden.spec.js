@@ -258,6 +258,30 @@ function replayDraft(payload) {
       job_requirement_ids: fact.mapped_job_requirement_ids.slice(0, 1),
     });
   }
+
+  // Synthesize one target-specific Professional Summary statement from the strongest
+  // included, cross-section-eligible evidence, mirroring what a real provider does per
+  // the resume-draft system prompt ("Summary should synthesize the strongest
+  // target-relevant evidence rather than repeat a bullet verbatim").
+  const eligible = committed.filter((fact) =>
+    (fact.mapped_job_requirement_ids || []).length
+    && (fact.permitted_claim_scope || []).includes('cross_section_summary'));
+  const byValue = (needle) => eligible.find((fact) => fact.value.includes(needle));
+  const summaryEvidence = [
+    byValue('Workflow Automation System'),
+    byValue('Data Analysis and Model Building'),
+    byValue('Maintained data quality checks'),
+    byValue('Built workflow automation to extract structured information'),
+    byValue('Performed data analysis with regression models'),
+  ].filter(Boolean);
+  if (summaryEvidence.length) {
+    sections.set('Professional Summary', [{
+      text: 'Data analyst with hands-on project experience in workflow automation, data quality, and analytics reporting, including building the Workflow Automation System and performing data analysis and model evaluation on real-world datasets.',
+      candidate_fact_ids: summaryEvidence.map((fact) => fact.candidate_fact_id),
+      job_requirement_ids: [...new Set(summaryEvidence.flatMap((fact) => fact.mapped_job_requirement_ids.slice(0, 1)))],
+    }]);
+  }
+
   return {
     sections: [...sections.entries()].map(([section, statements]) => ({ section, statements })),
   };
