@@ -1,0 +1,78 @@
+{
+  "candidate_id": "issue134-pre-beta-complex-golden-v1",
+  "reviewed_final_pdf_sha256": "4f726c5e57caf7e636b086f9e658e3b246c2c6042727e480a6f7dba4d2cc29df",
+  "review_scope": "Independent visual and content review of the single-page Letter PDF rendered at 200 DPI, frozen from GitHub Actions run 31921017497 (issue-158-unify-pdf-html-presentation branch, post-Chromium-renderer). Score is valid only for these exact PDF bytes. Supersedes issue134-complex-golden-v1-scorecard.json, which was frozen against the pre-#158 hand-rolled PDF renderer and no longer corresponds to any PDF this codebase can produce. candidate_id intentionally matches the fixture's fixed scenario identity (tests/browser-e2e/issue134-pre-beta-complex-golden.spec.js CANDIDATE_ID) rather than the review cycle -- this file's own '-v2' filename tracks the review cycle for audit history.",
+  "dimensions": {
+    "job_specific_targeting": 7,
+    "content_coherence_prioritization": 9,
+    "concision_duplication_control": 10,
+    "evidence_strength_supported_meaning": 9,
+    "section_entry_integrity": 10,
+    "summary_skills_quality": 7,
+    "experience_projects_education_hierarchy": 10,
+    "typography_spacing_density_page_composition": 8,
+    "final_pdf_professional_credibility": 8,
+    "review_final_equivalence_decision_preservation": 9
+  },
+  "critical": {
+    "truth_support_integrity": "PASS",
+    "section_identity": "PASS",
+    "entry_integrity": "PASS",
+    "duplication_expansion_integrity": "PASS",
+    "applicant_decision_integrity": "PASS",
+    "professional_readability": "PASS",
+    "final_pdf_usability": "PASS",
+    "review_export_equivalence": "PASS",
+    "shipped_flow_completion": "PASS"
+  },
+  "review": {
+    "total": 87,
+    "verdict": "NEAR READY",
+    "rendered_pdf": "PASS: one-page Letter PDF rendered at 200 DPI; no clipping, overlap, broken glyphs, empty bullets, cross-entry bleed, or duplicate project bodies. Content fills 80.3% of page height (measured bounding box), leaving a moderate ~1.7in blank margin below Certifications.",
+    "preflight": "PASS: PDF 1.4, one page, Letter, unencrypted, no forms or JavaScript, extractable text.",
+    "deductions": [
+      {
+        "dimension": "job_specific_targeting",
+        "points_lost": 3,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The Professional Summary is retained verbatim from the master resume, including irrelevant 'markets' framing, despite Skills and Projects being clearly filtered toward the target role."
+      },
+      {
+        "dimension": "content_coherence_prioritization",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "The Tools & Workflow skills row was trimmed to only 'Workflow Automation', dropping n8n and LLM APIs even though the retained flagship project explicitly depends on both."
+      },
+      {
+        "dimension": "evidence_strength_supported_meaning",
+        "points_lost": 1,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Experience bullets are verbatim-supported; project bullet wording could not be independently re-verified against original phrasing during this review."
+      },
+      {
+        "dimension": "summary_skills_quality",
+        "points_lost": 3,
+        "owner": "Career Resume Content Specialist",
+        "reason": "Skills are well-curated and role-relevant, but the untouched Summary does not read as a target-specific synthesis at all."
+      },
+      {
+        "dimension": "typography_spacing_density_page_composition",
+        "points_lost": 2,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Moderate unused whitespace below Certifications (~15% of page height); alignment, rhythm, and bullets are otherwise clean."
+      },
+      {
+        "dimension": "final_pdf_professional_credibility",
+        "points_lost": 2,
+        "owner": "Career Resume Visual Designer",
+        "reason": "Renders with no defects, but the untailored Summary and loose bottom whitespace keep it from feeling fully polished."
+      },
+      {
+        "dimension": "review_final_equivalence_decision_preservation",
+        "points_lost": 1,
+        "owner": "Career Frontend Presentation Engineer",
+        "reason": "No drift evidence found and the PDF SHA-256 matches the shipped-flow runtime evidence, but full statement-by-statement equivalence was checked visually rather than re-derived from review-state data."
+      }
+    ]
+  }
+}

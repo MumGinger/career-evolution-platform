@@ -101,25 +101,3 @@ test('date-like body claims stay in body instead of being moved into entry metad
   assert.equal(model[0].entries[0].date, null);
   assert.equal(model[0].entries[0].body[0].text, 'Compared 2023 – 2024 monthly performance to identify seasonal changes.');
 });
-
-test('PDF uses the same professional entry hierarchy and right-aligns entry dates', () => {
-  const pdf = applicant.resumePdf([
-    sectionReview('Applicant Header', [source('Taylor Chen'), source('taylor@example.com | +1 416 555 0199')]),
-    sectionReview('Experience', [
-      source('Data Analyst — Example Co.\nToronto, ON | May 2023 – Aug 2024', 'heading'),
-      source('Built recurring executive reporting.', 'bullet'),
-    ]),
-    sectionReview('Projects', [
-      source('Claims Intelligence Dashboard', 'heading'),
-      source('Built a Power BI dashboard.', 'bullet'),
-      source('Jan 2025 – Apr 2025'),
-    ]),
-  ]).toString('latin1');
-
-  assert.match(pdf, /Data Analyst - Example Co/);
-  assert.match(pdf, /May 2023 - Aug 2024/);
-  assert.match(pdf, /Claims Intelligence Dashboard/);
-  assert.match(pdf, /Jan 2025 - Apr 2025/);
-  assert.match(pdf, /1 0 0 1 4\d{2}\.\d{2} \d+\.\d{2} Tm \(May 2023 - Aug 2024\)/);
-  assert.match(pdf, /1 0 0 1 4\d{2}\.\d{2} \d+\.\d{2} Tm \(Jan 2025 - Apr 2025\)/);
-});

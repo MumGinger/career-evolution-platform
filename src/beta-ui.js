@@ -153,7 +153,7 @@ function normalizeApplicantResponse(value, session = null) {
   return value;
 }
 
-function cleanAndWriteApplicantOutputs(session, value) {
+async function cleanAndWriteApplicantOutputs(session, value, renderPdf) {
   if (!session?.run || !session?.exported) return value;
   const presentationRun = cleanup.cleanRun(session.run);
   const presentationExport = {
@@ -164,11 +164,19 @@ function cleanAndWriteApplicantOutputs(session, value) {
       artifactRun: session.artifact,
     }),
   };
-  session.exported = applicant.writeApplicantOutputs({
-    directory: session.dir,
-    run: presentationRun,
-    exported: presentationExport,
-  });
+  try {
+    session.exported = await applicant.writeApplicantOutputs({
+      directory: session.dir,
+      run: presentationRun,
+      exported: presentationExport,
+      renderPdf,
+    });
+  } catch {
+    session.stage = 'export-pending';
+    const failure = new Error('We couldn’t create your resume files. Your approved resume is still here. Try again.');
+    failure.category = 'export_failure';
+    throw failure;
+  }
   return {
     ...value,
     resumeMarkdown: session.exported.markdown,
@@ -341,12 +349,12 @@ function createBetaUiServer(options = {}) {
       }
 
       if (proxied.status < 300 && isCareerReview && session?.semantic?.id) {
-        value = cleanAndWriteApplicantOutputs(session, value);
+        value = await cleanAndWriteApplicantOutputs(session, value, options.renderPdf);
       }
 
       return send(res, proxied.status, normalizeApplicantResponse(value, responseSession));
     } catch (error) {
-      return send(res, 400, { error: error.message });
+      return send(res, 400, { error: error.message, ...(error.category ? { category: error.category } : {}) });
     }
   });
 
@@ -359,6 +367,7 @@ function createBetaUiServer(options = {}) {
     },
     close: () => new Promise((resolve) => server.close(async () => {
       await coreApp.close();
+      await applicant.closePdfRenderer();
       resolve();
     })),
   };

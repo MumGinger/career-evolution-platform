@@ -14,3 +14,4 @@ Each ADR contains: Title, Status, Context, Decision, Alternatives Considered, an
 - [ADR-003: Acquire Before Generate](ADR-003-acquire-before-generate.md)
 - [ADR-004: Decision Operations Produce Immutable Runs](ADR-004-decision-operations-produce-immutable-runs.md)
 - [ADR-005: Candidate Knowledge Has a Single Write Path](ADR-005-candidate-knowledge-single-write-path.md)
+- [ADR-008: Final PDF Export Shares the Approved HTML's Presentation Contract](ADR-008-pdf-export-shares-html-presentation.md)

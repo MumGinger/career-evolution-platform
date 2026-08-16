@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const { createBetaUiServer } = require('../../src/beta-ui');
 const llmUnderstanding = require('../../src/llm-resume-understanding');
 
@@ -244,7 +245,12 @@ test('real browser uses proposed tailoring by default, regenerates explicit corr
   expect(pdf.headers()['content-type']).toContain('application/pdf');
   const pdfBody = await pdf.body();
   expect(pdfBody.subarray(0, 8).toString('latin1')).toMatch(/^%PDF-1\.4/);
-  expect(pdfBody.toString('latin1')).toContain('Taylor Chen Updated');
+  const pdfPath = path.join(root, 'downloaded-final-resume.pdf');
+  fs.writeFileSync(pdfPath, pdfBody);
+  const pdfInfo = execFileSync('pdfinfo', [pdfPath], { encoding: 'utf8' });
+  expect(pdfInfo).toMatch(/^Producer:\s+Skia\/PDF/m);
+  const pdfText = execFileSync('pdftotext', ['-enc', 'UTF-8', pdfPath, '-'], { encoding: 'utf8' });
+  expect(pdfText).toContain('Taylor Chen Updated');
 
   const report = await request.get(`${baseURL}${reportHref}`);
   expect(report.status()).toBe(200);

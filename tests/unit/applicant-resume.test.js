@@ -1,5 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const applicant = require('../../src/applicant-resume');
 const cleanup = require('../../src/applicant-cleanup');
 
@@ -134,15 +137,6 @@ test('Career Review HTML is applicant-readable and omits raw implementation reco
   assert.doesNotMatch(html, /Candidate Knowledge|003\.6|statement_id|candidate_fact_id|supporting_evidence.*\{/i);
 });
 
-test('submission-ready PDF is a valid uncompressed PDF with readable applicant content', () => {
-  const pdf = applicant.resumePdf(reviewRun().section_reviews);
-  assert.ok(Buffer.isBuffer(pdf));
-  assert.match(pdf.subarray(0, 8).toString('latin1'), /^%PDF-1\.4/);
-  assert.match(pdf.toString('latin1'), /Taylor Chen/);
-  assert.match(pdf.toString('latin1'), /EXPERIENCE/);
-  assert.doesNotMatch(pdf.toString('latin1'), /â€¢|\uFFFD/);
-});
-
 test('Evidence Review explanation distinguishes evidence reuse from final resume inclusion', () => {
   const explanation = applicant.evidenceAcceptExplanation();
   assert.match(explanation, /already comes from your uploaded resume/i);
@@ -158,4 +152,30 @@ test('Career Review origin explanations stay applicant-readable', () => {
   const explanation = applicant.sectionOriginExplanation(reviewRun().section_reviews[1]);
   assert.match(explanation, /uploaded resume|reviewed evidence|validation/i);
   assert.doesNotMatch(explanation, /Candidate Knowledge|003\.6|Integration/i);
+});
+
+test('a failed PDF render does not produce a false-success export', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'applicant-outputs-render-failure-'));
+  try {
+    await assert.rejects(
+      applicant.writeApplicantOutputs({
+        directory,
+        run: reviewRun(),
+        exported: { markdown: 'placeholder' },
+        renderPdf: async () => { throw new Error('renderer unavailable'); },
+      }),
+      /renderer unavailable/,
+    );
+    assert.deepEqual(fs.readdirSync(directory), []);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('print CSS clears the web-view gray background from the page root, not only the body', () => {
+  const css = applicant.resumeCss();
+  const printStart = css.indexOf('@media print');
+  assert.notEqual(printStart, -1, 'expected an @media print block');
+  const printBlock = css.slice(printStart);
+  assert.match(printBlock, /:root/, 'print styles must reset :root, not only body, or short pages show the web-view gray background');
 });

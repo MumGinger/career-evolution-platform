@@ -219,14 +219,4 @@ test('Beta 9 representative composed resume remains coherent through final HTML 
   assert.match(html, /class="resume-section resume-summary-section"/);
   assert.match(html, /class="resume-skill-group"/);
   assert.doesNotMatch(html, /<li>\s*<\/li>/);
-
-  const pdf = applicant.resumePdf(review).toString('latin1');
-  for (const required of [
-    'PROFESSIONAL SUMMARY',
-    'Data Analyst - Example Co.',
-    'Gift Recommendation App - analytics-focused recommendation workflow',
-    'Stock Pattern Label Platform',
-    'University of Toronto',
-    'CFA Level I',
-  ]) assert.match(pdf, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });

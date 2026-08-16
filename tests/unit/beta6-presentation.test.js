@@ -88,20 +88,3 @@ test('Career Review report explains final-selection scope without pretending omi
   assert.match(html, /uploaded resume remains unchanged/i);
   assert.match(html, /not a deletion log/i);
 });
-
-test('final PDF uses the stronger applicant-facing typography contract', () => {
-  const pdf = applicant.resumePdf([
-    sectionReview('Applicant Header', [
-      { text: 'Taylor Chen', display_style: 'line', content_origin: 'source_resume_passthrough' },
-      { text: 'taylor@example.com | +1 416 555 0199', display_style: 'line', content_origin: 'source_resume_passthrough' },
-    ]),
-    sectionReview('Experience', [
-      { text: 'Senior Analyst — Northstar Insurance', display_style: 'heading', content_origin: 'source_resume_passthrough' },
-      { text: 'Built recurring executive reporting.', display_style: 'bullet', content_origin: 'source_resume_passthrough' },
-    ]),
-  ]).toString('latin1');
-
-  assert.match(pdf, /\/F2 21 Tf/);
-  assert.match(pdf, /\/F2 11\.6 Tf/);
-  assert.match(pdf, /Senior Analyst - Northstar Insurance/);
-});

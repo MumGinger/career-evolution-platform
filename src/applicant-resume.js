@@ -431,7 +431,7 @@ body{margin:0;padding:32px}
 .resume-header .resume-name{font-size:24px;font-weight:700;letter-spacing:.01em;margin-bottom:4px}
 .resume-header .resume-contact{font-size:9.5pt;color:#3f4650;line-height:1.32}
 .resume-section{margin:12px 0 0;break-inside:auto}
-.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #8d949e;padding-bottom:2px;font-size:11pt;letter-spacing:.06em;text-transform:uppercase;color:#20252c}
+.resume-section>h2{margin:0 0 5px;border-bottom:1px solid #8d949e;padding-bottom:2px;font-size:11pt;letter-spacing:.06em;text-transform:uppercase;color:#20252c;break-after:avoid-page}
 .resume-summary-section{margin-top:9px}
 .resume-summary-section .resume-line{margin:0;font-size:10pt;line-height:1.36}
 .resume-entry{margin:0 0 8.5px;break-inside:avoid}
@@ -440,7 +440,7 @@ body{margin:0;padding:32px}
 .resume-entry-heading{font-size:10.5pt;line-height:1.25;margin:0;font-weight:700}
 .resume-entry-date{font-size:9.5pt;line-height:1.25;font-weight:600;white-space:nowrap;text-align:right;color:#303640}
 .resume-entry-meta{font-size:9.4pt;line-height:1.25;margin:1px 0 0;color:#424953}
-.resume-line{margin:2px 0;font-size:9.8pt;line-height:1.33;white-space:pre-line}
+.resume-line{margin:2px 0;font-size:9.8pt;line-height:1.33;white-space:normal}
 ul{margin:2px 0 4px;padding-left:16px}
 li{font-size:9.8pt;line-height:1.33;margin:1.7px 0;padding-left:1px}
 .resume-skill-groups{display:block;margin:0}
@@ -452,7 +452,7 @@ li{font-size:9.8pt;line-height:1.33;margin:1.7px 0;padding-left:1px}
 .resume-education-section .resume-entry{margin-bottom:7px}
 .resume-education-section .resume-line{margin:1px 0}
 @media(max-width:650px){.resume-entry-head{display:block}.resume-entry-date{display:block;text-align:left;margin-top:1px}.resume-skill-group{display:block}.resume-skill-label{display:block;min-width:0}.resume-paper{padding:24px}}
-@media print{body{background:#fff;padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.4in .5in}@page{size:Letter;margin:0}}
+@media print{:root,body{background:#fff}body{padding:0}.resume-paper{box-shadow:none;width:auto;min-height:auto;margin:0;padding:.4in .5in}@page{size:Letter;margin:0}}
 `;
 }
 
@@ -473,194 +473,71 @@ function careerReviewHtml(run, exported) {
 body{background:#f3f5f8;color:#172033}.review-shell{max-width:1080px;margin:auto}.review-intro,.review-card{background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:20px;margin:18px 0}.review-heading{display:flex;justify-content:space-between;align-items:center}.review-heading span{background:#e8f5ec;color:#176b39;border-radius:999px;padding:4px 10px;font-weight:700}.review-copy .resume-section,.review-copy .resume-header{border:0;margin:8px 0;padding:0;text-align:left}.approved-preview{margin:24px 0}.technical-note{font-size:14px;color:#566277}.presentation-note{background:#f6f8fb;border-radius:8px;padding:10px 12px}.presentation-note ul{margin-bottom:0}</style></head><body><main class="review-shell"><section class="review-intro"><h1>Career Review complete</h1><p>This report shows the resume you approved or corrected in applicant-readable form. It deliberately omits raw identifiers and implementation fields.</p><p class="technical-note">The structured JSON remains available separately for audit and interoperability; it is not the primary applicant review surface.</p></section><section class="review-intro"><h2>What changed for this application</h2><p>This is the final reviewed application resume, not a deletion log. Content not shown in this report is simply not part of this application artifact; your uploaded resume remains unchanged.</p><p>For each included section, <strong>Where this came from</strong> explains whether the wording was preserved from your source resume or created from reviewed evidence, and <strong>Why this section looks this way</strong> shows the available presentation rationale.</p></section><div class="approved-preview">${approved}</div><h1>Section-by-section review record</h1>${sections}<section class="review-intro"><h2>Approved resume text</h2><pre>${escapeHtml(normalizeVisibleText(exported.markdown))}</pre></section></main></body></html>`;
 }
 
-function pdfAscii(value) {
-  return normalizeVisibleText(value)
-    .replace(/[•▪◦]/g, '-')
-    .replace(/[–—]/g, '-')
-    .replace(/[“”]/g, '"')
-    .replace(/[’]/g, "'")
-    .replace(/[^\x20-\x7E]/g, '');
+let pdfBrowserPromise = null;
+function pdfBrowser() {
+  if (!pdfBrowserPromise) {
+    const { chromium } = require('playwright-core');
+    pdfBrowserPromise = chromium.launch().catch((error) => {
+      pdfBrowserPromise = null;
+      throw error;
+    });
+  }
+  return pdfBrowserPromise;
 }
 
-function wrapText(text, width) {
-  const words = pdfAscii(text).split(/\s+/).filter(Boolean);
-  if (!words.length) return [''];
-  const lines = [];
-  let line = '';
-  for (const word of words) {
-    if (!line) line = word;
-    else if (`${line} ${word}`.length <= width) line += ` ${word}`;
-    else { lines.push(line); line = word; }
-  }
-  if (line) lines.push(line);
-  return lines;
+async function closePdfRenderer() {
+  if (!pdfBrowserPromise) return;
+  const pending = pdfBrowserPromise;
+  pdfBrowserPromise = null;
+  const browser = await pending.catch(() => null);
+  if (browser) await browser.close();
 }
 
-function pdfEscape(value) {
-  return pdfAscii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+async function pdfPage() {
+  const browser = await pdfBrowser();
+  try {
+    return await browser.newPage();
+  } catch (error) {
+    pdfBrowserPromise = null;
+    return (await pdfBrowser()).newPage();
+  }
 }
 
-function resumePdf(reviews) {
-  const pageWidth = 612;
-  const pageHeight = 792;
-  const left = 44;
-  const right = 44;
-  const top = 36;
-  const bottom = 36;
-  const pages = [];
-  let commands = [];
-  let y = pageHeight - top;
-
-  function nextPage() {
-    if (commands.length) pages.push(commands.join('\n'));
-    commands = [];
-    y = pageHeight - top;
-  }
-  function ensureSpace(amount) {
-    if (y - amount < bottom) nextPage();
-  }
-  function textCommand(text, x, baseline, { font = 'F1', size = 10 } = {}) {
-    commands.push(`BT /${font} ${size} Tf 1 0 0 1 ${x.toFixed(2)} ${baseline.toFixed(2)} Tm (${pdfEscape(text)}) Tj ET`);
-  }
-  function addText(text, { font = 'F1', size = 9.8, leading = 12.8, indent = 0, align = 'left', widthChars = null } = {}) {
-    const width = widthChars || Math.max(32, Math.floor((pageWidth - left - right - indent) / (size * 0.52)));
-    for (const line of wrapText(text, width)) {
-      ensureSpace(leading);
-      const estimate = pdfAscii(line).length * size * 0.52;
-      const x = align === 'center' ? Math.max(left, (pageWidth - estimate) / 2) : left + indent;
-      textCommand(line, x, y, { font, size });
-      y -= leading;
-    }
-  }
-  function addSectionTitle(title) {
-    ensureSpace(29);
-    y -= 3;
-    textCommand(title.toUpperCase(), left, y, { font: 'F2', size: 11.6 });
-    y -= 4;
-    commands.push(`0.42 G ${left} ${y} m ${pageWidth - right} ${y} l S`);
-    y -= 8;
-  }
-  function addEntry(entry, section) {
-    ensureSpace(35);
-    if (entry.title || entry.date) {
-      const titleLines = entry.title ? wrapText(entry.title, entry.date ? 58 : 88) : [''];
-      const first = titleLines.shift() || '';
-      if (first) textCommand(first, left, y, { font: 'F2', size: 10.5 });
-      if (entry.date) {
-        const dateText = pdfAscii(entry.date);
-        const dateSize = 9.5;
-        const x = pageWidth - right - (dateText.length * dateSize * 0.52);
-        textCommand(dateText, x, y, { font: 'F1', size: dateSize });
-      }
-      y -= 12.7;
-      for (const line of titleLines) {
-        textCommand(line, left, y, { font: 'F2', size: 10.5 });
-        y -= 12.7;
-      }
-    }
-    for (const meta of entry.meta || []) addText(meta, { size: 9.4, leading: 11.7 });
-    for (const statement of entry.body || []) {
-      if (statement.display_style === 'bullet' && section !== 'Education') addText(`- ${statement.text}`, { size: 9.8, leading: 12.7, indent: 10 });
-      else addText(statement.text, { size: 9.8, leading: 12.7 });
-    }
-    y -= 3.5;
-  }
-
-  const document = reviewedResumeDocument(reviews);
-  for (const model of document.sections) {
-    if (model.kind === 'header') {
-      const body = model.entries[0]?.body || [];
-      body.forEach((statement, index) => addText(statement.text, {
-        font: index === 0 ? 'F2' : 'F1',
-        size: index === 0 ? 21 : 9.5,
-        leading: index === 0 ? 24 : 11.7,
-        align: 'center',
-      }));
-      y -= 2;
-      commands.push(`0.22 G ${left} ${y} m ${pageWidth - right} ${y} l S`);
-      y -= 9;
-      continue;
-    }
-
-    addSectionTitle(model.section);
-    if (model.kind === 'summary') {
-      for (const statement of model.entries[0]?.body || []) addText(statement.text, { size: 10, leading: 13 });
-      y -= 2;
-      continue;
-    }
-    if (model.kind === 'skills') {
-      for (const group of model.groups) {
-        ensureSpace(13);
-        textCommand(`${group.label}:`, left, y, { font: 'F2', size: 9.5 });
-        const labelWidth = Math.max(104, Math.min(165, (pdfAscii(group.label).length + 2) * 9.5 * 0.52 + 10));
-        const valueX = left + labelWidth;
-        const valueWidth = Math.max(38, Math.floor((pageWidth - right - valueX) / (9.5 * 0.52)));
-        const lines = wrapText(group.values, valueWidth);
-        lines.forEach((line, index) => {
-          if (index > 0) y -= 11.9;
-          textCommand(line, valueX, y, { size: 9.5 });
-        });
-        y -= 12.4;
-      }
-      if (model.items.length) addText(model.items.join(' | '), { size: 9.5, leading: 12.4 });
-      y -= 1;
-      continue;
-    }
-    if (model.kind === 'entries') {
-      for (const entry of model.entries) addEntry(entry, model.section);
-      continue;
-    }
-    for (const statement of model.entries[0]?.body || []) {
-      if (statement.display_style === 'bullet') addText(`- ${statement.text}`, { indent: 10 });
-      else addText(statement.text);
-    }
-    y -= 2;
-  }
-  if (commands.length || !pages.length) pages.push(commands.join('\n'));
-
-  const objects = [null];
-  const addObject = (body) => { objects.push(body); return objects.length - 1; };
-  const catalogId = addObject('');
-  const pagesId = addObject('');
-  const fontRegularId = addObject('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
-  const fontBoldId = addObject('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
-  const pageIds = [];
-  for (const stream of pages) {
-    const streamBuffer = Buffer.from(stream, 'latin1');
-    const contentId = addObject(`<< /Length ${streamBuffer.length} >>\nstream\n${stream}\nendstream`);
-    const pageId = addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontRegularId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${contentId} 0 R >>`);
-    pageIds.push(pageId);
-  }
-  objects[catalogId] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
-  objects[pagesId] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`;
-
-  let pdf = '%PDF-1.4\n%CEP\n';
-  const offsets = [0];
-  for (let id = 1; id < objects.length; id += 1) {
-    offsets[id] = Buffer.byteLength(pdf, 'latin1');
-    pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
-  }
-  const xref = Buffer.byteLength(pdf, 'latin1');
-  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
-  for (let id = 1; id < objects.length; id += 1) pdf += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
-  pdf += `trailer\n<< /Size ${objects.length} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
-  return Buffer.from(pdf, 'latin1');
+function pinPdfTimestamps(buffer) {
+  const pinned = buffer
+    .toString('latin1')
+    .replace(/(\/(?:CreationDate|ModDate) \(D:)\d{14}([+-]\d{2}'\d{2}'\))/g, '$119700101000000$2');
+  return Buffer.from(pinned, 'latin1');
 }
 
-function writeApplicantOutputs({ directory, run, exported }) {
+async function resumePdf(reviews) {
+  const html = resumeHtml(reviews, { title: 'Resume', standalone: true });
+  const page = await pdfPage();
+  try {
+    await page.setContent(html, { waitUntil: 'load' });
+    const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+    return pinPdfTimestamps(pdf);
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
+async function writeApplicantOutputs({ directory, run, exported, renderPdf = resumePdf }) {
   const markdown = normalizeVisibleText(humanReview.markdown(run));
   const reviewedResume = reviewedResumeDocument(run.section_reviews);
   const normalizedExport = { ...exported, markdown, reviewed_resume_document: reviewedResume };
+  const pdf = await renderPdf(run.section_reviews);
   fs.writeFileSync(path.join(directory, 'final-resume.md'), `${markdown}\n`);
   fs.writeFileSync(path.join(directory, 'final-resume.json'), `${JSON.stringify(normalizedExport, null, 2)}\n`);
   fs.writeFileSync(path.join(directory, 'career-review-report.html'), careerReviewHtml(run, normalizedExport));
-  fs.writeFileSync(path.join(directory, 'final-resume.pdf'), resumePdf(run.section_reviews));
+  fs.writeFileSync(path.join(directory, 'final-resume.pdf'), pdf);
   return normalizedExport;
 }
 
 module.exports = {
   REVIEWED_RESUME_VERSION,
   careerReviewHtml,
+  closePdfRenderer,
   evidenceAcceptExplanation,
   escapeHtml,
   isStandaloneDateRange,

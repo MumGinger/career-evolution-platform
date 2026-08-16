@@ -185,8 +185,4 @@ test('Cycle 2 candidate replaces broad master Skills with target-specific suppor
   assert.match(html, /Python/);
   assert.match(html, /Power BI/);
   assert.doesNotMatch(html, /JavaScript|MATLAB|Japanese \(Basic\)|Gift Recommendation App|quantitative finance/);
-
-  const pdf = applicant.resumePdf(review).toString('latin1');
-  assert.match(pdf, /Python \| SQL \| Power BI/);
-  assert.doesNotMatch(pdf, /JavaScript|MATLAB|Gift Recommendation App|quantitative finance/);
 });
